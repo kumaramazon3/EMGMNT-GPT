@@ -1,0 +1,112 @@
+﻿.login-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #b6b8b9;
+}
+
+.login-box {
+    width: 350px;
+    background: #fff;
+    height: 200px;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px #ccc;
+}
+
+.error-text {
+    color: red;
+    font-size: 12px;
+}
+
+.input-error {
+    border: 1px solid red !important;
+}
+
+.sort-icon {
+    margin-left: 5px;
+    font-size: 0.8em;
+}
+
+/* Gradient for the table header */
+#empTable thead {
+    /* background: linear-gradient( 90deg, #ff7f50,#87ceeb,#32cd32);*/
+    background-color: dimgrey;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+}
+    /* Optional: hover effect on header cells */
+    #empTable thead th {
+        padding: 8px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+        #empTable thead th:hover {
+             filter: brightness(1.2); /* slightly brighten on hover */
+        }
+
+/* Model Popup incress width*/
+
+.modal-xxl {
+    max-width: 100% !important; /* You can use 95%, 98% or 100% */
+}
+
+fieldset {
+    border: 1px solid #0d6efd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+legend {
+    font-size: 16px;
+    font-weight: bold;
+    color: #0d6efd;
+    padding: 0 10px;
+    width: auto;
+}
+
+/*html control reduce the font-face size*/
+.small-text * {
+    font-size: 13px !important;
+}
+
+/* Custom Model Popup width using CSS control reduce */
+.full-width-modal {
+    max-width: 99% !important;
+}
+
+/* Photo Preview */
+.photo-box {
+    display: inline-block; /* fieldset fits content */
+    padding: 10px 10px;
+    border: 2px solid #0a80ff;
+    border-radius: 10px;
+    width: 130px;
+    height: 130px;
+}
+
+.photo-wrapper {
+    width: 111px;
+    height: 111px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#photoPreview {
+    width: 111px;
+    height: 111px;
+    object-fit: cover; /* or contain — see below */
+    border: 1px solid #ccc;
+}
+
+/*CSS for Highlighting form error at Required fileds*/
+.highlight-error {
+    border: 2px solid red !important;
+    background-color: #ffe6e6 !important;
+}

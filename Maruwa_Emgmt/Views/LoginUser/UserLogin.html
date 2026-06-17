@@ -1,0 +1,31 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link href="~/css/customcss.css" rel="stylesheet" />
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="login-box">
+            <h3 class="text-center mb-4">User Login</h3>
+
+            <div class="form-group mb-3">
+                <label>User ID</label>
+                <input type="text" id="txtUserID" class="form-control" />
+                <span id="errUserID" class="error-text"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label>Password</label>
+                <input type="password" id="txtPassword" class="form-control" />
+                <span id="errPassword" class="error-text"></span>
+            </div>
+
+            <button id="btnLogin" class="btn btn-primary w-100">Login</button>
+        </div>
+    </div>
+    <script src="~/js/ajax_js/jsloginuser.js"></script>
+</body>
+</html>

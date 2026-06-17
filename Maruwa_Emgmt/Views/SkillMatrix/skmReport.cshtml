@@ -1,0 +1,127 @@
+﻿@{
+    ViewData["Title"] = "Skill Matrix Report";
+    var emp = Context.Session.GetString("EmployeeDetails");
+}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white pb-1">Skill Matrix Report</div>
+                <!-- 🔹 FILTER SECTION -->
+                <div class="card-body border-bottom pb-1">
+                    <div class="row  pb-1">
+
+                        <div class="col-md-2">
+                            <select class="form-control form-control-sm" id="department" title="Department" onclick="onDepartmentClick()">
+                                <option value="">--- Select Department ---</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <select class="form-control form-control-sm" id="subDepartment" title="Sub Department">
+                                <option value="">--- Select Sub Department ---</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <select class="form-control form-control-sm" id="section" title="Section">
+                                <option value="">--- Select Section ---</option>
+                            </select>
+                        </div>
+                
+                          <div class="col-md-2">
+                            <select class="form-control form-control-sm" id="pageSizeSelect">
+                                <option value="50">50</option>
+                                <option value="1005">100</option>
+                                <option value="150">150</option>
+                                <option value="All">All</option>
+                            </select>
+                        </div>
+
+                           <div class="col-md-3">
+                                <button onclick="prevPage()" style="border: none; background: none; cursor: pointer;">
+                                    <i class="fa fa-backward"></i>
+                                </button>
+                                <span id="paginationInfo" style="border: none; background: none; cursor: pointer;">1/1</span>
+                                <button onclick="nextPage()" style="border: none; background: none; cursor: pointer;">
+                                    <i class="fa fa-forward" aria-hidden="true"></i>
+                                </button>
+                                
+                            <span id="totalRecords" style="margin-left:10px;">Total Records: </span>
+                        </div>
+                        <div class="col-md-2 text-right">
+                            <button id="btnLoadSkillMatrix" class="btn btn-primary">🔍Search</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <table class="table table-bordered table-hover table-sm" id="tblSkillMatrixReport">
+                            <thead class="table-dark bg-secondary">
+                                <tr>
+                                    <th>Sno</th>
+                                    <th>Doc No</th>
+                                    <th>Doc Name</th>
+                                    <th>Dept</th>
+                                    <th>Section</th>
+                                    <th style="color:lawngreen;">Score</th>
+                                    <th style="color:aqua;">Old Score</th>
+                                    <th style="color:lawngreen;">Skill date</th>
+                                    <th style="color:aqua;">Old Skill date</th>
+                                    <th>Rev</th>
+                                    <th>EmpCode</th>
+                                    <th>EmpName</th>
+                                    <th>Position</th>
+                                    <th>CreatedBy</th>
+                                    <th>Created Date</th>
+                                    <th>ModifyedBy</th>
+                                    <th>Modifyed Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data via Ajax -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 4 Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="errorModalBody">
+                <!-- Error message will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #tblSkillMatrixReport thead th {
+        font-size: 11px;
+    }
+    #tblSkillMatrixReport {
+    font-size: 12px; /* smaller font size */
+}
+
+</style>
+
+@section Scripts {
+    <script>
+        const employeeSession = '@emp';
+    </script>
+    <script src="~/js/skillmatrix/jsskreportlist.js"></script>
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "Maruwa_Emgmt\\Maruwa_Emgmt.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\..\\Maruwa_Emgmt_CL\\Maruwa_Emgmt_CLS\\Maruwa_Emgmt_CLS\\Maruwa_Emgmt_CLS.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

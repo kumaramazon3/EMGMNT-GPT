@@ -1,0 +1,237 @@
+﻿@{
+    ViewData["Title"] = "Skill Matrix";
+    var emp = Context.Session.GetString("EmployeeDetails");
+}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Correct XLSX library -->
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+<div class="container-fluid mt-3">
+    <div class="card shadow-sm">
+        <!-- 🔹 FILTER SECTION -->
+        <div class="card-body border-bottom pb-2">
+            <div class="row align-items-end  justify-content-between">
+
+                <div class="col-md-2">
+                    <select class="form-control form-control-sm" id="department" title="Department" onclick="onDepartmentClick()">
+                        <option value="">--- Select Department ---</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <select class="form-control form-control-sm" id="subDepartment" title="Sub Department">
+                        <option value="">--- Select Sub Department ---</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <select class="form-control form-control-sm" id="section" title="Section">
+                        <option value="">--- Select Section ---</option>
+                    </select>
+                </div>
+                <!-- Start Date -->
+                <div class="col-md-2">
+                    <input type="date" class="form-control form-control-sm" id="startDate" max="" />
+                </div>
+
+                <div class="col-md-4 text-right">
+                    <button id="btnLoadSkillMatrix" class="btn btn-primary">🔍Search</button>
+                    <button class="btn btn-info" id="btskillmatrix">New Skill Matrix</button>
+                </div>
+            </div>
+        </div>
+       
+        <!-- 🔹 HEADER SECTION -->
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <!-- Left: Title + Info -->
+            <div>
+                <h6 class="mb-0 font-weight-bold d-inline mr-2">Employee Skill Matrix</h6>
+                <small id="span" class="text-light d-inline"></small>
+                <small id="spndataType" class="text-light d-inline" style="color:#17fffb !important"></small>
+            </div>
+            <!-- Right: Buttons -->
+            <div>
+                <button id="btnSubmitSkillMatrix" class="btn btn-light btn-sm mr-2" >Submit</button>
+                <button id="btnExportExcel" class="btn btn-success btn-sm" style="display:none;">Export Excel</button>
+            </div>
+        </div>
+
+        <!-- 🔹 TABLE SECTION -->
+        <div class="card-body table-responsive p-0" id="bottomScroll"> <table class="table table-bordered table-sm mb-0" id="skillTable"> 
+            <thead id="skillHead"></thead> 
+            <tbody id="skillBody" class="text-muted small"></tbody> 
+        </table> 
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="modalPopup" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle"></h5>
+                <button type="button" class="close" onclick="closeModal()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Unsaved Changes Modal -->
+<div class="modal fade" id="unsavedChangesModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unsaved Changes</h5>
+            </div>
+            <div class="modal-body">
+                Data modified but not submitted. Do you want to leave without submitting?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stay</button>
+                <button type="button" class="btn btn-primary" id="leavePageBtn">Leave</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<style>
+.vertical-header {
+    writing-mode: vertical-rl;     /* Vertical text */
+    text-orientation: mixed;       /* Keeps letters readable */
+    white-space: normal;           /* Allow wrapping */
+    word-break: break-word;        /* Break long words */
+    min-width: 60px;               /* Control column width */
+    max-height: 120px;             /* Optional: limit height */
+    padding: 8px 4px;
+    vertical-align: bottom;
+    transform: rotate(-180deg); /* rotate counter-clockwise */
+    }
+</style>
+
+<style>
+    /* ===== TOP SCROLLBAR ===== */
+    .top-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        height: 18px; /* MUST be set */
+        background: #f8f9fa; /* optional: light background so scrollbar area is visible */
+        border-bottom: 1px solid #ddd; /* optional: separate scrollbar visually */
+    }
+
+        /* scrollbar styling - optional */
+        .top-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+
+    #topScrollInner {
+        height: 1px; /* minimal height so div exists */
+    }
+
+    #bottomScroll {
+        overflow-x: auto; /* ensure horizontal scroll */
+        position: relative;
+    }
+    /* ===== TABLE STYLING ===== */
+    #skillTable {
+        table-layout: auto;
+        margin-bottom: 0;
+    }
+
+        #skillTable td,
+        #skillTable th {
+            padding: 7px 6px;
+            font-size: 13px;
+        }
+
+    /* ===== FIRST 3 STICKY COLUMNS ===== */
+    th.fixed-col,
+    td.fixed-col {
+        min-width: 100px;
+        max-width: 120px;
+        white-space: nowrap;
+        text-align: center;
+        background: #fff;
+    }
+
+        th.fixed-col:nth-child(1),
+        td.fixed-col:nth-child(1) {
+            position: sticky;
+            left: 0;
+            z-index: 3;
+        }
+
+        th.fixed-col:nth-child(2),
+        td.fixed-col:nth-child(2) {
+            position: sticky;
+            left: 100px;
+            z-index: 3;
+        }
+
+        th.fixed-col:nth-child(3),
+        td.fixed-col:nth-child(3) {
+            position: sticky;
+            left: 200px;
+            z-index: 3;
+        }
+
+        .small-font {
+    font-size: 0.6rem;
+}
+
+</style>
+
+<style>
+    #skillBody td {
+        padding: .25rem;
+        font-size: 0.6rem;
+    }
+
+    /* Center modal vertically in Bootstrap 4 */
+    .modal-dialog {
+        display: flex;
+        align-items: center;
+        min-height: calc(100% - 1rem);
+    }
+
+    /* Success header */
+    .modal-success .modal-header {
+        background-color: #28a745; /* green */
+        color: white;
+    }
+
+    /* Error header */
+    .modal-error .modal-header {
+        background-color: #dc3545; /* red */
+        color: white;
+    }
+</style>
+
+<style>
+    /* Remove number input arrows (Bootstrap 4 compatible) */
+    input.form-control::-webkit-inner-spin-button,
+    input.form-control::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input.form-control {
+        -moz-appearance: textfield;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const employeeSession = '@emp';
+    </script>
+    <script src="~/js/tm/jstna.js"></script>
+}

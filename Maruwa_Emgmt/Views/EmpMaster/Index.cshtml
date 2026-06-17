@@ -1,0 +1,897 @@
+﻿@{
+    ViewData["Title"] = "Employee Details";
+    var emp = Context.Session.GetString("EmployeeDetails");
+}
+<!-- Bootstrap JS bundle (includes Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js"></script>
+
+<!-- Bootstrap Icons CSS CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+
+
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<!-- jQuery (if not already included) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<link href="~/css/customcss.css" rel="stylesheet" />
+
+<div id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column" style="overflow-x: hidden;">
+            <!-- Main Content -->
+            <div id="content">
+                <h6 class="text-left h6 text-gray-900" style="font-size: x-large; color: black; margin: 0; padding: 0;" data-i18n="Index.empma_pTitle"></h6>
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid" style="border: none; background: none; cursor: pointer;">
+
+                    <!-- Search Panel -->
+                    <div class="card p-1 shadow-sm mb-1">
+                        <div class="row g-3">
+                            <div class="col-md-10">
+                                <input type="text" id="txtSearch" class="form-control" placeholder="search by emp code, name, dept, country" style="border:none;" />
+                            </div>
+                            <div class="col-md-1 align-items-right" style="align-items:last baseline;">
+                                <div class="d-flex justify-content-end align-items-center gap-3">
+
+                                <button id="btnexposrtCSV" onclick="exportTableToCSV()" title="Export to CSV" style="border: none; background: none; cursor: pointer;">
+                                    <i class="fa" style="color:blueviolet;">&#xf15b;</i>
+                                </button>&nbsp;
+
+                                <button id="btnexposrtExcel" onclick="exportTableToExcel()" title="Export to Excel" style="border: none; background: none; cursor: pointer;">
+                                    <i class="fa fa-file-excel-o" style="color:red;"></i>
+                                </button>&nbsp;
+                                <span id="addBtnWrapper" style="display: inline-block;">
+                                    <a href="/EmpMaster/EmpRegisteration" title="Add new employee" style="cursor:pointer; border:none; background:none;">
+                                        <i class="fa fa-user-plus" style="color:dodgerblue;" aria-hidden="true"></i>
+                                    </a>
+                                </span>
+                                &nbsp;&nbsp;
+                            </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div>
+                            <select class="form-control" id="pageSizeSelect">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="All">All</option>
+                            </select>
+                        </div>
+                        <div class="fw-bold" style="display: flex; align-items: center;">
+                            <h6 data-i18n="Index.empma_ptotalrecordcount" style="margin: 0;"></h6>
+                            <span id="totalCount" style="margin-left: 5px;" >0</span>
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        <div>
+                            <button onclick="prevPage()" style="border: none; background: none; cursor: pointer;"><i class="fa fa-backward"></i></button>
+
+                            <span id="currentPage" style="border: none; background: none; cursor: pointer;">1</span>
+
+                            <button onclick="nextPage()" style="border: none; background: none; cursor: pointer;"><i class="fa fa-forward" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-responsive shadow-sm" style="overflow-x: hidden;">
+                        <table id="empTable" class="table table-bordered table-hover table-sm small">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th data-i18n="Index.empma_tableSno" ></th>
+                                    <th onclick="sortTable('empcode')" data-i18n="Index.empma_tableempcode"> <i class="bi bi-arrow-down-up" style="font-size: 24px; color: black;"></i></th>
+                                    <th onclick="sortTable('empname')" data-i18n="Index.empma_tableempname"> <i class="bi bi-arrow-down-up" style="font-size: 24px; color: black;"></i></th>
+                                    <th onclick="sortTable('departmentcode')" data-i18n="Index.empma_tabledept"> <i class="bi bi-arrow-down-up"></i></th>
+                                    <th onclick="sortTable('subDepartment')"> subDepartment&nbsp;<i class="bi bi-arrow-down-up"></i></th>
+                                    <th onclick="sortTable('section')" data-i18n="Index.empma_tablesection"> &nbsp;<i class="bi bi-arrow-down-up"></i></th>
+                                    <th onclick="sortTable('dateofjoin')" data-i18n="Index.empma_tabledoj"> &nbsp;<i class="bi bi-arrow-down-up"></i></th>
+                                    <th onclick="sortTable('designation')" data-i18n="Index.empma_tabledesign"> &nbsp;<i class="bi bi-arrow-down-up"></i></th>
+                                    <th onclick="sortTable('sex')" data-i18n="Index.empma_tablesex"> &nbsp;<i class="bi bi-arrow-down-up"></i></th>
+                                    <th onclick="sortTable('nationality')" data-i18n="Index.empma_tablecountry"> <i class="bi bi-arrow-down-up"></i></th>
+                                    <th data-i18n="Index.empma_tableaction" style="width: 112px; max-width: 112px; white-space: nowrap;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="empBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3">
+                        <span id="totalCount" class="badge bg-dark p-2"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Popup Modal -->
+<div class="modal fade" id="addPopupModal" tabindex="-1">
+    <div class="modal-dialog full-width-modal modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white" style="padding:5px;10px;">
+                <h5 class="modal-title text-center w-100" id="hdpopuptitle"><b><i>Employee Master</i></b></h5>
+                <button type="button" class="btn-close" onclick="closeAddPopup()"
+                        style="border: none; background: none; cursor: pointer; color:red;border-radius: 50%;cursor: pointer;font-weight: bold;background-color:whitesmoke;">
+                    X</button>
+            </div>
+            
+            <div class="modal-body">
+
+                <h6 class="text-primary mb-2"></h6>
+                <!-- ================= Employee Details & Photo Preview ================= -->
+                <fieldset class="small">
+                    <legend class="float-none w-auto px-3">Employee Details</legend>
+                    <div class="row" style="font-size: 12px;">
+                        <!-- LEFT FORM -->
+                        <div class="col-md-8">
+
+                            <div class="row mb-1">
+                                <label class="col-sm-4 col-form-label">Employee ID:</label>
+                                <div class="col-sm-8 pt-2">
+                                    <span class="fw-bold" style="font-weight: bold;font-size:large;" id="empcode"></span>
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label class="col-sm-4 col-form-label" for="empname">Name (As in Passport/IC):</label>
+                                <div class="col-sm-6">
+                                    <input type="text" id="empname" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label class="col-sm-4 col-form-label">Department:</label>
+                                <div class="col-sm-6">
+                                    <select class="form-control form-control-sm" id="departmentcode" title="Department">
+                                        <option value="" selected style="text-align:center;">--- Select Department ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label class="col-sm-4 col-form-label">Section:</label>
+                                <div class="col-sm-6">
+                                    <select class="form-control form-control-sm" id="sectioncode" title="Section">
+                                        <option value="" disabled selected style="text-align:center;">--- Select Section ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label class="col-sm-4 col-form-label">Designation:</label>
+                                <div class="col-sm-6">
+                                    <select class="form-control form-control-sm" id="designation" title="Designation">
+                                        <option value=""  selected style="text-align:center;">--- Select Designation ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label for="dateofjoin" class="col-sm-4 col-form-label">Date of Join:</label>
+                                <div class="col-sm-6">
+                                    <input type="date" id="dateofjoin" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label for="emptype" class="col-sm-4 col-form-label">Employee Type:</label>
+                                <div class="col-sm-6">
+                                    <select class="form-control form-control-sm" id="emptype" title="Employee type">
+                                        <option value=""  selected style="text-align:center;">--- Select Type ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label for="contract" class="col-sm-4 col-form-label">Contract Period:</label>
+                                <div class="col-sm-6">
+                                    <input type="number" id="contract" min="0" step="1" class="form-control form-control-sm" placeholder="Months">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT PHOTO UPLOAD -->
+                        <div class="col-md-4 d-flex flex-column align-items-center">
+                            <div class="photo-box">
+                                <img id="photoPreview" src="" title="Photo preview">
+                            </div>
+                            <input type="file" id="img" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- ================= Employee Details ================= -->
+                <fieldset class="small">
+                    <legend class="float-none w-auto px-3">Employee Particular</legend>
+
+                    <!-- 1st Row: Nationality & Is Foreign -->
+                    <div class="row mb-0 align-items-center">
+                        <label for="nationality" class="col-md-2 col-form-label">Nationality:</label>
+                        <div class="col-md-3">
+                            <select class="form-control form-control-sm" id="nationality" title="Nationality">
+                                <option value=""  selected style="text-align:center;">--- Select Nationality ---</option>
+                              @*   <option>Country 1</option>
+                                <option>Country 2</option> *@
+                            </select>
+                        </div>
+
+                        <label class="col-md-2 col-form-label">Is Foreign?:</label>
+                        <div class="col-md-3 d-flex align-items-center">
+                            <input type="radio" name="foreignemp" value="Y" title="is Foreign Worker?"> Yes &nbsp;
+                            <input type="radio" name="foreignemp" value="N" title="is Foreign Worker?"> No
+                        </div>
+                    </div>
+
+                    <!-- 2nd Row: IC No & Passport No -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="newicno" class="col-md-2 col-form-label">IC No:</label>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control form-control-sm" id="newicno">
+                        </div>
+
+                        <label for="passportno" class="col-md-2 col-form-label">Passport No:</label>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control form-control-sm" id="passportno">
+                        </div>
+                    </div>
+
+                    <!-- 3rd Row: IC File & Passport File -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="icfileurl" class="col-md-2 col-form-label">IC File:</label>
+                        <div class="col-md-3">
+                            <input type="file" class="form-control" id="icfileurl" title="upload IC copy" accept=".pdf,.doc,.docx,image/*">
+                        </div>
+
+                        <label for="passportfileurl" class="col-md-2 col-form-label">Passport File:</label>
+                        <div class="col-md-3">
+                            <input type="file" class="form-control" id="passportfileurl" title="upload passport copy" accept=".pdf,.doc,.docx,image/*">
+                        </div>
+                    </div>
+
+                    <!-- 4th Row: DOB & Blood Group -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="dateofbirth" class="col-md-2 col-form-label">Date of Birth:</label>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control form-control-sm" id="dateofbirth">
+                        </div>
+
+                        <label for="bloodgroup" class="col-md-2 col-form-label">Blood Group:</label>
+                        <div class="col-md-3">
+                           @*  <input type="text" class="form-control form-control-sm" id="bloodgroup"> *@
+                            <select id="bloodgroup" class="form-control form-control-sm">
+                                <option value="" selected style="text-align:center;">--- select Blood Group ---</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 5th Row: Gender, Religion, Race -->
+                    <div class="row mb-1 align-items-center">
+                        <label class="col-md-2 col-form-label" for="sex">Gender:</label>
+                        <div class="col-md-2 d-flex align-items-center">
+                            <input type="radio" name="sex" id="male" value="male"> Male &nbsp;
+                            <input type="radio" name="sex" id="female" value="female"> Female
+                        </div>
+
+                        <label for="religion" class="col-md-0 col-form-label">Religion:</label>
+                        <div class="col-md-3">
+                            <select id="religion" class="form-control form-control-sm">
+                                <option value=""  selected style="text-align:center;">--- select Religion ---</option>
+                            </select>
+                        </div>
+
+                        <label for="race" class="col-md-0 col-form-label me-5">Race:</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <div class="col-md-3">
+                            <select id="race" class="form-control form-control-sm">
+                                <option value=""  selected style="text-align:center;">--- select Race ---</option>
+                                @* <option>Race 1</option>
+                                <option>Race 2</option> *@
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 6th Row: Mobile No -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="pphone" class="col-md-2 col-form-label">Mobile No:</label>
+                        <div class="col-md-3">
+                            <input type="tel" class="form-control form-control-sm" id="pphone" pattern="[0-9]{10}">
+                        </div>
+                    </div>
+
+                    <!-- 7th Row: Email -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="email" class="col-md-2 col-form-label">Email:</label>
+                        <div class="col-md-3">
+                            <input type="email" class="form-control form-control-sm" id="email">
+                        </div>
+                    </div>
+
+                    <!-- 8th Row: Marital Status, Spouse Name, Spouse Working, No. of Children -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="maritalstatus" class="col-md-2 col-form-label">Marital Status:</label>
+                        <div class="col-md-2">
+                            <select id="maritalstatus" class="form-control form-control-sm">
+                                <option value=""  selected style="text-align:center;">---select Marital Status---</option>
+                                @* <option value="S">Single</option>
+                                <option value="M">Married</option>
+                                <option value ="D">DIVORCED</option>
+                                <option value="W">WIDOW</option> *@
+                            </select>
+                        </div>
+
+                        <label for="spousename" class="col-form-label">Spouse Name:</label>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control form-control-sm" id="spousename">
+                        </div>
+
+                        <label class="col-form-label" for="isspouseworking">Spouse Working:</label>
+                        <div class="col-md-1 d-flex align-items-center">
+                            <input type="radio" name="isspouseworking" value="yes"> Yes &nbsp;
+                            <input type="radio" name="isspouseworking" value="no"> No
+                        </div>
+
+                        <label for="noofchildren" class="col-form-label">No. of Children:</label>
+                        <div class="col-md-2">
+                            <input type="number" class="form-control form-control-sm" id="noofchildren" min="0">
+                        </div>
+                    </div>
+
+                    <!-- 9th Row: Permanent Address & Mailing Address -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="address1" class="col-md-2 col-form-label">Permanent Address:</label>
+                        <div class="col-md-3">
+                            <textarea class="form-control form-control-sm" id="address1" rows="2"></textarea>
+                        </div>
+
+                        <label for="address2" class="col-form-label">Mailing Address:</label>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sameaspermanent" name="sameAsPermanent">
+                                <label class="form-check-label" for="sameaspermanent">
+                                    Same as Permanent Address
+                                </label>
+                            </div>
+                            <textarea class="form-control form-control-sm" id="address2" rows="2"></textarea>
+                        </div>
+
+                        @* <div class="col-md-3 d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sameaspermanent" name="sameAsPermanent">
+                                <label class="form-check-label" for="sameaspermanent">
+                                    Same as Permanent Address
+                                </label>
+                            </div>
+                        </div> *@
+                    </div>
+
+                    <!-- 10th Row: Staying Hostel -->
+                    <div class="row mb-1 align-items-center">
+                        <label class="col-md-2 col-form-label" for="stayinhostel">Staying Hostel:</label>
+                        <div class="col-md-3 d-flex align-items-center">
+                            <input type="radio" name="stayinhostel" value="yes"> Yes &nbsp;
+                            <input type="radio" name="stayinhostel" value="no"> No
+                        </div>
+                    </div>
+
+                    <!-- 11th Row: Hostel Name & House No -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="hostelname" class="col-md-2 col-form-label">Hostel Name:</label>
+                        <div class="col-md-3">
+                            <select id="hostelname" class="form-control form-control-sm">
+                                <option value=""  selected style="text-align:center;">--- select Hostel ---</option>
+                            @*     <option>Hostel 1</option>
+                                <option>Hostel 2</option> *@
+                            </select>
+                        </div>
+
+                        <label for="houseno" class="col-md-2 col-form-label">House No:</label>
+                        <div class="col-md-3">
+                            <select id="houseno" class="form-control form-control-sm">
+                                <option value=""  selected style="text-align:center;">--- select House No ---</option>
+                             @*    <option>House 1</option>
+                                <option>House 2</option> *@
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 12th Row: Driving License & License Type -->
+                    <div class="row mb-1 align-items-center">
+                        <label class="col-md-2 col-form-label" for="drivinglicense">Driving License:</label>
+                        <div class="col-md-3 d-flex align-items-center">
+                            <input type="radio" name="drivinglicense" value="yes"> Yes &nbsp;
+                            <input type="radio" name="drivinglicense" value="no"> No
+                        </div>
+
+                        <label for="licensetype" class="col-md-2 col-form-label">License Type:</label>
+                        <div class="col-md-3">
+                            <select id="licensetype" class="form-control form-control-sm">
+                                <option value=""  selected style="text-align:center;">--- select License Type ---</option>
+                            </select>
+
+                        </div>
+                    </div>
+
+                    <!-- 13th Row: Vehicle Nos -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="vehicleno" class="col-md-2 col-form-label">Vehicle No:</label>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control form-control-sm" id="vehicleno">
+                        </div>
+
+                        <label for="vehicleno2" class="col-form-label">Vehicle No 2:</label>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control form-control-sm" id="vehicleno2">
+                        </div>
+                        <label for="vehicleno3" class="col-form-label">Vehicle No 3:</label>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control form-control-sm" id="vehicleno3">
+                        </div>
+
+                    </div>
+
+                    <!-- 14th Row: Transport Need & Route -->
+                    <div class="row mb-1 align-items-center">
+                        <label class="col-md-2 col-form-label" for="transportneeded">Transport Need?:</label>
+                        <div class="col-md-3 d-flex align-items-center">
+                            <input type="radio" name="transportneeded" value="yes"> Yes &nbsp;
+                            <input type="radio" name="transportneeded" value="no"> No
+                        </div>
+
+                        <label for="route" class="col-md-2 col-form-label">Route:</label>
+                        <div class="col-md-3">
+                            <select id="route" class="form-control form-control-sm">
+                                <option value=""  selected style="text-align:center;">-- select Route---</option>
+                               @*  <option>Route 1</option>
+                                <option>Route 2</option> *@
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 15th Row: Bank Name & Account No -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="bank" class="col-md-2 col-form-label">Bank Name:</label>
+                        <div class="col-md-3">
+                            <select id="bank" class="form-control form-control-sm">
+                                <option value=""  selected style="text-align:center;">--- select Bank ---</option>
+                                @* <option>Bank 1</option>
+                                <option>Bank 2</option> *@
+                            </select>
+                        </div>
+
+                        <label for="accountno" class="col-md-2 col-form-label">Account No:</label>
+                        <div class="col-md-3">
+                            <input type="number" class="form-control form-control-sm" id="accountno" min="0" placeholder="Bank Account No">
+                        </div>
+                    </div>
+
+                    <!-- 16th Row: EPF No & SOCSO No -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="epf" class="col-md-2 col-form-label">EPF No:</label>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control form-control-sm" id="epf">
+                        </div>
+
+                        <label for="sosco" class="col-md-0 col-form-label">SOSCO No:</label>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control form-control-sm" id="sosco">
+                        </div>
+
+                        <label for="taxno" class="col-md-0 col-form-label">Tax No:</label>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control form-control-sm" id="taxno">
+                        </div>
+                    </div>
+
+                    <!-- 17th Row: Emergency Contact -->
+                    <div class="row mb-1 align-items-center">
+                        <label for="EmergencyContactPerson" class="col-md-2 col-form-label">Emergency Contact No:</label>
+                        <div class="col-md-3">
+                            <input type="tel" class="form-control form-control-sm" id="EmergencyContactPerson" pattern="[0-9]{10}">
+                        </div>
+
+                        <label for="relation" class="col-md-0 col-form-label">Relation:</label>
+                        <div class="col-md-3">
+                            <select id="relation" class="form-control form-control-sm">
+                                <option value=""  selected style="text-align:center;">--- select Relation ---</option>
+                              @*   <option>Father</option>
+                                <option>Mother</option>
+                                <option>Spouse</option>
+                                <option>Sibling</option>
+                                <option>Other</option> *@
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-1 align-items-center">
+                        <label for="EmergencyAddress" class="col-md-2 col-form-label">Emergency Contact Address:</label>
+                        <div class="col-md-3">
+                            <textarea class="form-control form-control-sm" id="EmergencyAddress" rows="2"></textarea>
+                        </div>
+
+                        <label for="EmergencyContactPerson2" class="col-md-2 col-form-label">Emergency Contact No 2:</label>
+                        <div class="col-md-3">
+                            <input type="tel" class="form-control form-control-sm" id="EmergencyContactPerson2" pattern="[0-9]{10}">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- ================= Education Details ================= -->
+                <fieldset class="small">
+                    <legend class="w-auto px-2 fw-bold">Education Details</legend>
+
+                    <!-- Row 1 -->
+                    <div class="row mb-2 align-items-center">
+                        <label for="edulevel" class="col-md-2 col-form-label">Education Level:</label>
+                        <div class="col-md-3">
+                            <select id="edulevel" name="edulevel" class="form-control form-control-sm">
+                                <option value="" selected style="text-align:center;">--- select Education Level ---</option>
+                            </select>
+                        </div>
+
+                        <label for="languagespeaking" class="col-md-1 col-form-label">Language Proficiency:</label>
+                        <div class="col-md-3">
+                            <select id="languagespeaking" name="languagespeaking" class="form-control form-control-sm">
+                                <option value="" selected style="text-align:center;">--- select Language ---</option>
+                            </select>
+                        </div>
+
+                        <label for="proficiencylevel" class="col-md-1 col-form-label">Proficiency Level:</label>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control form-control-sm" id="proficiencylevel" placeholder="Proficiency Level">
+                        </div>
+                    </div>
+
+                    <!-- Row 2 -->
+                    <div class="row mb-2 align-items-center">
+                        <label for="fieldstudy" class="col-md-2 col-form-label">Field of Study:</label>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control form-control-sm" id="fieldstudy" placeholder="Field of Study">
+                        </div>
+
+                        <label for="professionaldocurl" class="col-md-2 col-form-label">Professional Doc:</label>
+                        <div class="col-md-4">
+                            <input type="file" class="form-control form-control-sm" id="professionaldocurl" accept=".pdf,.doc,.docx,image/*">
+                        </div>
+                    </div>
+
+                    <!-- Row 3 -->
+                    <div class="row mb-2 align-items-center">
+                        <label for="others" class="col-md-2 col-form-label">Other Qualification:</label>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control form-control-sm" id="others" placeholder="Other Qualification">
+                        </div>
+
+                        <label for="resume" class="col-md-2 col-form-label">Resume:</label>
+                        <div class="col-md-4">
+                            <input type="file" class="form-control form-control-sm" id="resume" accept=".pdf,.doc,.docx,image/*">
+                        </div>
+                    </div>
+
+                    <!-- Row 4 -->
+                    <div class="row mb-2 align-items-center">
+                        <label for="academicCertificateurl" class="col-md-2 col-form-label">Academic Certificate:</label>
+                        <div class="col-md-4">
+                            <input type="file" class="form-control form-control-sm" id="academicCertificateurl" accept=".pdf,.doc,.docx,image/*">
+                        </div>
+
+                        <label for="othercertificatesurl" class="col-md-2 col-form-label">Other Certificate:</label>
+                        <div class="col-md-4">
+                            <input type="file" class="form-control form-control-sm" id="othercertificatesurl" accept=".pdf,.doc,.docx,image/*">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- ================= Uniform and PPE Details ================= -->
+                <fieldset class="small">
+                    <legend class="w-auto px-2 fw-bold">
+                        Uniform and PPE Details
+                    </legend>
+
+                    <div class="row">
+                        <!-- LEFT SIDE -->
+                        <div class="col-md-6" @*  style="border: 2px dotted red;" *@>
+                          
+                            <!-- Row 1 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="jackno" class="col-md-2 col-form-label">Jacket Size:</label>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control form-control-sm" id="jackno" placeholder="Jacket Size" title="Jacket Size">
+                                </div>
+
+                                <label for="jackqty" class="col-md-0 col-form-label">QTY:</label>
+                                <div class="col-md-4">
+                                    <input type="number" class="form-control form-control-sm" min="0" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')" title="jacket qty" placeholder="qty">
+                                </div>
+                            </div>
+
+                            <!-- Row 2 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="tno" class="col-md-2 col-form-label">T-Shirt Size:</label>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control form-control-sm" id="tno" placeholder="T-Shirt Size" title="T-Shirt Size">
+                                </div>
+
+                                <label for="tshirtqty" class="col-md-0 col-form-label">QTY:</label>
+                                <div class="col-md-4">
+                                    <input type="number" class="form-control form-control-sm" min="0" step="1" title="T-shirt qty" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="qty">
+                                </div>
+                            </div>
+
+                            <!-- Row 3 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="pantsize" class="col-md-2 col-form-label">Pant Size:</label>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control form-control-sm" id="pantsize" title="Pant Size" placeholder="Pant Size">
+                                </div>
+
+                                <label for="pantqty" class="col-md-0 col-form-label">QTY:</label>
+                                <div class="col-md-4">
+                                    <input type="number" class="form-control form-control-sm" min="0" step="1" title="pant qty" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="qty">
+                                </div>
+                            </div>
+
+                            <!-- Row 4 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="shoeno" class="col-md-2 col-form-label">Safety Shoes:</label>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control form-control-sm" id="shoeno" placeholder="Safety Shoes" title="Safety Shoes">
+                                </div>
+
+                                <label for="shoeqty" class="col-md-0 col-form-label">QTY:</label>
+                                <div class="col-md-4">
+                                    <input type="number" id="shoeqty" title="shoe qty" class="form-control form-control-sm" min="0" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="qty">
+                                </div>
+                            </div>
+
+                            <!-- Row 5 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="capcolor" class="col-md-2 col-form-label">Cap:</label>
+                                <div class="col-md-4">
+                                    <select name="capcolor" id="capcolor" class="form-control form-control-sm" title="Cap">
+                                        <option value=""  selected style="text-align:center;">-- Select Cap --</option>
+                                    </select>
+                                </div>
+
+                                <label for="capqty" class="col-md-0 col-form-label">QTY:</label>
+                                <div class="col-md-4">
+                                    <input type="number" class="form-control form-control-sm" min="0" step="1" id="capqty" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="qty" title="cap qty">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- RIGHT SIDE -->
+                        <div class="col-md-6" @* style="border: 2px dotted red;" *@>
+
+                            <!-- Row 1 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="safetybeltsize" class="col-md-3 col-form-label">Safety Belt Size:</label>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control form-control-sm" id="safetybeltsize" placeholder="Safety Belt Size" title="Safety Belt Size">
+                                </div>
+
+                                <label for="safetybeltqty" class="col-md-0 col-form-label">Belt QTY:</label>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control form-control-sm" min="0" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')" title="Belt QTY" placeholder="belt qty">
+                                </div>
+                            </div>
+
+                            <!-- Row 2 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="earmuffqty" class="col-md-3 col-form-label">Earmuff (QTY):</label>
+                                <div class="col-md-4">
+                                    <input type="number" id="earmuffqty" class="form-control form-control-sm" min="0" step="1"  title="earmff qty" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="earmuff qty">
+                                </div>
+                            </div>
+
+                            <!-- Row 3 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="helmetqty" class="col-md-3 col-form-label">Safety Helmet (QTY):</label>
+                                <div class="col-md-4">
+                                    <input type="number" class="form-control form-control-sm" id="helmetqty" min="0" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')" title="helmet qty" placeholder="helmet qty">
+                                </div>
+                            </div>
+
+                            <!-- Row 4 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="apronqty" class="col-md-3 col-form-label">Apron (QTY):</label>
+                                <div class="col-md-4">
+                                    <input type="number" id="apronqty" min="0" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')" title="apron qty" placeholder="qty" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                            <!-- Row 5 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="uniformdate" class="col-md-3 col-form-label">Date of Issued:</label>
+                                <div class="col-md-4">
+                                    <input type="date" id="uniformdate" name="uniformdate" placeholder="mm/dd/yyyy" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </fieldset>
+                
+                <!-- ================= Access ================= -->
+                <fieldset class="small">
+                    <legend>Access</legend>
+                    <!-- 1. Hand Phone -->
+                    <div class="row mb-1">
+                        <label class="col-md-2 col-form-label" for="handphone">Hand phone:</label>
+                        <div class="col-md-2">
+                            <input type="radio" name="handphone" value="yes"> Yes &nbsp;
+                            <input type="radio" name="handphone" value="no"> No
+                        </div>
+                        <label for="hpdate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                        <div class="col-md-2">
+                            <input type="date" id="hpdate" class="form-control auto-date">
+                        </div>
+                    </div>
+
+                    <!-- 2. Laptop -->
+                    <div class="row mb-1">
+                        <label class="col-md-2 col-form-label" for="laptop">Laptop:</label>
+                        <div class="col-md-2">
+                            <input type="radio" name="laptop" value="yes"> Yes &nbsp;
+                            <input type="radio" name="laptop" value="no"> No
+                        </div>
+                        <label for="laptopdate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                        <div class="col-md-2">
+                            <input type="date" id="laptopdate" class="form-control auto-date">
+                        </div>
+                    </div>
+
+                    <!-- 3. Tablet -->
+                    <div class="row mb-1">
+                        <label class="col-md-2 col-form-label" for="tablet">Tablet:</label>
+                        <div class="col-md-2">
+                            <input type="radio" name="tablet" value="yes"> Yes &nbsp;
+                            <input type="radio" name="tablet" value="no"> No
+                        </div>
+                        <label for="tabletdate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                        <div class="col-md-2">
+                            <input type="date" id="tabletdate" class="form-control auto-date">
+                        </div>
+                    </div>
+
+                    <!-- 4. Company Phone -->
+                    <div class="row mb-1">
+                        <label class="col-md-2 col-form-label" for="companyphone">Company Phone:</label>
+                        <div class="col-md-2">
+                            <input type="radio" name="companyphone" value="yes"> Yes &nbsp;
+                            <input type="radio" name="companyphone" value="no"> No
+
+                        </div>
+                        <label class="col-md-2 col-form-label text-center">Date of issued:</label>
+                        <div class="col-md-2">
+                            <input type="date" id="companyphonedate" class="form-control auto-date">
+                        </div>
+                    </div>
+
+                    <!-- 5. Walkie Toki -->
+                    <div class="row mb-1">
+                        <label class="col-md-2 col-form-label" for="qalkietoki">Walkie Toki:</label>
+                        <div class="col-md-2">
+                            <input type="radio" name="walkietoki" value="yes"> Yes &nbsp;
+                            <input type="radio" name="walkietoki" value="no"> No
+                        </div>
+                        <label for="walkitokidate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                        <div class="col-md-2">
+                            <input type="date" id="walkitokidate" class="form-control auto-date">
+                        </div>
+                    </div>
+
+                    <!-- 8. Internet Access -->
+                    <div class="row mb-1">
+                        <label class="col-md-2 col-form-label" for="internet">Internet Access:</label>
+                        <div class="col-md-2">
+                            <input type="radio" name="internet" value="yes"> Yes &nbsp;
+                            <input type="radio" name="internet" value="no"> No
+                        </div>
+                        <label for="netaccessdate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                        <div class="col-md-2">
+                            <input type="date" id="netaccessdate" class="form-control auto-date">
+                        </div>
+                    </div>
+
+                    <!-- 9. System Access -->
+                    <div class="row mb-1">
+                        <label class="col-md-2 col-form-label" for="systemaccess">System Access:</label>
+                        <div class="col-md-2">
+                            <input type="radio" name="systemaccess" value="yes"> Yes &nbsp;
+                            <input type="radio" name="systemaccess" value="no"> No
+                        </div>
+                        <label for="systemaccessdate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                        <div class="col-md-2">
+                            <input type="date" id="systemaccessdate" class="form-control auto-date">
+                        </div>
+                    </div>
+
+                    <!-- 10. Folder Access -->
+                    <div class="row mb-1">
+                        <label class="col-md-2 col-form-label" for="folderaccess">Folder Access:</label>
+                        <div class="col-md-2">
+                            <input type="radio" name="folderaccess" value="yes"> Yes &nbsp;
+                            <input type="radio" name="folderaccess" value="no"> No
+                        </div>
+                        <label for="folderaccessdate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                        <div class="col-md-2">
+                            <input type="date" id="folderaccessdate" class="form-control auto-date">
+                        </div>
+                    </div>
+                    <!-- 6. Windows Login ID -->
+                    <div class="row mb-1">
+                        <label class="col-md-2 col-form-label">Windows Login ID:</label>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control">
+                        </div>
+                        <label for="windowlogindate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                        <div class="col-md-2">
+                            <input type="date" id="windowlogindate" class="form-control auto-date">
+                        </div>
+                    </div>
+
+                    <!-- 7. Company Email -->
+                    <div class="row mb-1">
+                        <label class="col-md-2 col-form-label">Company Email:</label>
+                        <div class="col-md-2">
+                            <input type="email" class="form-control" placeholder="example@domain.com">
+                        </div>
+                        <label for="companyemaildate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                        <div class="col-md-2">
+                            <input type="date" id="companyemaildate" class="form-control auto-date">
+                        </div>
+                    </div>
+
+                </fieldset>
+
+            </div>
+
+            <div class="modal-footer d-flex justify-content-end">
+                <button class="btn btn-success" disabled onclick="saveEmployee()" >Save</button>
+                <button class="btn btn-danger" disabled onclick="clearForm()" >Clear</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Error Popup Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="errorModalLabel">Error</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="errorModalMessage"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    <!-- Inject session value FIRST -->
+    <script>
+        const employeeSession = '@emp';
+    </script>
+    <!-- THEN include your external JS file -->
+    <script src="~/js/js_tblempmaster.js"></script>
+    <script src="~/js/jsemployee/ejs_empregisteration.js"></script>
+}

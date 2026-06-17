@@ -1,0 +1,232 @@
+﻿@{
+    ViewData["Title"] = "Employee Training";
+    var emp = Context.Session.GetString("EmployeeDetails"); // Session info
+}
+
+<div id="page-top">
+    <div id="wrapper">
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content" class="container-fluid">
+                <div id="content">
+                    <!-- Row 1: Title and Button -->
+                    <div class="row align-items-center mb-3">
+                        <div class="col">
+                            <h6 class="text-gray-900" style="font-size: x-large; margin: 0;">Training Program</h6>
+                        </div>
+                        <div class="col text-right">
+                            <button id="btnAddTraining" class="btn btn-primary">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Table -->
+                    <div class="row">
+                        <div class="col">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-sm" style="font-size: 12px;">
+                                    <thead class="thead-dark">
+                                        <tr class="text-center">
+                                            <th>Training Name</th>
+                                            <th>Program</th>
+                                            <th>Department</th>
+                                            <th>Sub-Department</th>
+                                            <th>Section</th>
+                                            <th>Method</th>
+                                            <th>Type</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tblbodytrainingprogram">
+                                        <!-- More rows dynamically added here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Title</h5>
+                <button type="button" class="close" id="btnCloseHeader" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                Message here
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnCloseFooter">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="editTrainingModal" tabindex="-1" role="dialog" aria-labelledby="editTrainingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-body modal-body-space" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #007bff; color: white;">
+                <h5 class="modal-title" id="editTrainingModalLabel">Edit Training Program</h5>
+                <button type="button" class="close" onclick="closeModal()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ">
+                <!-- Row 1: Department / Sub-Department / Section -->
+                <div class="form-row">
+                    <div class="col-md-4">
+                        <div class="form-group row mb-2">
+                            <label class="col-4 col-form-label text-left pr-2">Department</label>
+                            <div class="col-8">
+                                <select class="form-control form-control-sm" id="deptCode" onclick="onDepartmentClick()">
+                                    <option value="">--- Select Department ---</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group row mb-2">
+                            <label class="col-4 col-form-label text-left pr-2">Sub-Dept</label>
+                            <div class="col-8">
+                                <select class="form-control form-control-sm" id="subDeptCode">
+                                    <option value="">--- Select sub-Dept ---</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group row mb-2">
+                            <label class="col-4 col-form-label text-left pr-2">Section</label>
+                            <div class="col-8">
+                                <select class="form-control form-control-sm" id="sectionCode">
+                                    <option value="">--- Select section ---</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Date of Join / Training Attended / Training Program -->
+                <div class="form-row">
+                      <div class="col-md-4">
+                        <div class="form-group row mb-2">
+                            <label for="trainerName" class="col-4 col-form-label text-left pr-2">Training Title</label>
+                            <div class="col-8">
+                                <select class="form-control form-control-sm" id="trainingCode">
+                                    <option value="">--- Select Training Title ---</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-group row mb-2">
+                            <label class="col-4 col-form-label text-left pr-2">Program</label>
+                            <div class="col-8">
+                                <select class="form-control form-control-sm" id="program">
+                                    <option value="">--- Select Training Program ---</option>
+                                    <option value="1">7S</option>
+                                    <option value="2">COMPANY POLICIES</option>
+                                    <option value="3">QUALITY</option>
+                                    <option value="4">SAFETY</option>
+                                    <option value="5">WORK PROCESS</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-group row mb-2">
+                            <label for="method" class="col-4 col-form-label text-left pr-2">Method</label>
+                            <div class="col-8">
+                                <select class="form-control form-control-sm" id="Method">
+                                    <option value="">--- Select Method ---</option>
+                                    <option value="1">THEORY</option>
+                                    <option value="2">PRACTICAL</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group row mb-2">
+                            <label for="type" class="col-4 col-form-label text-left pr-2">Type</label>
+                            <div class="col-8">
+                                <select class="form-control form-control-sm" id="Type">
+                                    <option value="">--- Select Type ---</option>
+                                    <option value="1">INTERNAL</option>
+                                    <option value="2">EXTERNAL PROVIDER</option>
+                                    <option value="3">PUBLIC TRAINING</option>
+                                </select>
+                            
+                            </div>
+                        </div>
+                    </div>
+                  
+                </div>
+
+                <!-- Row 6: Remarks + Buttons -->
+                <div class="form-row align-items-center">
+                    <div class="col-md-6">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row mb-2">
+                            <div class="col-12 text-right">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .custom-modal-height .modal-content {
+        min-height: 400px; /* Adjust as needed */
+    }
+    .modal-body {
+        padding-top: 40px; /* Adjust value as you like */
+    }
+
+    .modal-body-space {
+        padding-top: 40px;
+    }
+
+
+    /* Compact spacing */
+    .form-row {
+        margin-bottom: 0.25rem;
+    }
+
+    .form-group {
+        margin-bottom: 0.25rem;
+    }
+
+    label {
+        margin-bottom: 0.15rem;
+        font-weight: 400;
+    }
+</style>
+
+@section Scripts {
+    <!-- Load jQuery FIRST -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const employeeSession = '@emp';
+    </script>
+  @*   <script src="~/js/tm/jstrainingmaster.js"></script> *@
+    <script src="~/js/tm/jstrainingprogram.js"></script>
+}

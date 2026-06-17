@@ -1,0 +1,149 @@
+﻿@{
+    ViewData["Title"] = "Course Master";
+    var emp = Context.Session.GetString("EmployeeDetails"); // Session info
+}
+
+<!-- Load jQuery FIRST -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<div class="container-fluid mt-3">
+    <div class="row">
+        <!-- LEFT SIDE: TABLE -->
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">Course List</div>
+                <div class="card-body">
+                    <div class="row mt-3">
+                        <div class="col-12 col-md-5 mb-2">
+                            <input type="text" id="searchCourse" class="form-control" placeholder="Search Course Title">
+                        </div>
+
+                        <div class="col-6 col-md-2 mb-2">
+                            <select id="pageSizeSelect" class="form-control">
+                                <option value="50" selected>50 </option>
+                                <option value="100">100 </option>
+                                <option value="150">150 </option>
+                                <option value="0">All </option>
+                            </select>
+                        </div>
+
+                        <div class="col-6 col-md-4 mb-2 text-right">
+                            <div class="d-flex align-items-center justify-content-end">
+                                <button class="btn btn-outline-secondary" id="btnPrev"><i class="fa fa-chevron-left"></i></button>
+                                <span id="pageInfo" class="mx-2">1-20 of 100</span>
+                                <button class="btn btn-outline-secondary" id="btnNext"><i class="fa fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered table-hover" id="tblCourse">
+                        <thead class="table-dark bg-secondary">
+                            <tr>
+                                <th style="width:15%">Course ID</th>
+                                <th>Course Name</th>
+                                <th style="width:20%">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data via Ajax -->
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: FORM -->
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <span id="CourseHeaderTitle">Add Course Master</span>
+                </div>
+                <div class="card-body">
+                    <!-- Row 1: Course Code -->
+                    <div class="form-group row align-items-center mb-3">
+                        <label for="txtCourseid" class="col-sm-4 col-form-label">Course ID:</label>
+                        <div class="col-sm-8">
+                            <input type="text" id="txtCourseID" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Course Title -->
+                    <div class="form-group row align-items-center mb-3">
+                        <label for="txtCourseName" class="col-sm-4 col-form-label">Course Name:<span style="color:red;">*</span></label>
+                        <div class="col-sm-8">
+                            <input type="text" id="txtCourseName" class="form-control">
+                        </div>
+                    </div>
+
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end gap-1">
+                        <button class="btn btn-primary" id="btnSave">ADD</button>&nbsp;&nbsp;
+                        <button class="btn btn-secondary" id="btnClear">CLEAR</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="close" onclick="DeleteConfirmcloseModal()">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you ready to delete this Course session?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="DeleteConfirmcloseModal()">Cancel</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SUCCESSFULL / FAIL MODAL -->
+<div class="modal fade" id="messageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="messageHeader">
+                <h5 class="modal-title" id="messageTitle"></h5>
+                <button type="button" class="btn-close btn-close-white" onclick="closeModal()">X</button>
+            </div>
+            <div class="modal-body" id="messageBody"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const employeeSession = '@emp';
+    </script>
+}
+
+
+<style>
+    .modal-header-success {
+        background-color: #28a745 !important;
+        color: white !important;
+    }
+    .modal-header-error {
+        background-color: #dc3545 !important;
+        color: white !important;
+    }
+    .modal-header .btn-close-white {
+        filter: invert(1);
+    }
+</style>
+

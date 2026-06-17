@@ -1,0 +1,386 @@
+﻿@{
+    ViewData["Title"] = "Leave List";
+    var emp = Context.Session.GetString("EmployeeDetails");
+}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white font-weight-bold">Employee leave waiting for Approval</div>
+                @* <div class="card-body"> *@
+                <div class="row mt-2 align-items-center mb-2">
+                    <div class="col-12 d-flex justify-content-between align-items-center">
+
+                        <!-- LEFT SIDE: Dropdowns (no gap class, use mr-2 for spacing) -->
+                        <div class="d-flex align-items-center flex-wrap">&nbsp;
+                            <select id="pageSizeSelect" class="form-control form-control-sm mr-2 w-auto">
+                                <option value="50" selected>50</option>
+                                <option value="100">100</option>
+                                <option value="150">150</option>
+                                <option value="0">All</option>
+                            </select>
+
+                            <select id="leavetype" onchange="filterTable()" class="form-control form-control-sm mr-2" style="width: 150px;">
+                                <option value="" selected>-- Select Leave Type --</option>
+                            </select>
+
+                            <select id="ddldesignation" onchange="filterTable()" class="form-control form-control-sm mr-2" style="width: 150px;">
+                                <option value="" selected>-- Select Desig --</option>
+                            </select>
+
+                            <select id="ddldepartment" onclick="onDepartmentClick()" onchange="filterTable()" class="form-control form-control-sm mr-2" style="width: 150px;">
+                                <option value="" selected>-- Select Dept --</option>
+                            </select>
+
+                            <select id="subDepartment" onchange="filterTable()" class="form-control form-control-sm mr-2" style="width: 150px;">
+                                <option value="" selected>-- Select sub-Dept --</option>
+                            </select>
+
+                            <select id="section" onchange="filterTable()" class="form-control form-control-sm" style="width: 150px;">
+                                <option value="" selected>-- Select Sec --</option>
+                            </select>
+                        </div>
+
+                        <!-- RIGHT SIDE: Paging buttons -->
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-outline-secondary btn-sm mr-1" id="btnPrev">
+                                <i class="fa fa-chevron-left"></i>
+                            </button>
+                            <span id="pageInfo" class="mx-1"></span>
+                            <button class="btn btn-outline-secondary btn-sm ml-1" id="btnNext">
+                                <i class="fa fa-chevron-right"></i>
+                            </button>&nbsp;
+
+                            <button id="btnsubmit" class="btn btn-success btn-sm ml-2 font-weight-bold shadow-sm" >
+                                <i class="fas fa-check mr-1"></i> Submit
+                            </button>&nbsp;
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- 🔹 TABLE SECTION -->
+                <div class="mb-3">
+                    <table class="table table-bordered table-sm" style="font-size:14px;">
+                        <thead class="table-dark bg-secondary" style="font-size:12px;">
+                            <tr class="text-center">
+                                <th>Sno</th>
+                                <th>Applied On</th>
+                                <th>Emp Code</th>
+                                <th>Emp Name</th>
+                                <th>Days</th>
+                                <th>From - To</th>
+                                <th>Leave Type</th>
+                                <th>Desig</th>
+                                <th>Dept</th>
+                                <th>Section</th>
+                                <th>Reason</th>
+                                <th></th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblbodyleaveappovalData" class="text-muted small"></tbody>
+                    </table>
+                </div>
+            </div>
+            @* </div> *@
+        </div>
+    </div>
+</div>
+
+<!-- Leave History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-sm">
+
+            <!-- Modal Header -->
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="historyModalLabel">
+                    <i class="fas fa-history mr-2"></i>Leave History
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Employee Info Section -->
+            <div class="modal-body py-2">
+                <div class="container-fluid" style="font-size: 14px;">
+                    <div class="row mb-2">
+                        <div class="col-md-2">Name:</div>
+                        <div class="col-md-3 font-weight-bold small" id="empName"></div>
+
+                        <div class="col-md-2">Designation:</div>
+                        <div class="col-md-2 font-weight-bold small" id="designation"></div>
+
+                        <div class="col-md-2 small">Dept - Sec:</div>
+                        <div class="col-md-1 font-weight-bold small" id="department"></div>
+                    </div>
+                    
+                    <div class="row mb-2" style="display:none">
+                        <div class="col-md-2">Total Carry Forward:</div>
+                        <div class="col-md-3 text-primary font-weight-bold" id="lstYearalb"></div>
+                        
+                        <div class="col-md-2">Utilised:</div>
+                        <div class="col-md-2 text-danger font-weight-bold" id="divutilised"></div>
+                        
+                        <div class="col-md-2">Balance:</div>
+                        <div class="col-md-1 text-success font-weight-bold" id="divbalance"></div>
+
+                        <div class="col-md-2"></div>
+                    </div>
+
+                    <div class="row mb-2" style="display:none">
+                        <div class="col-md-2">Total Annual Leave:</div>
+                        <div class="col-md-3 text-primary font-weight-bold" id="CurrentYearAnnLeaves"></div>
+
+                        <div class="col-md-2">Utilised:</div>
+                        <div class="col-md-2 text-danger font-weight-bold" id="divCurrentYearutilised"></div>
+                        
+                        <div class="col-md-2">Balance:</div>
+                        <div class="col-md-1 text-success font-weight-bold" id="CurrentyearBalanceAnnLeaves"></div>
+
+                        <div class="col-md-2"></div>
+                    </div>
+
+                    <div class="row mb-2" style="display:none">
+                       
+                    </div>
+                </div>
+
+                <!-- Leave History Table -->
+                <div class="table-responsive mt-3" id="historyModalBody">
+                    <p class="text-center text-muted my-3">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Approval Model Popup -->
+<div class="modal fade" id="approvalModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle mr-2"></i>Leave Approval
+                </h5>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body" style="font-size:14px;">
+
+                <div class="form-group row mb-1">
+                    <label class="col-sm-3 col-form-label font-weight-bold">Emp Code :</label>
+                    <div class="col-sm-9 pt-2 font-weight-bold" style="color:black;" >
+                        <span id="apprEmpCode"></span>
+                        <input type="hidden" id="hdappnoPopUpwindow">
+                        <input type="hidden" id="hdworkfor">
+                        <input type="hidden" id="hdnocf">
+                        <input type="hidden" id="hdcarryfwd">
+                    </div>
+                </div>
+
+                <div class="form-group row mb-1">
+                    <label class="col-sm-3 col-form-label font-weight-bold">Emp Name :</label>
+                    <div class="col-sm-9 pt-2 font-weight-bold" style="color:black;">
+                        <span id="apprEmpName"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-1">
+                    <label class="col-sm-3 col-form-label font-weight-bold">Leaves :</label>
+                    <div class="col-sm-9 pt-2 font-weight-bold" style="color:black;">
+                        <span id="apprLeaveDates"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-1">
+                    <label class="col-sm-3 col-form-label font-weight-bold">Leave Type :</label>
+                    <div class="col-sm-9 pt-2 font-weight-bold" style="color:darkviolet;">
+                        <span id="apprLeaveType" style="font-size:large;"></span>
+                    </div>
+                </div>
+                <div class="form-group row mb-1">
+                    <label class="col-sm-3 col-form-label font-weight-bold">No. of Days (leaves) :</label>
+                    <div class="col-sm-9 pt-2  text-danger font-weight-bold">
+                        <span id="apprnumberofdaysLeave" style="font-size:large;"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-1">
+                    <label class="col-sm-3 col-form-label font-weight-bold">Approval Type :</label>
+
+                    <div class="col-sm-9">
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="approvalType" value="Schedule" id="schedule">
+                            <label class="form-check-label text-warning font-weight-bold" for="schedule">
+                                Schedule
+                            </label>
+                        </div>
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="approvalType" value="Approved" id="approved">
+                            <label class="form-check-label text-success font-weight-bold" for="approved">
+                                Approved
+                            </label>
+                        </div>
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="approvalType" value="Rejected" id="rejected">
+                            <label class="form-check-label text-danger font-weight-bold" for="rejected">
+                                Rejected
+                            </label>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="form-group row mb-1">
+                    <label class="col-sm-3 col-form-label font-weight-bold">Remarks :</label>
+                    <div class="col-sm-9">
+                        <textarea id="approvalRemarks" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+
+                <button class="btn btn-success" onclick="submitApproval()">
+                    <i class="fas fa-check mr-1"></i>Submit
+                </button>
+
+                <button class="btn btn-secondary" onclick="clearApprovalForm()">
+                    Clear
+                </button>
+
+                <button class="btn btn-danger" data-dismiss="modal">
+                    Close
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@* Confirmation Modal (YES / NO) *@
+<div class="modal fade" id="confirmModal">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+
+      <div class="modal-header bg-warning">
+        <h6 class="modal-title">Confirmation</h6>
+      </div>
+
+      <div class="modal-body text-center" id="confirmText"></div>
+
+      <div class="modal-footer justify-content-center">
+        <button id="btnYes" class="btn btn-success btn-sm">Yes</button>
+        <button class="btn btn-secondary btn-sm" data-dismiss="modal">No</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+@* Validation Model Popup *@
+<div class="modal fade" id="messageModal">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+
+      <div class="modal-header bg-danger text-white">
+        <h6 class="modal-title">Validation</h6>
+      </div>
+
+      <div class="modal-body text-center" id="messageText"></div>
+
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-secondary btn-sm" data-dismiss="modal">OK</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header bg-danger text-white">
+                <h6 class="modal-title">Access Denied</h6>
+            </div>
+
+            <div class="modal-body text-center">
+                We are <b style="color:red;">unable to proceed</b>. Only authorized personnel are allowed to access the Leave Approval form.
+            </div>
+
+            <div class="modal-footer justify-content-center">
+                <button type="button" id="okBtn" class="btn btn-secondary" > Home </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .leave-red {
+        color: #dc3545;
+        font-weight: 700;
+    }
+
+    .leave-medical {
+        color: #ff9800; /* Orange */
+        font-weight: 700;
+    }
+
+    .leave-black {
+        color: #000000;
+        font-weight: 600;
+    }
+
+    .leave-other {
+        color: #6c757d;
+    }
+
+    .custom-control-input:checked ~ .custom-control-label::before {
+        color: #fff;
+        border-color: #7B1FA2;
+    }
+
+    .custom-control-input:checked ~ .custom-control-label.red::before {
+        background-color: red;
+    }
+
+    .custom-control-input:checked ~ .custom-control-label.green::before {
+        background-color: green;
+    }
+
+</style>
+
+@section Scripts {
+    <script>
+        const employeeSession = '@emp';
+    </script>
+    <script src="~/js/leaves/jsleavelst.js"></script>
+}

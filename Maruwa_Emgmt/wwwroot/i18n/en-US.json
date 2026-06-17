@@ -1,0 +1,27 @@
+{
+  "Layout": {
+    "project_Title": "Maruwa",
+    "addemployee": "Add Employe",
+    "employeesdetails": "Employees List",
+    "passportsdetails": "Passports List"
+  },
+  "Index": {
+    "empma_tablsearch": "emp code, name, dept, passport, ic, country",
+    "empma_pTitle": "Employee List",
+    "empma_newPTitle": "Employee Registeration",
+    "empma_ptotalrecordcount": "Total Records",
+    "empma_tableSno": "Sno",
+    "empma_tableempcode": "Emp Code",
+    "empma_tableempname": "Emp Name",
+    "empma_tablepassport": "Passport",
+    "empma_tablenewic": "New IC",
+    "empma_tabledept": "Dept",
+    "empma_tablesection": "Section",
+    "empma_tabledoj": "DOJ",
+    "empma_tabledesign": "Desig",
+    "empma_tablesex": "Sex",
+    "empma_tablecountry": "Country",
+    "empma_tableaction": "Action"
+  }
+}
+

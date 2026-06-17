@@ -1,0 +1,26 @@
+{
+  "Layout": {
+    "project_Title": "マルワ",
+    "addemployee": "従業員を追加",
+    "employeesdetails": "従業員リスト",
+    "passportsdetails": "パスポートの詳細"
+  },
+  "Index": {
+    "empma_tablsearch": "従業員コード、氏名、部署、パスポート、IC、国",
+    "empma_pTitle": "従業員リスト",
+    "empma_newPTitle": "従業員登録",
+    "empma_ptotalrecordcount": "総レコード数",
+    "empma_tableSno": "番号",
+    "empma_tableempcode": "従業員コード",
+    "empma_tableempname": "従業員名",
+    "empma_tablepassport": "パスポート",
+    "empma_tablenewic": "新しいIC",
+    "empma_tabledept": "部門",
+    "empma_tablesection": "セクション",
+    "empma_tabledoj": "入社日",
+    "empma_tabledesign": "役職",
+    "empma_tablesex": "性別",
+    "empma_tablecountry": "国",
+    "empma_tableaction": "アクション"
+  }
+}

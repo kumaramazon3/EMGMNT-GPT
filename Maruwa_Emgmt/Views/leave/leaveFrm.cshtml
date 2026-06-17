@@ -1,0 +1,225 @@
+﻿@{
+    ViewData["Title"] = "Leave Form Request";
+    var emp = Context.Session.GetString("EmployeeDetails");
+}
+<!-- jQuery -->
+@* <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> *@
+<script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white font-weight-bold">
+                    Employee Leave Form Request
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="container-fluid small">
+                          
+                            <div class="row mb-2 gx-1">
+                                <div class="col-md-2">Name:</div>
+                                <div class="col-md-3 font-weight-bold " id="empName"></div>
+                                
+                                <div class="col-md-1">Dept - Sec:</div>
+                                <div class="col-md-2 font-weight-bold " id="department"></div>
+
+                                <div class="col-md-2">Designation:</div>
+                                <div class="col-md-2 font-weight-bold " id="designation"></div>
+                            </div>
+
+                            <div class="row mb-2">
+                                <div class="col-md-2" title="Last Year Total Carry Forward Leave's"><b>Last</b> Year TCFL:</div>
+                                <div class="col-md-3 text-primary font-weight-bold" id="lstYearalb"></div>
+                        
+                                <div class="col-md-1">Utilised:</div>
+                                <div class="col-md-2 text-danger font-weight-bold" id="divutilised"></div>
+                        
+                                <div class="col-md-2">Balance:</div>
+                                <div class="col-md-2 text-success font-weight-bold" id="divbalance"></div>
+
+                            </div>
+
+                            <div class="row mb-2" >
+                                <div class="col-md-2" title="Current year Total Annual Leave's"><b>Current</b> year TAL:</div>
+                                <div class="col-md-3 text-primary font-weight-bold" id="CurrentYearAnnLeaves"></div>
+
+                                <div class="col-md-1">Utilised:</div>
+                                <div class="col-md-2 text-danger font-weight-bold" id="CurrentYearUtilisedAnnualLeaves"></div>
+                        
+                                <div class="col-md-2">Balance:</div>
+                                <div class="col-md-2 text-success font-weight-bold" id="CurrentyearBalanceAnnLeaves"></div>
+
+                            </div>
+
+                            <div class="row mb-2">
+                                <div class="col-md-2" title="Current year Total Medical Leave's"><b>Current</b> year TML:</div>
+                                <div class="col-md-3 text-primary font-weight-bold" id="CurrentYearAMedicalLeaves"></div>
+
+                                <div class="col-md-1">Utilised:</div>
+                                <div class="col-md-2 text-danger font-weight-bold" id="CurrentYearUtilisedMedicalLeaves"></div>
+                        
+                                <div class="col-md-2">Balance:</div>
+                                <div class="col-md-2 text-success font-weight-bold" id="CurrentyearMedicalBalanceLeaves"></div>
+
+                            </div>
+                            <div class="row mb-2">
+                                
+                                <div class="col-md-2" ></div>
+                                <div class="col-md-3 text-primary font-weight-bold" ></div>
+
+
+                                <div class="col-md-1"></div>
+                                <div class="col-md-2 text-danger font-weight-bold" ></div>
+
+
+                                <div class="col-md-2" title="Current year Total Medical Leave's"><b>Total Entitlement Balance</b> :</div>
+                                <div class="col-md-2 text-primary font-weight-bold" id="divprorate"></div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="card shadow-sm p-2">
+                <div class="row">
+                    <!-- Left column -->
+                    <div class="col-md-7">
+                        <div class="small">
+                            <!-- Leave Number -->
+                          @*   <div class="form-group row mb-2">
+                                <label class="col-md-3 col-form-label">Leave Number:</label>
+                                <div class="col-md-9 font-weight-bold" id="empName"></div>
+                            </div>*@
+
+                            <!-- Leave Type -->
+                            <div class="form-group row mb-2">
+                                <label class="col-md-3 col-form-label">Leave Type:<b style="color:red;">*</b></label>
+                                <div class="col-md-9 font-weight-bold">
+                                    <select id="leavetype" class="form-control form-control-sm">
+                                        <option value="">-- Select leave type --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Leave Period (side by side inputs) -->
+                            <div class="form-group row mb-2">
+                                <label class="col-md-3 col-form-label">Leave Period:<b style="color:red;">*</b></label>
+                                <div class="col-md-9 d-flex align-items-center">
+                                    <input type="date" id="leavePeriodFrom" class="form-control form-control-sm me-2">
+                                    <span class="mx-1">~</span>
+                                    <input type="date" id="leavePeriodTo" class="form-control form-control-sm ms-2">
+                                </div>
+                            </div>
+
+                            <!-- Half-Day Leave -->
+                            <div class="form-group row mb-2">
+                                <label class="col-md-3 col-form-label">Half-Day Leave:</label>
+                                <div class="col-md-9 d-flex align-items-center">
+                                    <input type="checkbox" id="chkhalfdayleave" onchange="toggleHalfDayLeave()" class="form-check-input mr-2">
+                                    <select id="halfdayleave" class="form-control form-control-sm">
+                                        <option value="">-- Select Leave Half-Day Leave --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Leave Days -->
+                            <div class="form-group row mb-2">
+                                <label class="col-md-3 col-form-label">Leave Days:<b style="color:red;">*</b></label>
+                                <div class="col-md-9 font-weight-bold" id="leaveDays">
+                                    <input type="number" id="leavedays" class="form-control form-control-sm">
+                                    <br>
+                                    <span id="spnerror" style="color:red"></span>
+                                </div>
+                            </div>
+
+                            <!-- Reason -->
+                            <div class="form-group row mb-2">
+                                <label class="col-md-3 col-form-label">Reason:<b style="color:red;">*</b></label>
+                                <div class="col-md-9">
+                                    <textarea id="reason" class="form-control form-control-sm" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Person InCharge-1 -->
+                            <div class="form-group row mb-2">
+                                <label class="col-md-3 col-form-label">Person In-Charge-1:<b style="color:red;">*</b></label>
+                                <div class="col-md-9">
+                                    <select id="personincharge1" class="form-control form-control-sm">
+                                        <option value="">-- Select Person In-Charge-1 --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Person InCharge-2 -->
+                            <div class="form-group row mb-2">
+                                <label class="col-md-3 col-form-label">Person In-Charge-2:<b style="color:red;">*</b></label>
+                                <div class="col-md-9">
+                                    <select id="personincharge2" class="form-control form-control-sm">
+                                        <option value="">-- Select Person In-Charge-2 --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-2">
+                                <div class="col-md-12 d-flex justify-content-end">
+                                    <button id="btnsubmit" class="btn btn-primary btn-sm">
+                                        Apply Leave
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right column (empty for now) -->
+                    <div class="col-md-5">
+                        <div class="card shadow-sm p-3 bg-dark gray text-white border border-danger">
+                            <h5 class="font-weight-bold text-decoration-underline mb-3">
+                                Conditions For Applying Annual Leave
+                            </h5>
+                            <ol class="ps-3">
+                                <li>For Half a day - Should apply one day before</li>
+                                <li>For one day - Should apply three days before</li>
+                                <li>More than one day - Should apply seven days before</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Fail Modal -->
+<div class="modal fade" id="leaveResultModal" tabindex="-1" role="dialog" aria-labelledby="leaveResultModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="leaveResultModalLabel">Leave Submission</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="leaveResultMessage">
+        <!-- Message will be set by JS -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<style>
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const employeeSession = '@emp';
+    </script>
+    <script src="~/js/leaves/jsleavefrm.js"></script>
+}

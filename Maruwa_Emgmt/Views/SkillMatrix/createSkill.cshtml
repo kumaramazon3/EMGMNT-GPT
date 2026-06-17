@@ -1,0 +1,128 @@
+﻿@{
+    ViewData["Title"] = "New Skill Matrix";
+    var emp = Context.Session.GetString("EmployeeDetails");
+}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Correct XLSX library -->
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+              @*   <div class="card-header bg-primary text-white pb-1">Create a New Skill Matrix</div> *@
+                <div class="card-header bg-primary text-white pb-1 d-flex justify-content-between align-items-center">
+                    <span>Create a New Skill Matrix</span>
+                    <button class="btn btn-light btn-sm" data-toggle="modal" data-target="#imageModal">
+                        <i class="fas fa-eye"></i> File Format
+                    </button>
+                </div>
+
+                <div class="card-body">
+                    <div class="row mt-1 align-items-center">
+                        <!-- File Upload -->
+                        <div class="col-md-4">
+                            <input type="file" id="fleuploadskillmatrixfile" class="form-control" title="Upload Skill Matrix file">
+                        </div>
+                        <div class="col-md-3">
+                            <span id="spntotalrecordscount" class="text-danger fw-bold" style="font-weight: bold;"></span>
+                        </div>
+                        <!-- Buttons -->
+                        <div class="col-md-5 text-md-right mt-2 mt-md-0">
+                            <button class="btn btn-info" id="btnShowData">Show Data</button>
+                            <button class="btn btn-primary" id="btnSubmit">Submit</button>
+                            <button class="btn btn-secondary" id="btnClear">Clear</button>
+                            <button class="btn btn-success" id="btngoSKM" style="display:none">Go Skill Matrix</button>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <table class="table table-bordered table-hover small" id="tblSkillMatrix" style="font-size:0.75rem;">
+                            <thead class="table-dark bg-secondary">
+                                <tr>
+                                    <th>Sno No</th>
+                                    <th>Doc No</th>
+                                    <th>Document Name</th>
+                                    <th>Department</th>
+                                    <th>Section No</th>
+                                    <th>Rev</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data via Ajax -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="msgModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitle"></h5>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-xxl" role="document">
+        <div class="modal-content">
+      
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Sample Document Image</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body text-center">
+                <img src="~/img/sample_doc.png" class="img-fluid" alt="Skill Matrix">
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+        .modal-xxl {
+        max-width: 90%;
+        margin: 0.5rem auto;
+        }
+
+    /* Center modal vertically */
+    .modal-dialog {
+        display: flex;
+        align-items: center;
+        min-height: calc(100vh - 60px);
+    }
+
+    /* Optional: Add animation for better UX */
+    .modal.fade .modal-dialog {
+        transform: scale(0.8);
+        transition: transform 0.2s ease-out;
+    }
+
+    .modal.show .modal-dialog {
+        transform: scale(1);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const employeeSession = '@emp';
+    </script>
+    <!-- Add this before your jscreateskill.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="~/js/skillmatrix/jscreateskill.js"></script>
+}

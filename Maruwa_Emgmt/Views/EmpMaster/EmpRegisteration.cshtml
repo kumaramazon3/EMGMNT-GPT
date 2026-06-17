@@ -1,0 +1,1020 @@
+﻿@{
+    ViewData["Title"] = "Employee Registration";
+    var emp = Context.Session.GetString("EmployeeDetails");// Session information
+}
+@section Scripts {
+    <!-- Inject session value FIRST -->
+    <script>
+        const employeeSession = '@emp';
+    </script>
+    <!-- THEN include your external JS file -->
+    <script src="~/js/jsemployee/ejs_empregisteration.js"></script>
+}
+
+
+<!-- Load jQuery FIRST -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Then Bootstrap 5 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Then your other scripts -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+
+<link href="~/css/customcss.css" rel="stylesheet" />
+<div id="page-top">
+    <div id="content">
+        <h6 class="text-center h6 text-gray-900" style="font-size: x-large;  color: black; margin: 0; padding: 0;"
+            data-i18n="Index.empma_newPTitle"></h6>
+    </div>
+</div>
+
+<div id="page-top">
+    <div id="wrapper" style="overflow: hidden;">
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column" style="overflow-x: hidden;">
+            <div id="content" class="container-fluid" style="border: none; background: none; cursor: pointer;">
+              
+                <div style="text-align: right;">
+                    <a href="/EmpMaster/empList" title="Go to EmpMaster" style="cursor:pointer; border:none; background:none;">
+                        <i class="fa fa-home" style="font-size:18px;color:orangered;" aria-hidden="true"></i>
+                    </a>
+                </div>
+                
+                <!-- ================= Employee Details & Photo Preview ================= -->
+                <fieldset class="small p-1 mb-0">
+                    <legend class="float-none w-auto px-3">Employee Details</legend>
+                    <div class="row" style="font-size: 12px;" id="divemployeedetails">
+                        <!-- LEFT FORM -->
+                        <div class="col-md-8">
+                            <div class="row mb-1">
+                                <label class="col-sm-3 col-form-label" for="empcode">Employee ID:</label>
+                                <div class="col-sm-8 pt-2">
+                                    <input type="hidden" id="hdnEmpCode" value="@ViewBag.EmpCode" />
+                                    <input type="hidden" id="hdnMode" value='@Context.Request.Query["mode"]' />
+                                    <input type="hidden" id="hdnEmployeeData" value='@Html.Raw(ViewBag.EmployeeData)' />
+
+                                    <span class="fw-bold" style="font-weight: bold;font-size:large;color:#164ff3" id="empcode"></span>
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label class="col-sm-3 col-form-label" for="empName">Name (As in Passport/IC): <span style="color:red">*</span> </label>
+                                <div class="col-sm-6">
+                                    <input type="text" id="empName" class="form-control form-control-sm">@* empname *@
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label class="col-sm-3 col-form-label" for="department">Department: <span style="color:red">*</span> </label>
+                                <div class="col-sm-6">
+                                    <select class="form-control form-control-sm" id="department" title="Department" onclick="onDepartmentClick()">
+                                        <option value="" >--- Select Department ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label class="col-sm-3 col-form-label" for="subDepartment">Sub Department: <span style="color:red">*</span> </label>
+                                <div class="col-sm-6">
+                                    <select class="form-control form-control-sm" id="subDepartment" title="subDepartment">
+                                        <option value="" selected >--- Select Sub Department ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label class="col-sm-3 col-form-label" for="Section">Section: <span style="color:red">*</span> </label>
+                                <div class="col-sm-6">
+                                    <select class="form-control form-control-sm" id="section" title="Section">@* sectioncode *@
+                                        <option value="" selected >--- Select Section ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label class="col-sm-3 col-form-label" for="designation">Designation: <span style="color:red">*</span> </label>
+                                <div class="col-sm-6">
+                                    <select class="form-control form-control-sm" id="designation" title="Designation">
+                                        <option value="" selected >--- Select Designation ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">@*  dateofjoin *@
+                                <label for="dateOfJoin" class="col-sm-3 col-form-label">Date of Join: <span style="color:red">*</span> </label>
+                                <div class="col-sm-6">
+                                    <input type="date" id="dateOfJoin" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label for="empType" class="col-sm-3 col-form-label">Employee Type: <span style="color:red">*</span> </label>
+                                <div class="col-sm-6">
+                                    <select class="form-control form-control-sm" id="empType" title="Employee type">@* emptype *@
+                                        <option value="" selected >--- Select Type ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-1">
+                                <label for="contractperiod" class="col-sm-3 col-form-label">Contract Period: <span style="color:red">*</span> </label>
+                                <div class="col-sm-6">
+                                    <input type="number" id="contractperiod" min="0" step="1" class="form-control form-control-sm" placeholder="Months">@* contract *@
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT PHOTO UPLOAD -->
+                        <div class="col-md-4 d-flex flex-column align-items-center">
+                            <div class="photo-box">
+                                <img id="photoPreview" src="" title="Photo preview">
+                            </div> <span style="color:red">*</span>
+                            <input type="file" id="photo" class="form-control" accept="image/*">@* img *@
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- ================= Employee Particular ================= -->
+                <fieldset class="small p-1 mb-0">
+                    <legend class="float-none w-auto px-3">Employee Particular</legend>
+                    <div class="row" id="divemployeeparticular">
+                        <!-- LEFT SIDE -->
+                        <div class="col-md-6">
+                            <!-- Left Side Row 1 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="nationality" class="col-md-2 col-form-label">Nationality: <span style="color:red">*</span> </label>
+                                <div class="col-md-4">
+                                    <select class="form-control form-control-sm" id="nationality" title="Nationality">
+                                        <option value="" selected style="text-align:center;">--- Select Nationality ---</option>
+                                    </select>
+                                </div>
+
+                                <label class="col-md-2 col-form-label" for="foreignemp">Is Foreign?: <span style="color:red">*</span> </label>
+                                <div class="col-md-4">
+                                    <input type="radio" name="isForeign" value="Y" title="is Foreign Worker?"> Yes &nbsp;@* foreignemp *@
+                                    <input type="radio" name="isForeign" value="N" title="is Foreign Worker?"> No
+                                </div>
+                            </div>
+
+                            <!-- Left Side Row 2 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="dateOfBirth" class="col-md-2 col-form-label">Date of Birth: <span style="color:red">*</span> </label>
+                                <div class="col-md-4">
+                                    <input type="date" class="form-control form-control-sm" id="dateOfBirth">
+                                </div>
+
+                                <label for="bloodGroup" class="col-md-2 col-form-label">Blood Group: <span style="color:red">*</span> </label>
+                                <div class="col-md-4">
+                                    <select id="bloodGroup" class="form-control form-control-sm">
+                                        <option value="" selected style="text-align:center;">--- select Blood Group ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Left Side Row 3 -->
+                            <div class="row align-items-center mb-2">
+                                <label class="col-md-2 col-form-label" for="gender">Gender:  </label>
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <input type="radio" name="gender" value="M"> Male &nbsp;
+                                    <input type="radio" name="gender" value="F"> Female@* sex *@
+                                </div>
+
+                                <label for="emailID" class=" col-md-2 col-form-label">Email: <span style="color:red">*</span> </label>
+                                <div class="col-md-4">
+                                    <input type="email" class="form-control form-control-sm" id="emailID">@* email *@
+                                </div>
+
+                            </div>
+                         
+                            <!-- Left Side Row 4 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="religion" class="col-md-2 col-form-label">Religion: <span style="color:red">*</span> </label>
+                                <div class="col-md-4">
+                                    <select id="religion" class="form-control form-control-sm">
+                                        <option value="" selected style="text-align:center;">--- select Religion ---</option>
+                                    </select>
+                                </div>
+
+                                <label for="race" class="col-md-2 col-form-label me-0">Race: <span style="color:red">*</span> </label>
+                                <div class="col-md-4">
+                                    <select id="race" class="form-control form-control-sm">
+                                        <option value="" selected style="text-align:center;">--- select Race ---</option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+
+                            <!-- Left Side Row 5 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="maritalStatus" class="col-md-2 col-form-label">Marital Status: <span style="color:red">*</span> </label>
+                                <div class="col-md-4">
+                                    <select id="maritalStatus" class="form-control form-control-sm">@* maritalstatus *@
+                                        <option value="" selected style="text-align:center;">---select Marital Status---</option>
+                                    </select>
+                                </div>
+
+                                <label for="spouseName" class="col-md-2 col-form-label">Spouse Name: </label>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control form-control-sm" id="spouseName">@* spousename *@@* spousename *@
+                                </div>
+                            </div>
+
+                            <!-- Left Side Row 6 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="permanentAddress" class="col-md-2 col-form-label">Permanent Address: <span style="color:red">*</span> </label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control form-control-sm" id="permanentAddress" rows="2"></textarea>@* address1 *@
+                                </div>
+                            </div>
+
+                            <!-- Left Side Row 7 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="currentAddress" class="col-md-2 col-form-label">Current Address:</label>
+                                <div class="col-md-8">
+                                    <textarea class="form-control form-control-sm" id="currentAddress" rows="2"></textarea>@* address2 *@
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT SIDE -->
+                        <div class="col-md-6">
+
+                            <!-- Right Side Row 1 -->
+                            <div class="row align-items-center mb-2">@* newicno *@
+                                <label for="icNo" class="col-md-2 col-form-label me-0" style="padding: 0px 19px 3px;">IC No:<span style="color:red">*</span></label>
+                                <div class="col-md-4">
+                                    <input type="text" id="icNo" oninput="handleICInput(this)" title="YYMMDD-BP-###G" maxlength="14" placeholder="YYMMDD-BP-###G" class="form-control form-control-sm">
+                                </div>
+
+                                <label for="icfileuploadurl" class="col-md-2 col-form-label">IC File:<span>*</span>
+                                    <a id="iconicfiledownload" href="#" download title="Download IC File" onclick="downloadfiles(this.id)">
+                                    <i class="fa fa-download"></i>
+                                </a></label> @* iconicfiledownload *@
+
+                                <div class="col-md-4">
+                                    <input type="file" class="form-control" id="icFilePath" title="upload IC copy" accept=".pdf,.doc,.docx,image/*">@* icfileuploadurl *@
+                                    <span id="spnicfilepath"></span>
+                                </div>
+                            </div>
+
+                            <!-- Right Side Row 2 -->
+                            <div class="row align-items-center mb-2">
+
+                                <label for="passportNo" class="col-md-2 col-form-label">Passport No:</label>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control form-control-sm" id="passportNo">
+                                </div>
+
+
+                                <label for="passportfileurl" class="col-md-2 col-form-label">Passport File:
+                                <a id="iconpassportfiledownload" href="#" download title="Download Passport File">
+                                    <i class="fa fa-download"></i>
+                                </a></label>
+                                <div class="col-md-4">
+                                    <input type="file" class="form-control" id="passportfileurl" title="upload passport copy" accept=".pdf,.doc,.docx,image/*">
+                                    <span id="spnpassportfileurl"></span>
+                                </div>
+                            </div>
+
+                            <!-- Right Side Row 3 -->
+                            <div class="row align-items-center mb-2">
+                            
+                                <label for="mobileNo" class="col-md-2 col-form-label pe-3" style="padding-right: 11px;">Mobile No:<span style="color:red">*</span></label>
+                                <div class="col-md-4">
+                                    <input type="tel" id="mobileNo" pattern="[0-9]{10}" maxlength="11" class="form-control form-control-sm">@* pphone *@
+                                </div>
+                            </div>
+                            
+                            <!-- Right Side Row 4 -->
+                            <div class="row align-items-center mb-5"></div>
+
+                            <!-- Right Side Row 5 -->
+                            <div class="row align-items-center mb-2">
+                                <label class="col-md-2 col-form-label" for="spouseWorking">Spouse Working:</label>
+                                <div class="col-md-4">
+                                    <input type="radio" name="spouseWorking" value="Y"> Yes &nbsp;@* isspouseworking *@
+                                    <input type="radio" name="spouseWorking" value="N"> No
+                                </div>
+
+                                <label for="noOfChildren" class="col-md-3 col-form-label">No. of Children:</label>
+                                <div class="col-md-2">
+                                    <input type="number" class="form-control form-control-sm" id="noOfChildren" value="0" min="0">@* noofchildren *@
+                                </div>
+                            </div>
+                           
+                            <!-- Right Side Row 6 -->
+                            <div class="row align-items-center mb-2">
+                                <div class="col-md-3 text-end">
+                                    <label class="form-label mb-0" for="sameaspermanent">Same as Permanent Address</label>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="sameaspermanent" name="sameAsPermanent">
+                                        <label class="form-check-label" for="sameaspermanent"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    </fieldset>
+
+                <!-- ================= Hostel, Licences, Bank & Tax Details ================= -->
+                <fieldset class="small p-1 mb-0">
+                    <legend class="float-none w-auto px-3">Hostel, Licences, Bank & Tax Details</legend>
+                    <div class="row" id="divhostellicencesbanktaxdetails">
+                        <!-- LEFT SIDE -->
+                        <div class="col-md-6">
+                            <!-- Row 1 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="bankName" class="col-md-2 col-form-label">Bank Name:<span style="color:red">*</span></label>
+                                <div class="col-md-4">
+                                    <select id="bankName" class="form-control form-control-sm">
+                                        <option value="">--- select Bank ---</option>
+                                    </select>
+                                </div>
+
+                                <label for="accountNumber" class="col-md-2 col-form-label">ACC NO:<span style="color:red">*</span></label>
+                                <div class="col-md-4">
+                                    <input type="number" id="accountNumber" class="form-control form-control-sm" oninput="validateAccountNo(this)" placeholder="Enter 10–12 digit number">
+                                </div>
+                            </div>
+
+                            <!-- Row 2 -->
+                            <div class="row align-items-center mb-0">
+                                <label for="taxNo" class="col-md-2 pr-1">Tax No:<span style="color:red">*</span></label>
+                                <div class="col-md-4 pl-1">
+                                    <input type="text" id="taxNo" class="form-control form-control-sm" oninput="validateTaxNo(this)" min="9" maxlength="13" placeholder="Max 13-digit">
+                                </div>
+                                <label for="emergencyContactPerson" class="col-md-2 pr-1">Emg Cont Name:<span style="color:red">*</span></label>
+                                <div class="col-md-4 pl-1">
+                                    <input type="text" id="emergencyContactPerson" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                            <!-- Row 3 -->
+                            <div class="row align-items-center mb-0">
+                                <label for="isStayingHostel" class="col-md-2 col-form-label">Staying Hostel:<span style="color:red">*</span></label>
+                                <div class="col-md-4 pl-1">
+                                    <input type="radio" name="isStayingHostel" value="Y" onclick="onHostelRadioClick(true)"> Yes
+                                    <input type="radio" name="isStayingHostel" value="N" onclick="onHostelRadioClick(true)" class="ml-2"> No
+                                </div>
+                                <label for="hostelName" class="col-md-2 pr-1">Hostel Name:</label>
+                                <div class="col-md-4 pl-1">
+                                    <select id="hostelName" class="form-control form-control-sm">
+                                        <option value="" selected style="text-align:center;">--- select Hostel ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Row 4 -->
+                            <div class="row align-items-center mb-0">
+                                <label for="isTransport" class="col-md-2 pr-1">Transport Need?:<span style="color:red">*</span></label>
+                                <div class="col-md-4 pl-1">
+                                    <input type="radio" name="isTransport" value="Y"> Yes
+                                    <input type="radio" name="isTransport" value="N" class="ml-2"> No
+                                </div>
+                                <label for="route" class="col-md-2 pr-1">Route:</label>
+                                <div class="col-md-4 pl-1">
+                                    <select id="route" class="form-control form-control-sm">
+                                        <option value="" selected style="text-align:center;">-- select Route---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Row 5 -->
+                            <div class="row align-items-center mb-0">
+                                <label for="isDrivingLicense" class="col-md-2 pr-1">Driving License:<span style="color:red">*</span></label>
+                                <div class="col-md-4 pl-1">
+                                    <input type="radio" name="isDrivingLicense" value="Y"> Yes
+                                    <input type="radio" name="isDrivingLicense" value="N" class="ml-2"> No
+                                </div>
+                                <label for="divlicensetype" class="col-md-2 pr-1">License Type:</label>
+                                <div class="col-md-4" id="divtesting">
+                                    <div class="btn dropdown-toggle" id="divlicensetype">
+                                        <button class="form-control form-control-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-display="static">
+                                            --- select License Type ---
+                                        </button>
+                                        <ul class="dropdown-menu" id="License"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Row 6 -->
+                            <div class="row align-items-center mb-0">
+                                <label for="vehicleNo3" class="col-md-2 pr-1">Vehicle No3:</label>
+                                <div class="col-md-4 pl-1">
+                                    <input type="text" id="vehicleNo3" class="form-control form-control-sm" maxlength="7">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT SIDE -->
+                        <div class="col-md-6">
+                            <!-- Row 1 -->
+                            <div class="row align-items-center mb-0">
+                                <label for="epf" class="col-md-2 pr-1">EPF NO:<span style="color:red">*</span></label>
+                                <div class="col-md-4 pl-1">
+                                    <input type="text" class="form-control form-control-sm" id="epf" placeholder="8-digit number" maxlength="8" inputmode="numeric" oninput="validateEPFInput(this)">
+                                </div>
+                                <label for="sosco" class="col-md-2 pr-1">SOSCO NO:<span style="color:red">*</span></label>@* jackqty *@
+                                <div class="col-md-4 pl-1">
+                                    <input type="text" id="sosco" placeholder="000000-00-0000" maxlength="14" oninput="handleSOSCOInput(this)" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                            <!-- Row 2 -->
+                            <div class="row align-items-center mb-0">
+                                <label for="emergencyContact" class="col-md-2 pr-1">Emg Cont No:<span style="color:red">*</span></label>
+                                <div class="col-md-4 pl-1">
+                                    <input type="tel" class="form-control form-control-sm" id="emergencyContact" title="Emergency Contact No" pattern="[0-9]{10}">
+                                </div>
+                                <label for="relation" class="col-md-2 pr-1">Relation:<span style="color:red">*</span></label>
+                                <div class="col-md-4 pl-1">
+                                    <select id="relation" class="form-control form-control-sm">
+                                        <option value="" selected style="text-align:center;">--- select Relation ---</option>
+                                    </select>
+                                </div>
+                            </div>
+
+
+                            <!-- Row 3 -->
+                            <div class="row align-items-center mb-0">
+                                <label for="houseNo" class="col-md-2 pr-1">House No:</label>
+                                <div class="col-md-4 pl-1">
+                                    <select id="houseNo" class="form-control form-control-sm">
+                                        <option value="" selected style="text-align:center;">--- select House No ---</option>
+                                    </select>
+                                    <input type="text" id="typehouseNo" class="form-control form-control-sm">
+                                </div>
+                                <label for="emergencyAddress" class="col-md-2 pr-1">Emg Cont Address:<span style="color:red">*</span></label>
+                                <div class="col-md-4 pl-1">
+                                    <textarea class="form-control form-control-sm col-md-12" id="emergencyAddress" title="Emergency Address" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Row 4 -->
+                            <div class="row align-items-center mb-2">
+                                <label class="col-md-0 col-form-label" style="padding:27px;"></label>
+                            </div>
+
+                            <!-- Row 5 -->
+                            <div class="row align-items-center mb-0">
+                                <label for="vehicleNo1" class="col-md-2 pr-1">Vehicle No1:</label>
+                                <div class="col-md-4 pl-1">
+                                    <input type="text" class="form-control form-control-sm" id="vehicleNo1" placeholder="xxx1234" maxlength="7" oninput="validateVehicleNo(this)">
+                                </div>
+                                <label for="vehicleNo2" class="col-md-2 pr-1">Vehicle No2:<span style="color:red">*</span></label>
+                                <div class="col-md-4 pl-1">
+                                    <input type="text" class="form-control form-control-sm" id="vehicleNo2" placeholder="xxx1234" maxlength="7" oninput="validateVehicleNo(this)">
+                                </div>
+                            </div>
+
+                            <!-- Right Side Row 7 -->
+                            <div class="row align-items-center mb-2">
+                                <label class="col-md-0 col-form-label me-4"></label>
+
+                            </div>
+
+                            <!-- Right Side Row 8 -->
+                            <div class="row align-items-center mb-2">
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- ================= Education Details ================= -->
+                <fieldset class="small p-1 mb-0">
+                    <legend class="float-none w-auto px-3">Education Details</legend>
+                    <div id="diveducationdetails">
+                        <!-- Row 1 -->
+                        <div class="form-row mb-3 align-items-center">
+                            <div class="col-md-2">
+                                <label for="educationLevel" class="col-form-label">Education Level:<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-2">
+                                <select id="educationLevel" name="educationLevel" class="form-control form-control-sm">
+                                    <option value="" selected>--- select Education Level ---</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="languageProficiency" class="col-form-label">Language Proficiency:<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-2">
+                                <select id="languageProficiency" name="languageProficiency" class="form-control form-control-sm">
+                                    <option value="" selected>--- select Language ---</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="proficiencyLevel" class="col-form-label">Proficiency Level:<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-2">
+                                <select id="proficiencyLevel" name="proficiencyLevel" class="form-control form-control-sm" title="Proficiency Level">
+                                    <option value="" selected>--- select Proficiency Level ---</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Row 2 -->
+                        <div class="form-row mb-3 align-items-center">
+                            <div class="col-md-2">
+                                <label for="fieldOfStudy" class="col-form-label">Field of Study:<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="text" class="form-control form-control-sm" id="fieldOfStudy" placeholder="Field of Study">
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="professionaldocurl" class="col-form-label">Professional Doc:</label>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="input-group">
+                                    <input type="file" id="professionaldocurl" accept=".pdf,.doc,.docx,image/*" class="form-control form-control-sm">
+                                    <div class="input-group-append">
+                                        <a id="iconprofessionaldocdownload" href="#" download title="Download Professional File" onclick="downloadfiles(this.id)" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fa fa-download"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <span id="spnprofessionaldocurl"></span>
+                        </div>
+
+                        <!-- Row 3 -->
+                        <div class="form-row mb-3 align-items-center">
+                            <div class="col-md-2">
+                                <label for="others" class="col-form-label">Other Qualification:</label>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="text" class="form-control form-control-sm" id="others" placeholder="Other Qualification">
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="resumeDocURL" class="col-form-label">Resume Doc:<span class="text-danger">*</span></label>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group">
+                                    <input type="file" class="form-control form-control-sm" id="resumeDocURL" accept=".pdf,.doc,.docx,image/*">
+                                    <div class="input-group-append">
+                                        <a id="iconresumedownload" href="#" download title="Download Resume File" onclick="downloadfiles(this.id)" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fa fa-download"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <span id="spnresumedocurl"></span>
+                        </div>
+
+                        <!-- Row 4 -->
+                        <div class="form-row mb-3 align-items-center">
+                            <div class="col-md-2">
+                                <label for="academicCertificateUrl" class="col-form-label">Academic Certificate:<span class="text-danger">*</span></label>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="input-group">
+                                    <input type="file" class="form-control form-control-sm" id="academicCertificateUrl" accept=".pdf,.doc,.docx,image/*">
+                                    <div class="input-group-append">
+                                        <a id="iconacademicCertificatedownload" href="#" title="Download Academic File" onclick="downloadfiles(this.id)" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fa fa-download"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <span id="spnacademiccertificateurl"></span>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="otherCertificateUrl" class="col-form-label">Other Certificate:</label>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group">
+                                    <input type="file" class="form-control form-control-sm" id="otherCertificateUrl" accept=".pdf,.doc,.docx,image/*">
+                                    <div class="input-group-append">
+                                        <a id="iconothercertificatesdownload" href="#" title="Download Other Certificate" onclick="downloadfiles(this.id)" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fa fa-download"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <span id="spnothercertificateurl"></span>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+
+                <!-- ================= Uniform and PPE Details ================= -->
+                <fieldset class="small p-1 mb-0">
+                    <legend class="float-none w-auto px-3">Uniform and PPE Details</legend>
+                    <div class="row" id="divuniformandppedetails">
+                        <!-- LEFT SIDE -->
+                        <div class="col-md-6">
+
+                            <!-- Row 1 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="jacketSize" class="col-md-2 col-form-label">Jacket Size:<span style="color:red">*</span></label>
+                                <div class="col-md-4">
+                                    <select id="jacketSize" name="jacketSize" class="form-control form-control-sm">@*  jackno *@
+                                        <option value="" selected style="text-align:center;">--- select Jack No  ---</option>
+                                        <option value="S">S</option>
+                                        <option value="M">M</option>
+                                        <option value="L">L</option>
+                                        <option value="XL">XL</option>
+                                        <option value="2XL">2XL</option>
+                                        <option value="3XL">3XL</option>
+                                        <option value="4XL">4XL</option>
+                                        <option value="4XL">5XL</option>
+                                        <option value="4XL">6XL</option>
+                                        <option value="4XL">7XL</option>
+                                    </select>
+                                </div>
+
+                                <label for="jacketqty" class="col-md-2 col-form-label">QTY:<span style="color:red">*</span></label>@* jackqty *@
+                                <div class="col-md-4">
+                                    <input type="number" id="jacketqty" class="form-control form-control-sm" min="0" step="1" oninput="validateuniformQty('JACKET')" title="jacket qty" placeholder="qty">
+                                </div>
+                            </div>
+
+                            <!-- Row 2 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="tShirtSize" class="col-md-2 col-form-label">T-Shirt Size:<span style="color:red">*</span></label>
+                                <div class="col-md-4">
+                                    <select id="tShirtSize" name="tShirtSize" class="form-control form-control-sm">@* tno *@
+                                        <option value="" selected style="text-align:center;">--- select T-Shirt  ---</option>
+                                        <option value="S">S</option>
+                                        <option value="M">M</option>
+                                        <option value="L">L</option>
+                                        <option value="XL">XL</option>
+                                        <option value="2XL">2XL</option>
+                                        <option value="3XL">3XL</option>
+                                        <option value="4XL">4XL</option>
+                                        <option value="4XL">5XL</option>
+                                        <option value="4XL">6XL</option>
+                                        <option value="4XL">7XL</option>
+                                    </select>
+
+                                </div>
+
+                                <label for="tShirtqty" class="col-md-2 col-form-label">QTY:<span style="color:red">*</span></label>@* tshirtqty *@
+                                <div class="col-md-4">
+                                    @* <input type="number" id="tShirtqty" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="qty" " class="form-control form-control-sm" min="0" step="1" title="T-shirt qty"> *@
+                                    <input type="number" id="tShirtqty" oninput="validateuniformQty('TSHIRT')" placeholder="qty" class="form-control form-control-sm" min="0" step="1" title="T-shirt qty">
+                                </div>
+                            </div>
+
+                            <!-- Row 3 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="pantSize" class="col-md-2 col-form-label">Pant Size:<span style="color:red">*</span></label>
+                                <div class="col-md-4">
+                                    <select id="pantSize" name="pantSize" class="form-control form-control-sm">
+                                        <option value="" selected style="text-align:center;">--- select Pant Size  ---</option>
+                                        <option value="S">S</option>
+                                        <option value="M">M</option>
+                                        <option value="L">L</option>
+                                        <option value="XL">XL</option>
+                                        <option value="2XL">2XL</option>
+                                        <option value="3XL">3XL</option>
+                                        <option value="4XL">4XL</option>
+                                        <option value="4XL">5XL</option>
+                                        <option value="4XL">6XL</option>
+                                        <option value="4XL">7XL</option>
+                                    </select>
+                                </div>
+
+                                <label for="pantqty" class="col-md-2 col-form-label">QTY:<span style="color:red">*</span></label>@* pantqty *@
+                                <div class="col-md-4">
+                                    <input type="number" id="pantqty" min="0" step="1" title="pant qty" oninput="validateuniformQty('PANT')" placeholder="qty" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                            <!-- Row 4 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="safetyShoes" class="col-md-2 col-form-label">Safety Shoes:<span style="color:red">*</span></label>
+                                <div class="col-md-4">
+                                    <select id="safetyShoes" name="safetyShoes" class="form-control form-control-sm" title="Safety Shoes">@*  shoeno *@
+                                        <option value="" selected style="text-align:center;">--- select Shoes Size  ---</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                        <option value="6">6</option>
+                                        <option value="7">7</option>
+                                        <option value="8">8</option>
+                                        <option value="9">9</option>
+                                        <option value="10">10</option>
+                                        <option value="11">11</option>
+
+                                    </select>
+                                </div>
+
+                                <label for="safetyShoesqty" class="col-md-2 col-form-label">QTY:<span style="color:red">*</span></label>
+                                <div class="col-md-4">@* shoeqty *@
+                                    <input type="number" id="safetyShoesqty" min="0" step="1" oninput="validateuniformQty('SAFETYSHOES')" placeholder="qty" title="shoe qty" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                            <!-- Row 5 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="capColor" class="col-md-2 col-form-label">Cap Color:<span style="color:red">*</span></label>
+                                <div class="col-md-4">
+                                    <select name="capColor" id="capColor" class="form-control form-control-sm" title="Cap">@*  capcolor *@
+                                        <option value="" selected style="text-align:center;">-- Select Cap Color --</option>
+                                    </select>
+                                </div>
+
+                                <label for="capColorqty" class="col-md-2 col-form-label">QTY:<span style="color:red">*</span></label>
+                                <div class="col-md-4"> @* capqty *@
+                                    <input type="number" min="0" step="1" id="capColorqty" oninput="validateuniformQty('CAP')" class="form-control form-control-sm" placeholder="qty" title="cap qty">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- RIGHT SIDE -->
+                        <div class="col-md-6">
+
+                            <!-- Row 1 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="safetyBeltSize" class="col-md-3 col-form-label">Safety Belt Size:<span style="color:red">*</span></label>
+                                <div class="col-md-4">@* safetybeltsize *@
+                                    <select id="safetyBeltSize" name="safetyBeltSize" class="form-control form-control-sm" title="Safety Belt Size">
+                                        <option value="" selected style="text-align:center;">--- select Pant Size  ---</option>
+                                        <option value="S">S</option>
+                                        <option value="M">M</option>
+                                        <option value="L">L</option>
+                                        <option value="XL">XL</option>
+                                    </select>
+
+                                </div>
+
+                                <label for="safetyBeltqty" class="col-md-2 col-form-label">Belt QTY:<span style="color:red">*</span></label>
+                                <div class="col-md-3">@* safetybeltqty *@
+                                    <input type="number" id="safetyBeltqty" min="0" step="1" oninput="validateuniformQty('BELT')" title="Belt QTY" placeholder="belt qty" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                            <!-- Row 2 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="earMuffqty" class="col-md-3 col-form-label">Earmuff (QTY):<span style="color:red">*</span></label>
+                                <div class="col-md-4">@* earmuffqty *@
+                                    <input type="number" id="earMuffqty" class="form-control form-control-sm" min="0" step="1" title="earmff qty" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="earmuff qty">
+                                </div>
+                            </div>
+
+                            <!-- Row 3 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="safetyHelmetqty" class="col-md-3 col-form-label">Safety Helmet (QTY):<span style="color:red">*</span></label>
+                                <div class="col-md-4">@* helmetqty *@
+                                    <input type="number" id="safetyHelmetqty" min="0" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')" class="form-control form-control-sm" title="helmet qty" placeholder="helmet qty">
+                                </div>
+                            </div>
+
+                            <!-- Row 4 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="apronQty" class="col-md-3 col-form-label">Apron (QTY):<span style="color:red">*</span></label>
+                                <div class="col-md-4">@*  apronqty *@
+                                    <input type="number" id="apronQty" min="0" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')" title="apron qty" placeholder="qty" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                            <!-- Row 5 -->
+                            <div class="row align-items-center mb-2">
+                                <label for="dateOfIssue" class="col-md-3 col-form-label">Date of Issued:<span style="color:red">*</span></label>
+                                <div class="col-md-4">@*  uniformdate *@
+                                    <input type="date" id="dateOfIssue" name="dateOfIssue" placeholder="mm/dd/yyyy" value="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control form-control-sm">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- ================= Access ================= -->
+                <fieldset class="small p-1 mb-0">
+                    <legend class="float-none w-auto px-3">Accessories</legend>
+                    <div id="divaccessdetails">
+                        <!-- 1. Hand Phone -->
+                        <div class="row mb-1">
+                            <label class="col-md-2 col-form-label" for="cpmHandPhone">Hand phone:</label>
+                            <div class="col-md-2">
+                                <input type="radio" name="cpmHandPhone" value="Y"> Yes &nbsp;@* handphone *@
+                                <input type="radio" name="cpmHandPhone" value="N"> No
+                            </div>
+                            <label for="cpmHandphoneIssuedDate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                            <div class="col-md-2">
+                                <input type="date" id="cpmHandphoneIssuedDate" class="form-control"> @* hpdate *@
+                            </div>
+                        </div>
+
+                        <!-- 2. Laptop -->
+                        <div class="row mb-1">
+                            <label class="col-md-2 col-form-label" for="cpmLaptop">Laptop:</label>
+                            <div class="col-md-2">
+                                <input type="radio" name="cpmLaptop" value="Y"> Yes &nbsp;@* laptop *@
+                                <input type="radio" name="cpmLaptop" value="N"> No
+                            </div>
+                            <label for="cpmLaptopIssuedDate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                            <div class="col-md-2">
+                                <input type="date" id="cpmLaptopIssuedDate" class="form-control"> @* laptopdate *@
+                            </div>
+                        </div>
+
+                        <!-- 3. Tablet -->
+                        <div class="row mb-1">
+                            <label class="col-md-2 col-form-label" for="cpmTablet">Tablet:</label>
+                            <div class="col-md-2">
+                                <input type="radio" name="cpmTablet" value="Y"> Yes &nbsp;@* tablet *@
+                                <input type="radio" name="cpmTablet" value="N"> No
+                            </div>
+                            <label for="cpmTabletIssuedDate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                            <div class="col-md-2">
+                                <input type="date" id="cpmTabletIssuedDate" class="form-control">@* tabletdate *@
+                            </div>
+                        </div>
+
+                        <!-- 4. Company Phone -->
+                        <div class="row mb-1">
+                            <label class="col-md-2 col-form-label" for="cpmSimcard">SIM Card:</label>
+                            <div class="col-md-2">
+                                <input type="radio" name="cpmSimcard" value="Y"> Yes &nbsp;@* companyphone *@
+                                <input type="radio" name="cpmSimcard" value="N"> No
+
+                            </div>
+                            <label class="col-md-2 col-form-label text-center" for="cpmSimcardIssuedDate">Date of issued:</label>
+                            <div class="col-md-2">
+                                <input type="date" id="cpmSimcardIssuedDate" class="form-control"> @* companyphonedate *@
+                            </div>
+                        </div>
+
+                        <!-- 5. Walkie Toki -->
+                        <div class="row mb-1">
+                            <label class="col-md-2 col-form-label" for="cpmWalkieTalkie">Walkie Talkie:</label>
+                            <div class="col-md-2">
+                                <input type="radio" name="cpmWalkieTalkie" value="Y"> Yes &nbsp;@* walkietoki *@
+                                <input type="radio" name="cpmWalkieTalkie" value="N"> No
+                            </div>
+                            <label for="cpmWalkieTalkieIssuedDate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                            <div class="col-md-2">
+                                <input type="date" id="cpmWalkieTalkieIssuedDate" class="form-control"> @* walkitokidate*@
+                            </div>
+                        </div>
+
+                        <!-- 8. Internet Access -->
+                        <div class="row mb-1">
+                            <label class="col-md-2 col-form-label" for="cpmInternetAccess">Internet Access:</label>
+                            <div class="col-md-2">
+                                <input type="radio" name="cpmInternetAccess" value="Y"> Yes &nbsp;@* internet *@
+                                <input type="radio" name="cpmInternetAccess" value="N"> No
+                            </div>
+                            <label for="cpmInternetAccessIssuedDate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                            <div class="col-md-2">
+                                <input type="date" id="cpmInternetAccessIssuedDate" class="form-control"> @* netaccessdate *@
+                            </div>
+                        </div>
+
+                        <!-- 9. System Access -->
+                        <div class="row mb-1" style="display:none;">
+                            <label class="col-md-2 col-form-label" for="systemaccess">System Access:</label>
+                            <div class="col-md-2">
+                                <input type="radio" name="systemaccess" value="Y"> Yes &nbsp;
+                                <input type="radio" name="systemaccess" value="N"> No
+                            </div>
+                            <label for="systemaccessdate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                            <div class="col-md-2">
+                                <input type="date" id="systemaccessdate" class="form-control">@*  auto-date *@
+                            </div>
+                        </div>
+
+                        <!-- 10. Folder Access -->
+                        <div class="row mb-1" style="display:none;">
+                            <label class="col-md-2 col-form-label" for="folderaccess">Folder Access:</label>
+                            <div class="col-md-2">
+                                <input type="radio" name="folderaccess" value="Y"> Yes &nbsp;
+                                <input type="radio" name="folderaccess" value="N"> No
+                            </div>
+                            <label for="folderaccessdate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                            <div class="col-md-2">
+                                <input type="date" id="folderaccessdate" class="form-control">@*  auto-date *@
+                            </div>
+                        </div>
+
+                        <!-- 6. Windows Login ID -->
+                        <div class="row mb-1">
+                            <label class="col-md-2 col-form-label" for="windowsLoginID">Windows Login ID:</label>
+                            <div class="col-md-2">
+                                <input type="text" id="windowsLoginID" class="form-control">@* windowloginid *@
+                            </div>
+                            <label for="windowsLoginIDIssuedDate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                            <div class="col-md-2">
+                                <input type="date" id="windowsLoginIDIssuedDate" class="form-control"> @* windowlogindate *@
+                            </div>
+                        </div>
+
+                        <!-- 7. Company Email -->
+                        <div class="row mb-1">
+                            <label class="col-md-2 col-form-label" for="companyEmail">Company Email:</label>
+                            <div class="col-md-2">
+                                <input type="text" id="companyEmail" class="form-control" placeholder="name@maruwa.com.my">@* companyemail *@
+                            </div>
+                            <label for="companyEmailIssuedDate" class="col-md-2 col-form-label text-center">Date of issued:</label>
+                            <div class="col-md-2">
+                                <input type="date" id="companyEmailIssuedDate" class="form-control"> @*companyemaildate auto-date *@
+                            </div>
+                        </div>
+                    </div>
+
+                </fieldset>
+
+                <div class="modal-footer d-flex justify-content-end">
+                    <button class="btn btn-success" id="btnsave"  onclick="saveEmployee()">Save</button>
+                    <button class="btn btn-danger" id="btnClear" onclick="ClearFormData()">Clear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Message Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Status</h5>
+                <button type="button" class="btn-close"  style="color:red" onclick="closeModal()">X</button>
+            </div>
+
+            <div class="modal-body">
+                <div id="modalMessage" class="alert text-center mb-0"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="goToEmployeeList()">Home</button>
+                <button type="button" class="btn btn-secondary"  onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .disabled-div {
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+    .error {
+        border: 2px red;
+    }
+
+    .success {
+        border: 2px green;
+    }
+
+    .dropdown-item.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+    #divlicensetype {
+        position: relative;
+    }
+
+        #divlicensetype .dropdown-menu {
+            position: absolute !important;
+            z-index: 1200 !important;
+            max-height: 250px;
+            overflow-y: auto;
+            width: max-content;
+            min-width: 200px;
+        }
+
+        #divlicensetype > button {
+            width: 100%;
+            text-align: left;
+        }
+
+
+    .is-invalid {
+        border-color: #dc3545;
+    }
+
+    .error-border {
+        border: 2px solid red !important;
+    }
+
+    .error-radio {
+        border: 1px solid #dc3545;
+        padding: 2px;
+        border-radius: 2px;
+    }
+
+    button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+</style>

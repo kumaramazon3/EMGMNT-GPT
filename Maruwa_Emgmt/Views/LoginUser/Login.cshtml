@@ -1,0 +1,75 @@
+﻿@{
+    Layout = null;
+}
+
+<!-- JS -->
+<script src="~/js/ajax_js/jsloginuser.js"></script>
+
+<!-- SB Admin 2 CSS -->
+<link href="~/css/sb-admin-2.min.css" rel="stylesheet" />
+
+<!-- Page Background -->
+<body style="height:100vh; margin:0; overflow:hidden;
+             background-image: linear-gradient(180deg, #728fe4 10%, #aaafbe 100%);">
+
+    <div class="d-flex justify-content-center align-items-center" style="height:100vh;">
+
+        <div class="card shadow-lg" style="width: 450px; border-radius: 15px;">
+            <div class="card-body p-4">
+                <div>
+                    <a class="dropdown-item">
+                        <img class="img-profile small" style="width:170px; height:35px;" src="~/img/logo.jpeg" />
+                        <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                            <span class="h4 text-gray-900 fw-bold" style="padding:35px;"></span>
+                        </span>
+                    </a>
+                </div>
+
+                <form id="loginForm">
+                    <div class="form-group mb-3">
+                        <input type="text" id="txtUserID" class="form-control" placeholder="User ID" />
+                        <span id="errUserID" class="error-text"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <input type="password" id="txtPassword" class="form-control" placeholder="Password" />
+                        <span id="errPassword" class="error-text"></span>
+                    </div>
+                    <div class="form-group mb-6">
+                        <span id="errLoginMsg" style="color:red;font-size:14px;"></span>
+                    </div>
+                    <button type="button" id="btnLogin" class="btn btn-primary w-100">Login</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Global Loading Overlay -->
+    <div id="loadingOverlay" style="display:none;">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+</body>
+
+<style>
+    .error-text {
+        color: red;
+        font-size: 12px;
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6); /* dark transparent background */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999; /* always on top */
+    }
+</style>

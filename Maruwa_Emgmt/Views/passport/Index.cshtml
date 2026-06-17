@@ -1,0 +1,189 @@
+﻿@{
+    ViewData["Title"] = "Passport & Visa Entry";
+    var emp = Context.Session.GetString("EmployeeDetails");
+}
+
+<div class="container mt-4">
+
+    <h3>Upload Visa PDF (ePass)</h3>
+
+    <input type="file" id="pdfFile" class="form-control"
+           accept="application/pdf"
+           onchange="readPdf()" />
+
+    <hr />
+
+    <h4>Extracted Visa Information</h4>
+
+    <div class="row">
+        <!-- LEFT SIDE -->
+        <div class="col-md-6">
+            <label><b>VP No:</b> <span id="vpNo"></span></label><br />
+            <label><b>Name:</b> <span id="name"></span></label><br />
+            <label><b>Gender:</b> <span id="gender"></span></label><br />
+            <label><b>Nationality:</b> <span id="nationality"></span></label><br />
+            <label><b>Passport No:</b> <span id="passportNo"></span></label><br />
+            <label><b>Reference No:</b> <span id="refNo"></span></label><br />
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="col-md-6">
+            <label><b>Date of Issue:</b> <span id="issueDate"></span></label><br />
+            <label><b>Place of Issue:</b> <span id="placeOfIssue"></span></label><br />
+            <label><b>Valid Until:</b> <span id="validUntil"></span></label><br />
+            <label><b>Job Position:</b> <span id="position"></span></label><br />
+            <label><b>Company:</b> <span id="company"></span></label><br />
+            <label><b>Company Address:</b> <span id="companyAddress"></span></label><br />
+        </div>
+    </div>
+
+    <hr />
+
+    <button class="btn btn-primary" onclick="submitData()">Submit</button>
+</div>
+
+
+@section Scripts {
+
+    <!-- PDF.js Library for reading PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+    <script>
+
+        /*******************************************************
+         * READ PDF & EXTRACT TEXT (Visa PDF)
+         *******************************************************/
+        async function readPdf() {
+
+            let file = document.getElementById("pdfFile").files[0];
+
+            if (!file) {
+                alert("Please choose a PDF file.");
+                return;
+            }
+
+            let text = await extractPdfText(file);
+            parseVisaText(text);
+        }
+
+
+        /*******************************************************
+         * Extract text using PDF.js
+         *******************************************************/
+        async function extractPdfText(file) {
+
+            const buffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+
+            let fullText = "";
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const strings = content.items.map(item => item.str).join(" ");
+                fullText += strings + "\n";
+            }
+
+            console.log("PDF Extracted Text:", fullText);
+            return fullText;
+        }
+
+
+        /*******************************************************
+         * Parse PDF Text → Fill Visa Fields
+         *******************************************************/
+             function parseVisaText(text) {
+
+            console.log("Extracted Visa PDF Text:", text);
+
+            let m;
+
+            // --- Name ---
+            m = text.match(/Name[: ]+([A-Za-z ]+)/i);
+            if (m) document.getElementById("name").innerText = m[1].trim();
+
+            // --- Gender ---
+            m = text.match(/Gender[: ]+(Male|Female)/i);
+            if (m) document.getElementById("gender").innerText = m[1].trim();
+
+            // --- Passport No ---
+            m = text.match(/Passport\s*No[: ]+([A-Z0-9]+)/i);
+            if (m) document.getElementById("passportNo").innerText = m[1].trim();
+
+            // --- Nationality ---
+            m = text.match(/Nationality[: ]+[: ]*([A-Za-z]+)/i);
+            if (m) document.getElementById("nationality").innerText = m[1].trim();
+
+            // --- Reference No ---
+            m = text.match(/Reference\s*No[: ]+([A-Z0-9\/]+)/i);
+            if (m) document.getElementById("refNo").innerText = m[1].trim();
+
+            // --- Date of Issue ---
+            m = text.match(/Date\s*of\s*Issue[: ]+[: ]*(\d{2} [A-Za-z]{3} \d{4})/i);
+            if (m) document.getElementById("issueDate").innerText = m[1].trim();
+
+            // --- Place of Issue ---
+            m = text.match(/Place\s*of\s*Issue[: ]+([A-Za-z ]+)/i);
+            if (m) document.getElementById("placeOfIssue").innerText = m[1].trim();
+
+            // --- Company (With:) ---
+            m = text.match(/With[: ]+([A-Za-z0-9 ,.()\-]+)/i);
+            if (m) document.getElementById("company").innerText = m[1].trim();
+
+            // --- Company Address (At:) ---
+            m = text.match(/At[: ]+([A-Za-z0-9 ,./\-()]+)/i);
+            if (m) document.getElementById("companyAddress").innerText = m[1].trim();
+
+            // --- Valid Until (inside Condition) ---
+            m = text.match(/UNTIL\s+(\d{2}\s+[A-Za-z]{3}\s+\d{4})/i);
+            if (m) document.getElementById("validUntil").innerText = m[1].trim();
+
+            // --- Position inside Condition ---
+            m = text.match(/FOR EMPLOYMENT AS ([A-Za-z ]+)/i);
+            if (m) document.getElementById("position").innerText = m[1].trim();
+
+            // VP No → Usually same as Reference No, or sometimes separate
+            m = text.match(/VP\s*No[: ]+([A-Z0-9]+)/i);
+            if (m) {
+                document.getElementById("vpNo").innerText = m[1].trim();
+            }
+            else {
+                // If VP not found, use Reference No
+                document.getElementById("vpNo").innerText =
+                    document.getElementById("refNo").innerText;
+            }
+        }
+
+        /*******************************************************
+         * SUBMIT DATA
+         *******************************************************/
+        function submitData() {
+
+            var payload = {
+                vpNo: document.getElementById("vpNo").innerText,
+                name: document.getElementById("name").innerText,
+                gender: document.getElementById("gender").innerText,
+                nationality: document.getElementById("nationality").innerText,
+                passportNo: document.getElementById("passportNo").innerText,
+                refNo: document.getElementById("refNo").innerText,
+                issueDate: document.getElementById("issueDate").innerText,
+                placeOfIssue: document.getElementById("placeOfIssue").innerText,
+                validUntil: document.getElementById("validUntil").innerText,
+                position: document.getElementById("position").innerText,
+                company: document.getElementById("company").innerText,
+                companyAddress: document.getElementById("companyAddress").innerText
+            };
+
+            fetch('/passport/SaveVisa', {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(msg => {
+                    alert(msg.message);
+                });
+        }
+
+    </script>
+}

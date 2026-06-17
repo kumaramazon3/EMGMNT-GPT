@@ -1,0 +1,26 @@
+{
+  "Layout": {
+    "project_Title": "kampung",
+    "addemployee": "Tambah Pekerja",
+    "employeesdetails": "Senarai Pekerja",
+    "passportsdetails": "Butiran Pasport"
+  },
+  "Index": {
+    "empma_tablsearch": "kod emp, nama, jabatan, pasport, kad pengenalan, negara",
+    "empma_pTitle": "Senarai Pekerja",
+    "empma_newPTitle": "Pendaftaran Pekerja",
+    "empma_ptotalrecordcount": "Jumlah Rekod",
+    "empma_tableSno": "No",
+    "empma_tableempcode": "Kod Pekerja",
+    "empma_tableempname": "Nama Pekerja",
+    "empma_tablepassport": "Pasport",
+    "empma_tablenewic": "IC Baru",
+    "empma_tabledept": "Jabatan",
+    "empma_tablesection": "Bahagian",
+    "empma_tabledoj": "Tarikh Masuk",
+    "empma_tabledesign": "Jawatan",
+    "empma_tablesex": "Jantina",
+    "empma_tablecountry": "Negara",
+    "empma_tableaction": "Tindakan"
+  }
+}

@@ -1,0 +1,190 @@
+﻿@{
+    ViewData["Title"] = "Document Master Report";
+    var emp = Context.Session.GetString("EmployeeDetails");
+}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white pb-1">Document Master Report</div>
+                <!-- 🔹 FILTER SECTION -->
+                <div class="card-body border-bottom pb-1">
+                    <div class="row  pb-1">
+
+                        <div class="col-md-2">
+                            <select class="form-control form-control-sm" id="department" title="Department" onclick="onDepartmentClick()">
+                                <option value="">--- Select Department ---</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <select class="form-control form-control-sm" id="subDepartment" title="Sub Department">
+                                <option value="">--- Select Sub Department ---</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <select class="form-control form-control-sm" id="section" title="Section">
+                                <option value="">--- Select Section ---</option>
+                            </select>
+                        </div>
+                
+                          <div class="col-md-1">
+                            <select class="form-control form-control-sm" id="pageSizeSelect">
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="150">150</option>
+                                <option value="All">All</option>
+                            </select>
+                        </div>
+
+                           <div class="col-md-3">
+                                <button onclick="prevPage()" style="border: none; background: none; cursor: pointer;">
+                                    <i class="fa fa-backward"></i>
+                                </button>
+                                <span id="paginationInfo" style="border: none; background: none; cursor: pointer;">1/1</span>
+                                <button onclick="nextPage()" style="border: none; background: none; cursor: pointer;">
+                                    <i class="fa fa-forward" aria-hidden="true"></i>
+                                </button>
+                        
+                            <span id="totalRecords" style="margin-left:10px; color:red;"></span>
+
+                        </div>
+                        <div class="col-md-2 text-right">
+                            <button id="btnLoadSkillMatrix" class="btn btn-primary">🔍Search</button>&nbsp;
+                              <button class="btn btn-secondary" id="btnClear">Clear</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                <div class="row">
+                        <table class="table table-bordered table-hover table-sm" id="tblSkillMatrixReport">
+                            <thead class="table-dark bg-secondary">
+                                <tr>
+                                    <th>Sno</th>
+                                    <th>Doc No</th>
+                                    <th>Section</th>
+                                    <th>Doc Name</th>
+                                    <th>Rev</th>
+                                    <th>Standards</th>
+
+                                    <th>Department</th>
+                                    <th>Category</th>
+                                    <th>PreparedBy</th>
+                                    <th>ReviewedBy</th>
+                                    <th>ApprovedBy</th>
+
+                                    <th>ApprovedDate</th>
+                                    <th>Uploaded By</th>
+                                    <th>Uploaded Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data via Ajax -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 4 Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="errorModalBody">
+                <!-- Error message will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #tblSkillMatrixReport thead th {
+        font-size: 11px;
+    }
+    #tblSkillMatrixReport {
+    font-size: 12px; /* smaller font size */
+}
+
+</style>
+
+
+<style>
+    
+    #bottomScroll {
+        overflow-x: auto; /* ensure horizontal scroll */
+        position: relative;
+    }
+    /* ===== TABLE STYLING ===== */
+    #skillTable {
+        table-layout: auto;
+        margin-bottom: 0;
+    }
+
+        #skillTable td,
+        #skillTable th {
+            padding: 7px 6px;
+            font-size: 13px;
+        }
+
+    /* ===== FIRST 3 STICKY COLUMNS ===== */
+    th.fixed-col,
+    td.fixed-col {
+        min-width: 100px;
+        max-width: 120px;
+        white-space: nowrap;
+        text-align: center;
+        background: #fff;
+    }
+
+        th.fixed-col:nth-child(1),
+        td.fixed-col:nth-child(1) {
+            position: sticky;
+            left: 0;
+            z-index: 3;
+        }
+
+        th.fixed-col:nth-child(2),
+        td.fixed-col:nth-child(2) {
+            position: sticky;
+            left: 100px;
+            z-index: 3;
+        }
+
+        th.fixed-col:nth-child(3),
+        td.fixed-col:nth-child(3) {
+            position: sticky;
+            left: 200px;
+            z-index: 3;
+        }
+
+    .small-font {
+        font-size: 0.6rem;
+    }
+
+     #skillBody td {
+        padding: .25rem;
+        font-size: 0.6rem;
+    }
+
+
+</style>
+@section Scripts {
+    <script>
+        const employeeSession = '@emp';
+    </script>
+    @* <script src="~/js/skillmatrix/jsskreportlist.js"></script> *@
+<script src="~/js/skillmatrix/jsreportskm.js"></script>
+}

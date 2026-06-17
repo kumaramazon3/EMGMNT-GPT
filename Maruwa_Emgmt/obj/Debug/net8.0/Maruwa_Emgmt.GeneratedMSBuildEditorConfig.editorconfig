@@ -9,117 +9,117 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Maruwa_Emgmt
 build_property.RootNamespace = Maruwa_Emgmt
-build_property.ProjectDir = C:\Users\Admin\source\repos\kumaramazon3\EMGMNT-GPT\Maruwa_Emgmt\
+build_property.ProjectDir = C:\Maruwa_Projects\gan\EMGMNT-Test-working\EMGMNT-GPT\Maruwa_Emgmt\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\Admin\source\repos\kumaramazon3\EMGMNT-GPT\Maruwa_Emgmt
+build_property.MSBuildProjectDirectory = C:\Maruwa_Projects\gan\EMGMNT-Test-working\EMGMNT-GPT\Maruwa_Emgmt
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/EmpMaster/empList.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/EmpMaster/empList.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW1wTWFzdGVyXGVtcExpc3QuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/EmpMaster/EmpRegisteration.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/EmpMaster/EmpRegisteration.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW1wTWFzdGVyXEVtcFJlZ2lzdGVyYXRpb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/EmpMaster/Index.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/EmpMaster/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW1wTWFzdGVyXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/empTraining/emTraining.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/empTraining/emTraining.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcZW1wVHJhaW5pbmdcZW1UcmFpbmluZy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/Home/Index.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/Home/Privacy.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/leave/leaveFrm.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/leave/leaveFrm.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcbGVhdmVcbGVhdmVGcm0uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/leave/leavelst.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/leave/leavelst.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcbGVhdmVcbGVhdmVsc3QuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/LoginUser/Login.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/LoginUser/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9naW5Vc2VyXExvZ2luLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/master/DepartmentMaster.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/master/DepartmentMaster.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcbWFzdGVyXERlcGFydG1lbnRNYXN0ZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/master/DesignationList.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/master/DesignationList.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcbWFzdGVyXERlc2lnbmF0aW9uTGlzdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/mstCourse/Course.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/mstCourse/Course.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcbXN0Q291cnNlXENvdXJzZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/PassportDetails/Index.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/PassportDetails/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGFzc3BvcnREZXRhaWxzXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/passport/Index.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/passport/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NccGFzc3BvcnRcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/Shared/Error.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/Shared/_ValidationScriptsPartial.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/SkillMatrix/createSkill.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/SkillMatrix/createSkill.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2tpbGxNYXRyaXhcY3JlYXRlU2tpbGwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/SkillMatrix/Reportskm.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/SkillMatrix/Reportskm.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2tpbGxNYXRyaXhcUmVwb3J0c2ttLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/SkillMatrix/skmList.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/SkillMatrix/skmList.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2tpbGxNYXRyaXhcc2ttTGlzdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/SkillMatrix/skmOldReport.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/SkillMatrix/skmOldReport.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2tpbGxNYXRyaXhcc2ttT2xkUmVwb3J0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/SkillMatrix/skmReport.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/SkillMatrix/skmReport.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2tpbGxNYXRyaXhcc2ttUmVwb3J0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/TM/Trainingmaster.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/TM/Trainingmaster.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVE1cVHJhaW5pbmdtYXN0ZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/TNA/tnaList.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/TNA/tnaList.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVE5BXHRuYUxpc3QuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/_ViewImports.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/_ViewStart.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/kumaramazon3/EMGMNT-GPT/Maruwa_Emgmt/Views/Shared/_Layout.cshtml]
+[C:/Maruwa_Projects/gan/EMGMNT-Test-working/EMGMNT-GPT/Maruwa_Emgmt/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-s9td1i2ktj

@@ -192,3 +192,21 @@ SELECT TOP(1) [e].[empcode], [e].[empName], [e].[designation]
 FROM [empmaster] AS [e]
 WHERE [e].[empcode] = @__empcode_0 AND [e].[pwd] = @__pwd_1 AND [e].[isResigned] = N'N'
 2026-06-17 14:17:23,626 [.NET TP Worker] INFO  Maruwa_Emgmt.DAL.da_tblempmaster [Maruwa_Emgmt.DAL.da_tblempmaster.ValidateLoginInfo] - Login result for EmpCode 013784: True
+2026-06-17 18:47:15,052 [1] WARN  Microsoft.EntityFrameworkCore.Model [?.?] - The entity type 'RowID' has the [Keyless] attribute, but the [Key] attribute was specified on property 'SelectskillMatrixDocumentData'; the two are incompatible, consider removing one. Note that the entity will have no key unless you configure one in 'OnModelCreating'.
+2026-06-17 18:47:15,099 [1] WARN  Microsoft.EntityFrameworkCore.Model [?.?] - The entity type 'RowID' has the [Keyless] attribute, but the [Key] attribute was specified on property 'new_skillMatrixDocumentData'; the two are incompatible, consider removing one. Note that the entity will have no key unless you configure one in 'OnModelCreating'.
+2026-06-17 18:47:15,445 [1] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (10ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+2026-06-17 18:47:15,449 [1] INFO  Program [Program.<Main>$] - Database connection successful.
+2026-06-17 18:47:15,625 [1] INFO  Microsoft.Hosting.Lifetime [Microsoft.Extensions.Hosting.Internal.ConsoleLifetime.OnApplicationStarted] - Application started. Press Ctrl+C to shut down.
+2026-06-17 18:47:15,628 [1] INFO  Microsoft.Hosting.Lifetime [Microsoft.Extensions.Hosting.Internal.ConsoleLifetime.OnApplicationStarted] - Hosting environment: Development
+2026-06-17 18:47:15,628 [1] INFO  Microsoft.Hosting.Lifetime [System.Threading.CancellationTokenSource.Invoke] - Content root path: C:\Maruwa_Projects\gan\EMGMNT-Test-working\EMGMNT-GPT\Maruwa_Emgmt
+2026-06-17 18:48:58,299 [.NET TP Worker] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (46ms) [Parameters=[@__empcode_0='?' (Size = 4000), @__pwd_1='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [e].[empcode], [e].[empName], [e].[designation]
+FROM [empmaster] AS [e]
+WHERE [e].[empcode] = @__empcode_0 AND [e].[pwd] = @__pwd_1 AND [e].[isResigned] = N'N'
+2026-06-17 18:48:58,330 [.NET TP Worker] INFO  Maruwa_Emgmt.DAL.da_tblempmaster [Maruwa_Emgmt.DAL.da_tblempmaster.ValidateLoginInfo] - Login result for EmpCode 013784: True
+2026-06-17 18:49:31,294 [.NET TP Worker] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (6ms) [Parameters=[@__empcode_0='?' (Size = 4000), @__pwd_1='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [e].[empcode], [e].[empName], [e].[designation]
+FROM [empmaster] AS [e]
+WHERE [e].[empcode] = @__empcode_0 AND [e].[pwd] = @__pwd_1 AND [e].[isResigned] = N'N'
+2026-06-17 18:49:31,296 [.NET TP Worker] INFO  Maruwa_Emgmt.DAL.da_tblempmaster [Maruwa_Emgmt.DAL.da_tblempmaster.ValidateLoginInfo] - Login result for EmpCode 013784: True

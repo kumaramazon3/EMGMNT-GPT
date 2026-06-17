@@ -114,6 +114,8 @@ builder.Services.AddScoped<i_DepartmentMaster, da_DepartmentMaster>();// ADO.NET
 builder.Services.AddScoped<bll_DepartmentMaster>();// BLL
 builder.Services.AddScoped<i_SectionMaster, da_SectionMaster>();// ADO.NET DAL
 builder.Services.AddScoped<bll_SectionMaster>();// BLL
+builder.Services.AddScoped<i_LeaveTypeMaster, da_LeaveTypeMaster>();// ADO.NET DAL
+builder.Services.AddScoped<bll_LeaveTypeMaster>();// BLL
 
 
 

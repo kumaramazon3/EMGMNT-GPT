@@ -18,13 +18,15 @@ namespace Maruwa_Emgmt.Controllers
         private readonly bal_tbldropdownData _dropdownBal;
         private readonly bll_DepartmentMaster _departmentBal;
         private readonly bll_SectionMaster _sectionBal;
+        private readonly bll_LeaveTypeMaster _leaveTypeBal;
 
-        public masterController(bll_Designation blldesig, bal_tbldropdownData dropdownBal, bll_DepartmentMaster departmentBal, bll_SectionMaster sectionBal)
+        public masterController(bll_Designation blldesig, bal_tbldropdownData dropdownBal, bll_DepartmentMaster departmentBal, bll_SectionMaster sectionBal, bll_LeaveTypeMaster leaveTypeBal)
         {
             _blldesig = blldesig;
             _dropdownBal = dropdownBal;
             _departmentBal = departmentBal;
             _sectionBal = sectionBal;
+            _leaveTypeBal = leaveTypeBal;
         }
 
         public IActionResult DesignationList()
@@ -244,6 +246,132 @@ namespace Maruwa_Emgmt.Controllers
             };
         }
 
+
+
+        public IActionResult LeaveTypeMaster()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetLeaveTypeList([FromBody] LeaveTypeSearchRequest request)
+        {
+            try
+            {
+                var data = await _leaveTypeBal.GetLeaveTypesAsync(request);
+                return Json(new { success = true, data = data.Data, totalCount = data.TotalCount });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetLeaveType(string id)
+        {
+            var leaveType = await _leaveTypeBal.GetLeaveTypeByIdAsync(id);
+            return leaveType == null
+                ? Json(new { success = false, message = "LeaveType not found" })
+                : Json(new { success = true, data = leaveType });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveLeaveType(LeaveTypeMasterVm model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = string.Join("\n", errors) });
+            }
+
+            var employeeCode = GetLoggedInEmployeeCode();
+            var result = await _leaveTypeBal.SaveLeaveTypeAsync(model, employeeCode);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteLeaveType(string id)
+        {
+            var employeeCode = GetLoggedInEmployeeCode();
+            var result = await _leaveTypeBal.DeleteLeaveTypeAsync(id, employeeCode);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ExportLeaveTypes([FromBody] LeaveTypeSearchRequest request, string format)
+        {
+            var leaveTypes = await _leaveTypeBal.GetLeaveTypesForExportAsync(request);
+            format = (format ?? "csv").ToLowerInvariant();
+            return format switch
+            {
+                "xlsx" => File(CreateLeaveTypeXlsx(leaveTypes), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "LeaveTypeMaster.xlsx"),
+                "pdf" => File(CreateLeaveTypePdf(leaveTypes), "application/pdf", "LeaveTypeMaster.pdf"),
+                _ => File(CreateLeaveTypeCsv(leaveTypes), "text/csv", "LeaveTypeMaster.csv")
+            };
+        }
+
+
+        private static byte[] CreateLeaveTypeCsv(IEnumerable<LeaveTypeMasterVm> leaveTypes)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("LeaveID,LeaveType,LeaveDescription,Created By,Created On,Edited By,Edited On,isActive");
+            foreach (var d in leaveTypes)
+            {
+                string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
+                sb.AppendLine(string.Join(',', Csv(d.LeaveID), Csv(d.LeaveType), Csv(d.LeaveDescription), Csv(d.CreatedBy), Csv(d.CreatedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.EditedBy), Csv(d.EditedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.isActive ? "Active" : "Inactive")));
+            }
+            return Encoding.UTF8.GetBytes(sb.ToString());
+        }
+
+        private static byte[] CreateLeaveTypePdf(IEnumerable<LeaveTypeMasterVm> leaveTypes)
+        {
+            using var ms = new MemoryStream();
+            using var doc = new Document(PageSize.A4.Rotate(), 20, 20, 20, 20);
+            PdfWriter.GetInstance(doc, ms);
+            doc.Open();
+            doc.Add(new Paragraph("LeaveType Master"));
+            doc.Add(new Paragraph(" "));
+            var table = new PdfPTable(8) { WidthPercentage = 100 };
+            string[] headers = ["LeaveID", "LeaveType", "LeaveDescription", "Created By", "Created On", "Edited By", "Edited On", "Status"];
+            foreach (var h in headers) table.AddCell(new Phrase(h));
+            foreach (var d in leaveTypes)
+            {
+                table.AddCell(d.LeaveID); table.AddCell(d.LeaveType); table.AddCell(d.LeaveDescription); table.AddCell(d.CreatedBy ?? ""); table.AddCell(d.CreatedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.EditedBy ?? ""); table.AddCell(d.EditedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.isActive ? "Active" : "Inactive");
+            }
+            doc.Add(table);
+            doc.Close();
+            return ms.ToArray();
+        }
+
+        private static byte[] CreateLeaveTypeXlsx(IEnumerable<LeaveTypeMasterVm> leaveTypes)
+        {
+            using var ms = new MemoryStream();
+            using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, true))
+            {
+                AddZipEntry(archive, "[Content_Types].xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/></Types>");
+                AddZipEntry(archive, "_rels/.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>");
+                AddZipEntry(archive, "xl/_rels/workbook.xml.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/></Relationships>");
+                AddZipEntry(archive, "xl/workbook.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets><sheet name=\"LeaveTypeMaster\" sheetId=\"1\" r:id=\"rId1\"/></sheets></workbook>");
+                AddZipEntry(archive, "xl/worksheets/sheet1.xml", BuildLeaveTypeSheetXml(leaveTypes));
+            }
+            return ms.ToArray();
+        }
+
+        private static string BuildLeaveTypeSheetXml(IEnumerable<LeaveTypeMasterVm> leaveTypes)
+        {
+            var rows = new StringBuilder();
+            string[] headers = ["LeaveID", "LeaveType", "LeaveDescription", "Created By", "Created On", "Edited By", "Edited On", "isActive"];
+            int rowIndex = 1;
+            rows.Append(BuildXlsxRow(rowIndex++, headers));
+            foreach (var d in leaveTypes)
+            {
+                rows.Append(BuildXlsxRow(rowIndex++, [d.LeaveID, d.LeaveType, d.LeaveDescription, d.CreatedBy ?? "", d.CreatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.EditedBy ?? "", d.EditedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.isActive ? "Active" : "Inactive"]));
+            }
+            return $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>{rows}</sheetData></worksheet>";
+        }
 
         private static byte[] CreateDesignationCsv(IEnumerable<DesignationMasterVm> designations)
         {

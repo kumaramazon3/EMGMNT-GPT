@@ -32,18 +32,78 @@ namespace Maruwa_Emgmt.Controllers
             return View();
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetDesignationList()
+        [HttpPost]
+        public async Task<IActionResult> GetDesignationList([FromBody] DesignationSearchRequest request)
         {
             try
             {
-                var data = await _blldesig.GetAllDesignationAsync();
-                return Json(new { success = true, data });
+                var data = await _blldesig.GetDesignationsAsync(request);
+                return Json(new { success = true, data = data.Data, totalCount = data.TotalCount });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetDesignation(int id)
+        {
+            var designation = await _blldesig.GetDesignationByIdAsync(id);
+            return designation == null
+                ? Json(new { success = false, message = "Designation not found" })
+                : Json(new { success = true, data = designation });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetInsuranceCategoryLookup(string? searchText)
+        {
+            var data = await _blldesig.GetInsuranceCategoryLookupAsync(searchText);
+            return Json(new { success = true, data });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProbationLookup(string? searchText)
+        {
+            var data = await _blldesig.GetProbationLookupAsync(searchText);
+            return Json(new { success = true, data });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveDesignation(DesignationMasterVm model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = string.Join("\n", errors) });
+            }
+
+            var employeeCode = GetLoggedInEmployeeCode();
+            var result = await _blldesig.SaveDesignationAsync(model, employeeCode);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteDesignation(int id)
+        {
+            var employeeCode = GetLoggedInEmployeeCode();
+            var result = await _blldesig.DeleteDesignationAsync(id, employeeCode);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ExportDesignations([FromBody] DesignationSearchRequest request, string format)
+        {
+            var designations = await _blldesig.GetDesignationsForExportAsync(request);
+            format = (format ?? "csv").ToLowerInvariant();
+            return format switch
+            {
+                "xlsx" => File(CreateDesignationXlsx(designations), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DesignationMaster.xlsx"),
+                "pdf" => File(CreateDesignationPdf(designations), "application/pdf", "DesignationMaster.pdf"),
+                _ => File(CreateDesignationCsv(designations), "text/csv", "DesignationMaster.csv")
+            };
         }
 
         public IActionResult DepartmentMaster()
@@ -182,6 +242,67 @@ namespace Maruwa_Emgmt.Controllers
                 "pdf" => File(CreateSectionPdf(sections), "application/pdf", "SectionMaster.pdf"),
                 _ => File(CreateSectionCsv(sections), "text/csv", "SectionMaster.csv")
             };
+        }
+
+
+        private static byte[] CreateDesignationCsv(IEnumerable<DesignationMasterVm> designations)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("designationcode,designationName,probation,insurance Catergory,insurance amount,Created By,Created On,Edited By,Edited On,isActive");
+            foreach (var d in designations)
+            {
+                string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
+                sb.AppendLine(string.Join(',', Csv(d.designationcode), Csv(d.designationName), Csv(d.probation), Csv(d.insCatergory), Csv(d.insamount.ToString("0.##")), Csv(d.CreatedBy), Csv(d.CreatedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.EditedBy), Csv(d.EditedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.isActive ? "Active" : "Inactive")));
+            }
+            return Encoding.UTF8.GetBytes(sb.ToString());
+        }
+
+        private static byte[] CreateDesignationPdf(IEnumerable<DesignationMasterVm> designations)
+        {
+            using var ms = new MemoryStream();
+            using var doc = new Document(PageSize.A4.Rotate(), 20, 20, 20, 20);
+            PdfWriter.GetInstance(doc, ms);
+            doc.Open();
+            doc.Add(new Paragraph("Designation Master"));
+            doc.Add(new Paragraph(" "));
+            var table = new PdfPTable(10) { WidthPercentage = 100 };
+            string[] headers = ["Code", "Name", "Probation", "Insurance Category", "Insurance Amount", "Created By", "Created On", "Edited By", "Edited On", "Status"];
+            foreach (var h in headers) table.AddCell(new Phrase(h));
+            foreach (var d in designations)
+            {
+                table.AddCell(d.designationcode); table.AddCell(d.designationName); table.AddCell(d.probation); table.AddCell(d.insCatergory); table.AddCell(d.insamount.ToString("0.##"));
+                table.AddCell(d.CreatedBy ?? ""); table.AddCell(d.CreatedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.EditedBy ?? ""); table.AddCell(d.EditedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.isActive ? "Active" : "Inactive");
+            }
+            doc.Add(table);
+            doc.Close();
+            return ms.ToArray();
+        }
+
+        private static byte[] CreateDesignationXlsx(IEnumerable<DesignationMasterVm> designations)
+        {
+            using var ms = new MemoryStream();
+            using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, true))
+            {
+                AddZipEntry(archive, "[Content_Types].xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/></Types>");
+                AddZipEntry(archive, "_rels/.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>");
+                AddZipEntry(archive, "xl/_rels/workbook.xml.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/></Relationships>");
+                AddZipEntry(archive, "xl/workbook.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets><sheet name=\"DesignationMaster\" sheetId=\"1\" r:id=\"rId1\"/></sheets></workbook>");
+                AddZipEntry(archive, "xl/worksheets/sheet1.xml", BuildDesignationSheetXml(designations));
+            }
+            return ms.ToArray();
+        }
+
+        private static string BuildDesignationSheetXml(IEnumerable<DesignationMasterVm> designations)
+        {
+            var rows = new StringBuilder();
+            string[] headers = ["designationcode", "designationName", "probation", "insurance Catergory", "insurance amount", "Created By", "Created On", "Edited By", "Edited On", "isActive"];
+            int rowIndex = 1;
+            rows.Append(BuildXlsxRow(rowIndex++, headers));
+            foreach (var d in designations)
+            {
+                rows.Append(BuildXlsxRow(rowIndex++, [d.designationcode, d.designationName, d.probation, d.insCatergory, d.insamount.ToString("0.##"), d.CreatedBy ?? "", d.CreatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.EditedBy ?? "", d.EditedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.isActive ? "Active" : "Inactive"]));
+            }
+            return $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>{rows}</sheetData></worksheet>";
         }
 
         private string GetLoggedInEmployeeCode()

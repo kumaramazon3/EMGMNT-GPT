@@ -32,6 +32,7 @@ wwwroot\js\leaves\jsleaveFrm.js
 wwwroot\js\leaves\jsleavelst.js
 wwwroot\js\master\jsDepartmentMaster.js
 wwwroot\js\master\jsDesignation.js
+wwwroot\js\master\jsSectionMaster.js
 wwwroot\js\Products\js_ProductCharts.js
 wwwroot\js\Products\npm_canvas_charts.js
 wwwroot\js\sb-admin-2.js

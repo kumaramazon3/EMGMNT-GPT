@@ -17,12 +17,14 @@ namespace Maruwa_Emgmt.Controllers
         private readonly bll_Designation _blldesig;
         private readonly bal_tbldropdownData _dropdownBal;
         private readonly bll_DepartmentMaster _departmentBal;
+        private readonly bll_SectionMaster _sectionBal;
 
-        public masterController(bll_Designation blldesig, bal_tbldropdownData dropdownBal, bll_DepartmentMaster departmentBal)
+        public masterController(bll_Designation blldesig, bal_tbldropdownData dropdownBal, bll_DepartmentMaster departmentBal, bll_SectionMaster sectionBal)
         {
             _blldesig = blldesig;
             _dropdownBal = dropdownBal;
             _departmentBal = departmentBal;
+            _sectionBal = sectionBal;
         }
 
         public IActionResult DesignationList()
@@ -109,6 +111,79 @@ namespace Maruwa_Emgmt.Controllers
             };
         }
 
+
+        public IActionResult SectionMaster()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetSectionList([FromBody] SectionSearchRequest request)
+        {
+            try
+            {
+                var data = await _sectionBal.GetSectionsAsync(request);
+                return Json(new { success = true, data = data.Data, totalCount = data.TotalCount });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSection(int id)
+        {
+            var section = await _sectionBal.GetSectionByIdAsync(id);
+            return section == null
+                ? Json(new { success = false, message = "Section not found" })
+                : Json(new { success = true, data = section });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSectionDepartmentLookup(string? searchText)
+        {
+            var departments = await _sectionBal.GetDepartmentLookupAsync(searchText);
+            return Json(new { success = true, data = departments });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveSection(SectionMasterVm model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = string.Join("\n", errors) });
+            }
+
+            var employeeCode = GetLoggedInEmployeeCode();
+            var result = await _sectionBal.SaveSectionAsync(model, employeeCode);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteSection(int id)
+        {
+            var employeeCode = GetLoggedInEmployeeCode();
+            var result = await _sectionBal.DeleteSectionAsync(id, employeeCode);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ExportSections([FromBody] SectionSearchRequest request, string format)
+        {
+            var sections = await _sectionBal.GetSectionsForExportAsync(request);
+            format = (format ?? "csv").ToLowerInvariant();
+            return format switch
+            {
+                "xlsx" => File(CreateSectionXlsx(sections), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SectionMaster.xlsx"),
+                "pdf" => File(CreateSectionPdf(sections), "application/pdf", "SectionMaster.pdf"),
+                _ => File(CreateSectionCsv(sections), "text/csv", "SectionMaster.csv")
+            };
+        }
+
         private string GetLoggedInEmployeeCode()
         {
             var employeeDetails = HttpContext.Session.GetString("EmployeeDetails");
@@ -122,6 +197,67 @@ namespace Maruwa_Emgmt.Controllers
                 catch { }
             }
             return HttpContext.Session.GetString("empcode") ?? "SYSTEM";
+        }
+
+
+        private static byte[] CreateSectionCsv(IEnumerable<SectionMasterVm> sections)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("SectionCode,Sectionname,SectionId,Departmentcode,SubDepartmentName,issectionActive,Created By,Created On,Edited By,Edited On");
+            foreach (var d in sections)
+            {
+                string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
+                sb.AppendLine(string.Join(',', Csv(d.SectionCode), Csv(d.Sectionname), Csv(d.SectionId.ToString()), Csv(d.Departmentcode), Csv(d.SubDepartmentName), Csv(d.issectionActive ? "Active" : "Inactive"), Csv(d.CreatedBy), Csv(d.CreatedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.EditedBy), Csv(d.EditedOn?.ToString("yyyy-MM-dd HH:mm"))));
+            }
+            return Encoding.UTF8.GetBytes(sb.ToString());
+        }
+
+        private static byte[] CreateSectionPdf(IEnumerable<SectionMasterVm> sections)
+        {
+            using var ms = new MemoryStream();
+            using var doc = new Document(PageSize.A4.Rotate(), 20, 20, 20, 20);
+            PdfWriter.GetInstance(doc, ms);
+            doc.Open();
+            doc.Add(new Paragraph("Section Master"));
+            doc.Add(new Paragraph(" "));
+            var table = new PdfPTable(10) { WidthPercentage = 100 };
+            string[] headers = ["Section Code", "Section Name", "Section Id", "Department Code", "Sub Department", "Status", "Created By", "Created On", "Edited By", "Edited On"];
+            foreach (var h in headers) table.AddCell(new Phrase(h));
+            foreach (var d in sections)
+            {
+                table.AddCell(d.SectionCode); table.AddCell(d.Sectionname); table.AddCell(d.SectionId.ToString()); table.AddCell(d.Departmentcode); table.AddCell(d.SubDepartmentName); table.AddCell(d.issectionActive ? "Active" : "Inactive");
+                table.AddCell(d.CreatedBy ?? ""); table.AddCell(d.CreatedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.EditedBy ?? ""); table.AddCell(d.EditedOn?.ToString("yyyy-MM-dd") ?? "");
+            }
+            doc.Add(table);
+            doc.Close();
+            return ms.ToArray();
+        }
+
+        private static byte[] CreateSectionXlsx(IEnumerable<SectionMasterVm> sections)
+        {
+            using var ms = new MemoryStream();
+            using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, true))
+            {
+                AddZipEntry(archive, "[Content_Types].xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/></Types>");
+                AddZipEntry(archive, "_rels/.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>");
+                AddZipEntry(archive, "xl/_rels/workbook.xml.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/></Relationships>");
+                AddZipEntry(archive, "xl/workbook.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets><sheet name=\"SectionMaster\" sheetId=\"1\" r:id=\"rId1\"/></sheets></workbook>");
+                AddZipEntry(archive, "xl/worksheets/sheet1.xml", BuildSectionSheetXml(sections));
+            }
+            return ms.ToArray();
+        }
+
+        private static string BuildSectionSheetXml(IEnumerable<SectionMasterVm> sections)
+        {
+            var rows = new StringBuilder();
+            string[] headers = ["SectionCode", "Sectionname", "SectionId", "Departmentcode", "SubDepartmentName", "issectionActive", "Created By", "Created On", "Edited By", "Edited On"];
+            int rowIndex = 1;
+            rows.Append(BuildXlsxRow(rowIndex++, headers));
+            foreach (var d in sections)
+            {
+                rows.Append(BuildXlsxRow(rowIndex++, [d.SectionCode, d.Sectionname, d.SectionId.ToString(), d.Departmentcode, d.SubDepartmentName, d.issectionActive ? "Active" : "Inactive", d.CreatedBy ?? "", d.CreatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.EditedBy ?? "", d.EditedOn?.ToString("yyyy-MM-dd HH:mm") ?? ""]));
+            }
+            return $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>{rows}</sheetData></worksheet>";
         }
 
         private static byte[] CreateCsv(IEnumerable<DepartmentMasterVm> departments)

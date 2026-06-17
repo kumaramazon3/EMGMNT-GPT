@@ -112,6 +112,8 @@ builder.Services.AddScoped<i_Designation, da_Designation>();// DAL
 builder.Services.AddScoped<bll_Designation>();// BLL
 builder.Services.AddScoped<i_DepartmentMaster, da_DepartmentMaster>();// ADO.NET DAL
 builder.Services.AddScoped<bll_DepartmentMaster>();// BLL
+builder.Services.AddScoped<i_SectionMaster, da_SectionMaster>();// ADO.NET DAL
+builder.Services.AddScoped<bll_SectionMaster>();// BLL
 
 
 

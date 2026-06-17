@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Maruwa_Projects\\gan\\EMGMNT-Test-working\\EMGMNT-GPT\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj": {}
+    "C:\\Users\\Admin\\source\\repos\\kumaramazon3\\FeatureSection\\EMGMNT-GPT\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj": {}
   },
   "projects": {
-    "C:\\Maruwa_Projects\\gan\\EMGMNT-Test-working\\EMGMNT-GPT\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj": {
+    "C:\\Users\\Admin\\source\\repos\\kumaramazon3\\FeatureSection\\EMGMNT-GPT\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Maruwa_Projects\\gan\\EMGMNT-Test-working\\EMGMNT-GPT\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj",
+        "projectUniqueName": "C:\\Users\\Admin\\source\\repos\\kumaramazon3\\FeatureSection\\EMGMNT-GPT\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj",
         "projectName": "Maruwa_Emgmt",
-        "projectPath": "C:\\Maruwa_Projects\\gan\\EMGMNT-Test-working\\EMGMNT-GPT\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj",
-        "packagesPath": "C:\\Users\\OEM\\.nuget\\packages\\",
-        "outputPath": "C:\\Maruwa_Projects\\gan\\EMGMNT-Test-working\\EMGMNT-GPT\\Maruwa_Emgmt\\obj\\",
+        "projectPath": "C:\\Users\\Admin\\source\\repos\\kumaramazon3\\FeatureSection\\EMGMNT-GPT\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Admin\\source\\repos\\kumaramazon3\\FeatureSection\\EMGMNT-GPT\\Maruwa_Emgmt\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\OEM\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],

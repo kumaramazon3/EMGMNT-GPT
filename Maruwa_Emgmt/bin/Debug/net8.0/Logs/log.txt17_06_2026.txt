@@ -25,3 +25,66 @@ SELECT TOP(1) [e].[empcode], [e].[empName], [e].[designation]
 FROM [empmaster] AS [e]
 WHERE [e].[empcode] = @__empcode_0 AND [e].[pwd] = @__pwd_1 AND [e].[isResigned] = N'N'
 2026-06-17 11:33:51,041 [.NET TP Worker] INFO  Maruwa_Emgmt.DAL.da_tblempmaster [Maruwa_Emgmt.DAL.da_tblempmaster.ValidateLoginInfo] - Login result for EmpCode 013784: True
+2026-06-17 11:55:48,608 [1] WARN  Microsoft.EntityFrameworkCore.Model [?.?] - The entity type 'RowID' has the [Keyless] attribute, but the [Key] attribute was specified on property 'SelectskillMatrixDocumentData'; the two are incompatible, consider removing one. Note that the entity will have no key unless you configure one in 'OnModelCreating'.
+2026-06-17 11:55:48,749 [1] WARN  Microsoft.EntityFrameworkCore.Model [?.?] - The entity type 'RowID' has the [Keyless] attribute, but the [Key] attribute was specified on property 'new_skillMatrixDocumentData'; the two are incompatible, consider removing one. Note that the entity will have no key unless you configure one in 'OnModelCreating'.
+2026-06-17 11:55:50,089 [1] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (28ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+2026-06-17 11:55:50,097 [1] INFO  Program [Program.<Main>$] - Database connection successful.
+2026-06-17 11:55:50,761 [1] INFO  Microsoft.Hosting.Lifetime [Microsoft.Extensions.Hosting.Internal.ConsoleLifetime.OnApplicationStarted] - Application started. Press Ctrl+C to shut down.
+2026-06-17 11:55:50,763 [1] INFO  Microsoft.Hosting.Lifetime [Microsoft.Extensions.Hosting.Internal.ConsoleLifetime.OnApplicationStarted] - Hosting environment: Development
+2026-06-17 11:55:50,763 [1] INFO  Microsoft.Hosting.Lifetime [System.Threading.CancellationTokenSource.Invoke] - Content root path: C:\Maruwa_Projects\gan\EMGMNT-Test-working\EMGMNT-GPT\Maruwa_Emgmt
+2026-06-17 11:55:51,437 [.NET TP Worker] WARN  Microsoft.AspNetCore.Session.SessionMiddleware [?.?] - Error unprotecting the session cookie.
+System.Security.Cryptography.CryptographicException: The payload was invalid. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+   at Microsoft.AspNetCore.DataProtection.Cng.CbcAuthenticatedEncryptor.DecryptImpl(Byte* pbCiphertext, UInt32 cbCiphertext, Byte* pbAdditionalAuthenticatedData, UInt32 cbAdditionalAuthenticatedData)
+   at Microsoft.AspNetCore.DataProtection.Cng.Internal.CngAuthenticatedEncryptorBase.Decrypt(ArraySegment`1 ciphertext, ArraySegment`1 additionalAuthenticatedData)
+   at Microsoft.AspNetCore.DataProtection.KeyManagement.KeyRingBasedDataProtector.UnprotectCore(Byte[] protectedData, Boolean allowOperationsOnRevokedKeys, UnprotectStatus& status)
+   at Microsoft.AspNetCore.DataProtection.KeyManagement.KeyRingBasedDataProtector.Unprotect(Byte[] protectedData)
+   at Microsoft.AspNetCore.Session.CookieProtection.Unprotect(IDataProtector protector, String protectedText, ILogger logger)
+2026-06-17 11:55:55,523 [.NET TP Worker] WARN  Microsoft.AspNetCore.Session.SessionMiddleware [?.?] - Error unprotecting the session cookie.
+System.Security.Cryptography.CryptographicException: The payload was invalid. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+   at Microsoft.AspNetCore.DataProtection.Cng.CbcAuthenticatedEncryptor.DecryptImpl(Byte* pbCiphertext, UInt32 cbCiphertext, Byte* pbAdditionalAuthenticatedData, UInt32 cbAdditionalAuthenticatedData)
+   at Microsoft.AspNetCore.DataProtection.Cng.Internal.CngAuthenticatedEncryptorBase.Decrypt(ArraySegment`1 ciphertext, ArraySegment`1 additionalAuthenticatedData)
+   at Microsoft.AspNetCore.DataProtection.KeyManagement.KeyRingBasedDataProtector.UnprotectCore(Byte[] protectedData, Boolean allowOperationsOnRevokedKeys, UnprotectStatus& status)
+   at Microsoft.AspNetCore.DataProtection.KeyManagement.KeyRingBasedDataProtector.Unprotect(Byte[] protectedData)
+   at Microsoft.AspNetCore.Session.CookieProtection.Unprotect(IDataProtector protector, String protectedText, ILogger logger)
+2026-06-17 11:55:56,204 [.NET TP Worker] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (44ms) [Parameters=[@__empcode_0='?' (Size = 4000), @__pwd_1='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [e].[empcode], [e].[empName], [e].[designation]
+FROM [empmaster] AS [e]
+WHERE [e].[empcode] = @__empcode_0 AND [e].[pwd] = @__pwd_1 AND [e].[isResigned] = N'N'
+2026-06-17 11:55:56,236 [.NET TP Worker] INFO  Maruwa_Emgmt.DAL.da_tblempmaster [Maruwa_Emgmt.DAL.da_tblempmaster.ValidateLoginInfo] - Login result for EmpCode 013784: True
+2026-06-17 12:05:29,518 [.NET TP Worker] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (3ms) [Parameters=[@__empcode_0='?' (Size = 4000), @__pwd_1='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [e].[empcode], [e].[empName], [e].[designation]
+FROM [empmaster] AS [e]
+WHERE [e].[empcode] = @__empcode_0 AND [e].[pwd] = @__pwd_1 AND [e].[isResigned] = N'N'
+2026-06-17 12:05:29,520 [.NET TP Worker] INFO  Maruwa_Emgmt.DAL.da_tblempmaster [Maruwa_Emgmt.DAL.da_tblempmaster.ValidateLoginInfo] - Login result for EmpCode 013784: True
+2026-06-17 12:14:20,642 [1] WARN  Microsoft.EntityFrameworkCore.Model [?.?] - The entity type 'RowID' has the [Keyless] attribute, but the [Key] attribute was specified on property 'SelectskillMatrixDocumentData'; the two are incompatible, consider removing one. Note that the entity will have no key unless you configure one in 'OnModelCreating'.
+2026-06-17 12:14:20,775 [1] WARN  Microsoft.EntityFrameworkCore.Model [?.?] - The entity type 'RowID' has the [Keyless] attribute, but the [Key] attribute was specified on property 'new_skillMatrixDocumentData'; the two are incompatible, consider removing one. Note that the entity will have no key unless you configure one in 'OnModelCreating'.
+2026-06-17 12:14:22,032 [1] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (16ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+2026-06-17 12:14:22,038 [1] INFO  Program [Program.<Main>$] - Database connection successful.
+2026-06-17 12:14:22,718 [1] INFO  Microsoft.Hosting.Lifetime [Microsoft.Extensions.Hosting.Internal.ConsoleLifetime.OnApplicationStarted] - Application started. Press Ctrl+C to shut down.
+2026-06-17 12:14:22,722 [1] INFO  Microsoft.Hosting.Lifetime [Microsoft.Extensions.Hosting.Internal.ConsoleLifetime.OnApplicationStarted] - Hosting environment: Development
+2026-06-17 12:14:22,722 [1] INFO  Microsoft.Hosting.Lifetime [System.Threading.CancellationTokenSource.Invoke] - Content root path: C:\Maruwa_Projects\gan\EMGMNT-Test-working\EMGMNT-GPT\Maruwa_Emgmt
+2026-06-17 12:14:38,572 [.NET TP Worker] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (40ms) [Parameters=[@__empcode_0='?' (Size = 4000), @__pwd_1='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [e].[empcode], [e].[empName], [e].[designation]
+FROM [empmaster] AS [e]
+WHERE [e].[empcode] = @__empcode_0 AND [e].[pwd] = @__pwd_1 AND [e].[isResigned] = N'N'
+2026-06-17 12:14:38,594 [.NET TP Worker] INFO  Maruwa_Emgmt.DAL.da_tblempmaster [Maruwa_Emgmt.DAL.da_tblempmaster.ValidateLoginInfo] - Login result for EmpCode 013784: True
+2026-06-17 12:54:55,056 [.NET TP Worker] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (2ms) [Parameters=[@__empcode_0='?' (Size = 4000), @__pwd_1='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [e].[empcode], [e].[empName], [e].[designation]
+FROM [empmaster] AS [e]
+WHERE [e].[empcode] = @__empcode_0 AND [e].[pwd] = @__pwd_1 AND [e].[isResigned] = N'N'
+2026-06-17 12:54:55,058 [.NET TP Worker] INFO  Maruwa_Emgmt.DAL.da_tblempmaster [Maruwa_Emgmt.DAL.da_tblempmaster.ValidateLoginInfo] - Login result for EmpCode 013784: True
+2026-06-17 13:13:54,231 [1] WARN  Microsoft.EntityFrameworkCore.Model [?.?] - The entity type 'RowID' has the [Keyless] attribute, but the [Key] attribute was specified on property 'SelectskillMatrixDocumentData'; the two are incompatible, consider removing one. Note that the entity will have no key unless you configure one in 'OnModelCreating'.
+2026-06-17 13:13:54,275 [1] WARN  Microsoft.EntityFrameworkCore.Model [?.?] - The entity type 'RowID' has the [Keyless] attribute, but the [Key] attribute was specified on property 'new_skillMatrixDocumentData'; the two are incompatible, consider removing one. Note that the entity will have no key unless you configure one in 'OnModelCreating'.
+2026-06-17 13:13:54,634 [1] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (11ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+2026-06-17 13:13:54,638 [1] INFO  Program [Program.<Main>$] - Database connection successful.
+2026-06-17 13:13:54,796 [1] INFO  Microsoft.Hosting.Lifetime [Microsoft.Extensions.Hosting.Internal.ConsoleLifetime.OnApplicationStarted] - Application started. Press Ctrl+C to shut down.
+2026-06-17 13:13:54,797 [1] INFO  Microsoft.Hosting.Lifetime [Microsoft.Extensions.Hosting.Internal.ConsoleLifetime.OnApplicationStarted] - Hosting environment: Development
+2026-06-17 13:13:54,797 [1] INFO  Microsoft.Hosting.Lifetime [System.Threading.CancellationTokenSource.Invoke] - Content root path: C:\Maruwa_Projects\gan\EMGMNT-Test-working\EMGMNT-GPT\Maruwa_Emgmt
+2026-06-17 13:13:57,022 [.NET TP Worker] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (28ms) [Parameters=[@__empcode_0='?' (Size = 4000), @__pwd_1='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [e].[empcode], [e].[empName], [e].[designation]
+FROM [empmaster] AS [e]
+WHERE [e].[empcode] = @__empcode_0 AND [e].[pwd] = @__pwd_1 AND [e].[isResigned] = N'N'
+2026-06-17 13:13:57,067 [.NET TP Worker] INFO  Maruwa_Emgmt.DAL.da_tblempmaster [Maruwa_Emgmt.DAL.da_tblempmaster.ValidateLoginInfo] - Login result for EmpCode 013784: True

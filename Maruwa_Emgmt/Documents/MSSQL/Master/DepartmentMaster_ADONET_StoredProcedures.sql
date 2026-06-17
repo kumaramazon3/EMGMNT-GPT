@@ -23,6 +23,41 @@ BEGIN
 END
 GO
 
+/*Start-modified on 17/06/2026 by kranthi*/
+CREATE TABLE [dbo].[DepartmentMaster](
+	[RecordNo] [int] IDENTITY(1,1) NOT NULL,
+	[DepartmentCode] [nvarchar](20) NOT NULL,
+	[DepartmentName] [nvarchar](150) NOT NULL,
+	[JapanHead] [nvarchar](10) NOT NULL,
+	[Office] [nvarchar](20) NOT NULL,
+	[GotSection] [nvarchar](10) NOT NULL,
+	[Prefix] [nvarchar](20) NOT NULL,
+	[CreatedBy] [nvarchar](50) NULL,
+	[CreatedOn] [datetime2](0) NOT NULL,
+	[EditedBy] [nvarchar](50) NULL,
+	[EditedOn] [datetime2](0) NULL,
+	[ActiveStatus] [bit] NOT NULL,
+	[departmentID] [nvarchar](10) NULL,
+	[idDeptActive] [varchar](2) NULL,
+	[subDepartment] [varchar](2) NULL,
+	[productionCode] [nvarchar](10) NULL,
+	[deptID] [nvarchar](10) NULL,
+ CONSTRAINT [PK_DepartmentMaster] PRIMARY KEY CLUSTERED 
+(
+	[RecordNo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[DepartmentMaster] ADD  CONSTRAINT [DF_DepartmentMaster_CreatedOn]  DEFAULT (sysdatetime()) FOR [CreatedOn]
+GO
+
+ALTER TABLE [dbo].[DepartmentMaster] ADD  CONSTRAINT [DF_DepartmentMaster_ActiveStatus]  DEFAULT ((1)) FOR [ActiveStatus]
+GO
+
+/*End -modified on 17/06/2026 by kranthi*/
+
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_DepartmentMaster_DepartmentCode_Active' AND object_id = OBJECT_ID('dbo.DepartmentMaster'))
 BEGIN
     CREATE UNIQUE INDEX UX_DepartmentMaster_DepartmentCode_Active

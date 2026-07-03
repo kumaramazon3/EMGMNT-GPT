@@ -74,6 +74,11 @@ function cancelInactiveEdit() {
     
     // Hide both modals
     $('#inactiveEditConfirmModal').modal('hide');
+
+    $('#sectionModal').modal('hide');
+    $('#sectionForm')[0].reset();
+    $('#sectionForm').find('input,select').removeClass('error-border valid-border');
+    $('#formMessage').addClass('d-none').text('');
     
     setTimeout(() => {
         $('#sectionModal').modal('hide');

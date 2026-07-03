@@ -120,6 +120,15 @@
             margin-bottom: 6px;
         }
     }
+
+
+    .inactive-edit-confirm-modal {
+        z-index: 1065;
+    }
+
+        .inactive-edit-confirm-modal .modal-dialog {
+            max-width: 520px;
+        }
 </style>
 
 <div class="container-fluid mt-3">
@@ -131,7 +140,7 @@
             <button type="button" class="btn btn-light btn-sm" onclick="openDepartmentModal()"><i class="bi bi-plus-circle"></i> Add Department</button>
         </div>
         <div class="card-body">
-             <div class="row mb-2 align-items-center">
+            <div class="row mb-2 align-items-center">
                 <div class="col-md-2">
                     <select id="pageSizeSelect" class="form-control form-control-sm">
                         <option value="5">5</option>
@@ -154,7 +163,7 @@
             <div class="table-responsive">
                 <table class="table table-bordered table-hover table-sm" id="tblDepartment" style="font-size:13px;">
                     <thead class="bg-secondary text-white">
-                         <tr>
+                        <tr>
                             <th>Edit</th>
                             <th>Delete</th>
                             <th data-sort="DepartmentCode">Department Code</th>
@@ -169,8 +178,9 @@
                             <th data-sort="EditedOn">Edited On</th>
                             <th data-sort="ActiveStatus">Active Status</th>
                         </tr>
-                       <tr class="bg-light text-dark">
-                            <th></th><th></th>
+                        <tr class="bg-light text-dark">
+                            <th></th>
+                            <th></th>
                             <th><input class="form-control form-control-sm column-search" data-field="departmentCode" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="departmentName" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="japanHead" /></th>
@@ -216,7 +226,7 @@
                                        name="DepartmentCode"
                                        maxlength="20"
                                        required />
-                                
+
                             </div>
                         </div>
 
@@ -312,6 +322,26 @@
             </div>
 
 
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade inactive-edit-confirm-modal" id="inactiveEditConfirmModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-warning">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Confirm Edit</h5>
+                <button type="button" class="close text-dark" onclick="cancelInactiveEdit()"><span>&times;</span></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="mb-0 font-weight-bold">You are going to edit the Inactive record, please confirm if you want to proceed?</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" onclick="cancelInactiveEdit()">Cancel</button>
+                <button type="button" class="btn btn-warning px-4" onclick="proceedInactiveEdit()">Proceed</button>
+            </div>
         </div>
     </div>
 </div>

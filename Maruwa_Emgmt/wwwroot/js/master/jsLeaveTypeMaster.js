@@ -6,98 +6,42 @@ let sortDirection = 'ASC';
 let deleteId = '';
 let debounceTimer = null;
 
-const inactiveEditConfirmMessage = 'you are going to edit the Inactive record, please confirm if you want to proceed?';
-
-function isInactiveStatus(value) {
-    if (value === undefined || value === null) return false;
-    if (typeof value === 'boolean') return value === false;
-    if (typeof value === 'number') return value === 0;
-
-    const status = String(value).trim().toLowerCase();
-    return status === 'false' ||
-        status === '0' ||
-        status === 'inactive' ||
-        status === 'n' ||
-        status === 'no';
-}
-
-function getFirstDefined() {
-    for (let i = 0; i < arguments.length; i++) {
-        if (arguments[i] !== undefined && arguments[i] !== null && String(arguments[i]).trim() !== '') {
-            return arguments[i];
-        }
-    }
-    return undefined;
-}
-
-function showInactiveEditConfirmModal(editModalSelector) {
-    return new Promise(function (resolve) {
-        const modalId = 'inactiveEditConfirmModal';
-        let modal = $('#' + modalId);
-
-        if (modal.length === 0) {
-            $('body').append(`
-                <div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-                    <div class="modal-dialog modal-dialog-centered" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header bg-danger text-white">
-                                <h5 class="modal-title">Confirm Edit</h5>
-                                <button type="button" class="close text-white" id="btnInactiveEditClose" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                ${inactiveEditConfirmMessage}
-                            </div>
-                            <div class="modal-footer justify-content-end">
-                                <button type="button" class="btn btn-secondary" id="btnInactiveEditCancel">Cancel</button>
-                                <button type="button" class="btn btn-danger" id="btnInactiveEditProceed">Proceed</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>`);
-            modal = $('#' + modalId);
-        }
-
-        modal.css('z-index', 1065);
-        setTimeout(function () { $('.modal-backdrop').last().css('z-index', 1060); }, 10);
-
-        modal.off('click.inactiveEdit');
-        modal.on('click.inactiveEdit', '#btnInactiveEditProceed', function () {
-            modal.modal('hide');
-            resolve(true);
-        });
-        modal.on('click.inactiveEdit', '#btnInactiveEditCancel, #btnInactiveEditClose', function () {
-            modal.modal('hide');
-            if (editModalSelector) {
-                $(editModalSelector).modal('hide');
-            }
-            resolve(false);
-        });
-
-        modal.modal('show');
-    });
-}
-
-async function showInactiveEditWarningAfterModal(activeStatus, editModalSelector) {
-    if (isInactiveStatus(activeStatus)) {
-        return await showInactiveEditConfirmModal(editModalSelector);
-    }
-    return true;
-}
+let inactiveEditConfirmed = false;
+let currentEditingInactiveLeaveType = false;
+let showConfirmModalAfterLeaveTypeShown = false;
 
 $(document).ready(function () {
     loadLeaveTypes();
+
     $('#pageSizeSelect').on('change', function () { pageSize = parseInt($(this).val()); currentPage = 1; loadLeaveTypes(); });
     $('#globalSearch').on('input', debounceSearch);
     $('.column-search').on('input', debounceSearch);
+
     $('#btnPrev').on('click', function () { if (currentPage > 1) { currentPage--; loadLeaveTypes(); } });
     $('#btnNext').on('click', function () { const totalPages = Math.ceil(totalCount / pageSize); if (currentPage < totalPages) { currentPage++; loadLeaveTypes(); } });
+
     $('#tblLeaveType thead th[data-sort]').on('click', function () {
         const selected = $(this).data('sort');
         sortDirection = sortColumn === selected && sortDirection === 'ASC' ? 'DESC' : 'ASC';
         sortColumn = selected;
         loadLeaveTypes();
+    });
+
+    // When leaveType modal is shown, show confirmation if needed
+    $('#leaveTypeModal').on('shown.bs.modal', function () {
+        if (showConfirmModalAfterLeaveTypeShown) {
+            showConfirmModalAfterLeaveTypeShown = false;
+            setTimeout(() => {
+                showInactiveEditConfirm();
+            }, 100);
+        }
+    });
+
+    // When leaveType modal is hidden, reset flags
+    $('#leaveTypeModal').on('hidden.bs.modal', function () {
+        currentEditingInactiveLeaveType = false;
+        inactiveEditConfirmed = false;
+        showConfirmModalAfterLeaveTypeShown = false;
     });
 });
 
@@ -119,32 +63,18 @@ async function loadLeaveTypes() {
     } catch (e) { showFormMessage('Error loading LeaveType data', false); }
 }
 
-const leaveTypeActiveStatusMap = {};
-
 function renderTable(data) {
     let rows = '';
-
     data.forEach(item => {
-        const activeStatus = getFirstDefined(item.isActive, item.IsActive, item.activeStatus, item.ActiveStatus);
-        leaveTypeActiveStatusMap[item.leaveID] = activeStatus;
-
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editLeaveType('${escapeAttr(item.leaveID)}')"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editLeaveType('${escapeAttr(item.leaveID)}', this)"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteLeaveType('${escapeAttr(item.leaveID)}')"></i></td>
-            <td>${escapeHtml(item.leaveID)}</td>
-            <td>${escapeHtml(item.leaveType)}</td>
-            <td>${escapeHtml(item.leaveDescription)}</td>
-            <td>${escapeHtml(item.createdBy)}</td>
-            <td>${formatDate(item.createdOn)}</td>
-            <td>${escapeHtml(item.editedBy)}</td>
-            <td>${formatDate(item.editedOn)}</td>
-            <td>${isInactiveStatus(activeStatus) ? 'Inactive' : 'Active'}</td>
+            <td>${escapeHtml(item.leaveID)}</td><td>${escapeHtml(item.leaveType)}</td><td>${escapeHtml(item.leaveDescription)}</td>
+            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${item.isActive ? 'Active' : 'Inactive'}</td>
         </tr>`;
     });
-
     $('#tblLeaveType tbody').html(rows || '<tr><td colspan="10" class="text-center">No records found</td></tr>');
 }
-
 
 function updatePaging() {
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -162,31 +92,79 @@ function openLeaveTypeModal() {
     $('#leaveTypeModal').modal('show');
 }
 
-async function editLeaveType(id) {
+async function editLeaveType(id, editIcon) {
     const response = await $.get('/master/GetLeaveType', { id: id });
     if (!response.success) { alert(response.message); return; }
 
     const d = response.data;
-    const activeStatus = getFirstDefined(
-        leaveTypeActiveStatusMap[id],
-        d.isActive,
-        d.IsActive,
-        d.activeStatus,
-        d.ActiveStatus
-    );
 
     $('#leaveTypeModalTitle').text('Edit LeaveType');
     $('#leaveID').val(d.leaveID).prop('readonly', true);
     $('#leaveType').val(d.leaveType);
     $('#leaveDescription').val(d.leaveDescription);
     $('#formMessage').addClass('d-none').text('');
-    $('#leaveTypeModal').modal('show');
 
-    await showInactiveEditWarningAfterModal(activeStatus, '#leaveTypeModal');
+    // Check if record is inactive
+    if (!d.isActive) {
+        currentEditingInactiveLeaveType = true;
+        inactiveEditConfirmed = false;
+        showConfirmModalAfterLeaveTypeShown = true;
+    }
+
+    // Show the leaveType modal (confirmation will be shown in 'shown.bs.modal' event if needed)
+    $('#leaveTypeModal').modal('show');
 }
 
+function showInactiveEditConfirm() {
+    const modal = $('#inactiveEditConfirmModal');
+
+    if (!modal.length) {
+        console.error('Modal #inactiveEditConfirmModal not found!');
+        alert('You are going to edit the Inactive record, please confirm if you want to proceed?');
+        return;
+    }
+
+    console.log('Showing inactive confirmation modal');
+
+    // Remove any existing backdrop
+    $('.modal-backdrop').remove();
+
+    // Show modal with Bootstrap 4 method
+    modal.modal({
+        backdrop: 'static',
+        keyboard: false,
+        show: true
+    });
+}
+
+function proceedInactiveEdit() {
+    console.log('User clicked Proceed');
+    inactiveEditConfirmed = true;
+    $('#inactiveEditConfirmModal').modal('hide');
+}
+
+function cancelInactiveEdit() {
+    console.log('User clicked Cancel');
+    inactiveEditConfirmed = false;
+    currentEditingInactiveLeaveType = false;
+
+    // Hide both modals
+    $('#inactiveEditConfirmModal').modal('hide');
+
+    setTimeout(() => {
+        $('#leaveTypeModal').modal('hide');
+        $('#leaveTypeForm')[0].reset();
+        $('#leaveID').prop('readonly', false);
+        $('#formMessage').addClass('d-none').text('');
+    }, 300);
+}
 
 async function saveLeaveType() {
+    if (currentEditingInactiveLeaveType && !inactiveEditConfirmed) {
+        alert('Please confirm if you want to proceed with editing the inactive record.');
+        return;
+    }
+
     const form = $('#leaveTypeForm')[0];
     if (!form.checkValidity()) { form.reportValidity(); return; }
     const token = $('input[name="__RequestVerificationToken"]').val();
@@ -197,6 +175,7 @@ async function saveLeaveType() {
 }
 
 function confirmDeleteLeaveType(id) { deleteId = id; $('#deleteLeaveTypeModal').modal('show'); }
+
 $('#btnConfirmLeaveTypeDelete').on('click', async function () {
     const token = $('input[name="__RequestVerificationToken"]').val();
     const response = await $.ajax({ url: '/master/DeleteLeaveType', type: 'POST', data: { id: deleteId }, headers: { 'RequestVerificationToken': token } });

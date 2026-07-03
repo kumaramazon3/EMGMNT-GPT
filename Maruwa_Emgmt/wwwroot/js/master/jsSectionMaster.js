@@ -5,88 +5,96 @@ let sortColumn = 'SectionId';
 let sortDirection = 'DESC';
 let deleteId = 0;
 let debounceTimer = null;
+let allDepartments = [];
 
-const inactiveEditConfirmMessage = 'you are going to edit the Inactive record, please confirm if you want to proceed?';
+let inactiveEditConfirmed = false;
+let currentEditingInactiveRecord = false;
+let showConfirmModalAfterSectionShown = false;
 
 function isInactiveStatus(value) {
     if (value === undefined || value === null) return false;
     if (typeof value === 'boolean') return value === false;
     if (typeof value === 'number') return value === 0;
-
     const status = String(value).trim().toLowerCase();
-    return status === 'false' ||
-        status === '0' ||
-        status === 'inactive' ||
-        status === 'n' ||
-        status === 'no';
+    return status === 'false' || status === '0' || status === 'inactive' || status === 'n' || status === 'no';
 }
 
-function getFirstDefined() {
-    for (let i = 0; i < arguments.length; i++) {
-        if (arguments[i] !== undefined && arguments[i] !== null && String(arguments[i]).trim() !== '') {
-            return arguments[i];
-        }
+function getSectionStatusValue(item) {
+    if (!item) return null;
+    return item.issectionActive ?? item.IssectionActive ?? item.isSectionActive ?? item.IsSectionActive ?? 
+           item.activeStatus ?? item.ActiveStatus ?? item.isActive ?? item.IsActive;
+}
+
+function getSectionStatusText(item) {
+    return isInactiveStatus(getSectionStatusValue(item)) ? 'Inactive' : 'Active';
+}
+
+function getStatusFromEditIcon(editIcon) {
+    try {
+        const row = $(editIcon).closest('tr');
+        const statusText = row.find('td').eq(6).text();
+        return statusText;
+    } catch (e) {
+        return '';
     }
-    return undefined;
 }
 
-function showInactiveEditConfirmModal(editModalSelector) {
-    return new Promise(function (resolve) {
-        const modalId = 'inactiveEditConfirmModal';
-        let modal = $('#' + modalId);
+function showInactiveEditConfirm() {
+    const modal = $('#inactiveEditConfirmModal');
+    
+    if (!modal.length) {
+        console.error('Modal #inactiveEditConfirmModal not found!');
+        alert('You are going to edit the Inactive record, please confirm if you want to proceed?');
+        return;
+    }
 
-        if (modal.length === 0) {
-            $('body').append(`
-                <div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-                    <div class="modal-dialog modal-dialog-centered" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header bg-danger text-white">
-                                <h5 class="modal-title">Confirm Edit</h5>
-                                <button type="button" class="close text-white" id="btnInactiveEditClose" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                ${inactiveEditConfirmMessage}
-                            </div>
-                            <div class="modal-footer justify-content-end">
-                                <button type="button" class="btn btn-secondary" id="btnInactiveEditCancel">Cancel</button>
-                                <button type="button" class="btn btn-danger" id="btnInactiveEditProceed">Proceed</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>`);
-            modal = $('#' + modalId);
-        }
-
-        modal.css('z-index', 1065);
-        setTimeout(function () { $('.modal-backdrop').last().css('z-index', 1060); }, 10);
-
-        modal.off('click.inactiveEdit');
-        modal.on('click.inactiveEdit', '#btnInactiveEditProceed', function () {
-            modal.modal('hide');
-            resolve(true);
-        });
-        modal.on('click.inactiveEdit', '#btnInactiveEditCancel, #btnInactiveEditClose', function () {
-            modal.modal('hide');
-            if (editModalSelector) {
-                $(editModalSelector).modal('hide');
-            }
-            resolve(false);
-        });
-
-        modal.modal('show');
+    console.log('Showing inactive confirmation modal');
+    
+    // Remove any existing backdrop
+    $('.modal-backdrop').remove();
+    
+    // Show modal with Bootstrap 4 method
+    modal.modal({
+        backdrop: 'static',
+        keyboard: false,
+        show: true
     });
 }
 
-async function showInactiveEditWarningAfterModal(activeStatus, editModalSelector) {
-    if (isInactiveStatus(activeStatus)) {
-        return await showInactiveEditConfirmModal(editModalSelector);
-    }
-    return true;
+function proceedInactiveEdit() {
+    console.log('User clicked Proceed');
+    inactiveEditConfirmed = true;
+    $('#inactiveEditConfirmModal').modal('hide');
+}
+
+function cancelInactiveEdit() {
+    console.log('User clicked Cancel');
+    inactiveEditConfirmed = false;
+    currentEditingInactiveRecord = false;
+    
+    // Hide both modals
+    $('#inactiveEditConfirmModal').modal('hide');
+    
+    setTimeout(() => {
+        $('#sectionModal').modal('hide');
+        resetSectionForm();
+    }, 300);
+}
+
+function resetSectionForm() {
+    const form = document.getElementById('sectionForm');
+    if (form) form.reset();
+    
+    document.getElementById('sectionId').value = '0';
+    document.getElementById('subDepartmentName').value = '-';
+    document.getElementById('departmentLookupSearch').value = '';
+    document.getElementById('departmentcode').value = '';
+    resetSectionFormValidation();
 }
 
 $(document).ready(function () {
+    console.log('SectionMaster JS loaded');
+    
     loadDepartmentsForDropdown('');
     loadSections();
 
@@ -112,14 +120,24 @@ $(document).ready(function () {
         }
     });
 
+    // When section modal is shown, show confirmation if needed
+    $('#sectionModal').on('shown.bs.modal', function () {
+        console.log('Section modal shown, showConfirmModalAfterSectionShown:', showConfirmModalAfterSectionShown);
+        if (showConfirmModalAfterSectionShown) {
+            showConfirmModalAfterSectionShown = false;
+            // Small delay to ensure proper z-index handling
+            setTimeout(() => {
+                showInactiveEditConfirm();
+            }, 100);
+        }
+    });
+
+    // When section modal is hidden, reset flags
     $('#sectionModal').on('hidden.bs.modal', function () {
-        resetSectionFormValidation();
-        $('#sectionForm')[0].reset();
-        $('#sectionId').val(0);
-        $('#subDepartmentName').val('-');
-        $('#departmentLookupSearch').val('');
-        $('#departmentcode').val('');
-        loadDepartmentsForDropdown('');
+        resetSectionForm();
+        currentEditingInactiveRecord = false;
+        inactiveEditConfirmed = false;
+        showConfirmModalAfterSectionShown = false;
     });
 
     $('#btnPrev').on('click', function () {
@@ -169,11 +187,9 @@ function buildRequest() {
         pageNumber: currentPage,
         pageSize: pageSize
     };
-
     $('.column-search').each(function () {
         req[$(this).data('field')] = $(this).val();
     });
-
     return req;
 }
 
@@ -185,12 +201,10 @@ async function loadSections() {
             contentType: 'application/json',
             data: JSON.stringify(buildRequest())
         });
-
         if (!response.success) {
             showFormMessage(response.message, false);
             return;
         }
-
         totalCount = response.totalCount;
         renderTable(response.data || []);
         updatePaging();
@@ -200,10 +214,6 @@ async function loadSections() {
 }
 
 async function loadDepartmentsForDropdown(searchText, selectedValue) {
-    const list = $('#departmentOptions');
-    const lookup = $('#departmentLookupSearch');
-    const hidden = $('#departmentcode');
-
     try {
         const response = await $.get('/master/GetSectionDepartmentLookup', { searchText: searchText || '' });
         if (response.success) {
@@ -216,17 +226,14 @@ async function loadDepartmentsForDropdown(searchText, selectedValue) {
     renderDepartmentOptions(allDepartments);
 
     if (selectedValue) {
-        const selectedDept = allDepartments.find(function (dept) {
-            return String(dept.departmentCode) === String(selectedValue);
-        });
-
+        const selectedDept = allDepartments.find(dept => String(dept.departmentCode) === String(selectedValue));
         if (selectedDept) {
             const displayText = getDepartmentDisplayText(selectedDept);
-            lookup.val(displayText);
-            hidden.val(selectedDept.departmentCode);
+            $('#departmentLookupSearch').val(displayText);
+            $('#departmentcode').val(selectedDept.departmentCode);
         } else {
-            lookup.val(selectedValue);
-            hidden.val(selectedValue);
+            $('#departmentLookupSearch').val(selectedValue);
+            $('#departmentcode').val(selectedValue);
         }
     }
 }
@@ -234,8 +241,7 @@ async function loadDepartmentsForDropdown(searchText, selectedValue) {
 function renderDepartmentOptions(departments) {
     const list = $('#departmentOptions');
     list.empty();
-
-    (departments || []).forEach(function (d) {
+    (departments || []).forEach(d => {
         list.append(`<option value="${escapeHtml(getDepartmentDisplayText(d))}"></option>`);
     });
 }
@@ -248,62 +254,46 @@ function getDepartmentDisplayText(dept) {
 
 function setDepartmentCodeFromLookup() {
     const text = String($('#departmentLookupSearch').val() || '').trim().toLowerCase();
-    const hidden = $('#departmentcode');
-
-    const selectedDept = allDepartments.find(function (dept) {
+    const selectedDept = allDepartments.find(dept => {
         const code = String(dept.departmentCode || '').trim().toLowerCase();
         const name = String(dept.departmentName || '').trim().toLowerCase();
         const display = getDepartmentDisplayText(dept).toLowerCase();
         return text === code || text === name || text === display;
     });
-
-    if (selectedDept) {
-        hidden.val(selectedDept.departmentCode);
-    } else {
-        hidden.val('');
-    }
+    $('#departmentcode').val(selectedDept ? selectedDept.departmentCode : '');
 }
 
 function validateDepartmentLookup() {
     const lookup = $('#departmentLookupSearch');
     setDepartmentCodeFromLookup();
-
     if (!$('#departmentcode').val()) {
         lookup.removeClass('valid-border').addClass('error-border');
         return false;
     }
-
     lookup.removeClass('error-border').addClass('valid-border');
     return true;
 }
 
-const sectionActiveStatusMap = {};
-
 function renderTable(data) {
     let rows = '';
-
     data.forEach(item => {
-        const activeStatus = getFirstDefined(item.issectionActive, item.IssectionActive, item.activeStatus, item.ActiveStatus, item.isActive, item.IsActive);
-        sectionActiveStatusMap[item.sectionId] = activeStatus;
-
+        const statusText = getSectionStatusText(item);
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editSection(${item.sectionId})"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editSection(${item.sectionId}, this)"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteSection(${item.sectionId})"></i></td>
             <td>${escapeHtml(item.sectionCode)}</td>
             <td>${escapeHtml(item.sectionname)}</td>
             <td>${item.sectionId}</td>
             <td>${escapeHtml(item.departmentcode)}</td>
-            <td>${isInactiveStatus(activeStatus) ? 'Inactive' : 'Active'}</td>
+            <td>${statusText}</td>
             <td>${escapeHtml(item.createdBy)}</td>
             <td>${formatDate(item.createdOn)}</td>
             <td>${escapeHtml(item.editedBy)}</td>
             <td>${formatDate(item.editedOn)}</td>
         </tr>`;
     });
-
     $('#tblSection tbody').html(rows || '<tr><td colspan="11" class="text-center">No records found</td></tr>');
 }
-
 
 function updatePaging() {
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -315,18 +305,18 @@ function updatePaging() {
 
 function openSectionModal() {
     $('#sectionModalTitle').text('Add Section');
-    $('#sectionForm')[0].reset();
-    $('#sectionId').val(0);
-    $('#subDepartmentName').val('-');
+    resetSectionForm();
     $('#sectionCode').prop('readonly', false);
-    $('#departmentLookupSearch').val('');
-    $('#departmentcode').val('');
-    resetSectionFormValidation();
     loadDepartmentsForDropdown('');
     $('#sectionModal').modal('show');
 }
 
-async function editSection(id) {
+async function editSection(id, editIcon) {
+    console.log('editSection called for id:', id);
+    
+    const rowStatusText = getStatusFromEditIcon(editIcon);
+    console.log('Row status:', rowStatusText);
+
     const response = await $.get('/master/GetSection', { id: id });
 
     if (!response.success) {
@@ -335,15 +325,7 @@ async function editSection(id) {
     }
 
     const d = response.data;
-    const activeStatus = getFirstDefined(
-        sectionActiveStatusMap[id],
-        d.issectionActive,
-        d.IssectionActive,
-        d.activeStatus,
-        d.ActiveStatus,
-        d.isActive,
-        d.IsActive
-    );
+    console.log('Section data:', d);
 
     $('#sectionModalTitle').text('Edit Section');
     $('#sectionId').val(d.sectionId);
@@ -353,20 +335,33 @@ async function editSection(id) {
 
     resetSectionFormValidation();
     await loadDepartmentsForDropdown('', d.departmentcode);
-    $('#sectionModal').modal('show');
 
-    await showInactiveEditWarningAfterModal(activeStatus, '#sectionModal');
+    // Check if the record is inactive
+    const inactiveRecord = isInactiveStatus(rowStatusText) || isInactiveStatus(getSectionStatusValue(d));
+    
+    console.log('Is inactive record:', inactiveRecord);
+
+    if (inactiveRecord) {
+        // Mark that we're editing an inactive record
+        currentEditingInactiveRecord = true;
+        inactiveEditConfirmed = false;
+        showConfirmModalAfterSectionShown = true;
+    }
+
+    // Show the section modal (confirmation will be shown in 'shown.bs.modal' event if needed)
+    $('#sectionModal').modal('show');
 }
 
-
 async function saveSection() {
-    let valid = true;
+    if (currentEditingInactiveRecord && !inactiveEditConfirmed) {
+        alert('Please confirm if you want to proceed with editing the inactive record.');
+        return;
+    }
 
+    let valid = true;
     $('#sectionForm').find('input[required],select[required]').each(function () {
         if ($(this).attr('id') === 'departmentLookupSearch') {
-            if (!validateDepartmentLookup()) {
-                valid = false;
-            }
+            if (!validateDepartmentLookup()) valid = false;
         } else if (!validateControl($(this))) {
             valid = false;
         }
@@ -377,8 +372,7 @@ async function saveSection() {
         return;
     }
 
-    const form = $('#sectionForm')[0];
-
+    const form = document.getElementById('sectionForm');
     if (!form.checkValidity()) {
         form.reportValidity();
         return;
@@ -404,25 +398,17 @@ async function saveSection() {
 
 function validateControl(control) {
     const value = control.val();
-
     if (value == null || String(value).trim() === '') {
         control.removeClass('valid-border').addClass('error-border');
         return false;
     }
-
     control.removeClass('error-border').addClass('valid-border');
     return true;
 }
 
 function resetSectionFormValidation() {
-    $('#sectionForm')
-        .find('input,select')
-        .removeClass('error-border valid-border');
-
-    $('#formMessage')
-        .removeClass('alert-success alert-danger')
-        .addClass('d-none')
-        .text('');
+    $('#sectionForm').find('input,select').removeClass('error-border valid-border');
+    $('#formMessage').removeClass('alert-success alert-danger').addClass('d-none').text('');
 }
 
 function confirmDeleteSection(id) {
@@ -432,7 +418,6 @@ function confirmDeleteSection(id) {
 
 $('#btnConfirmSectionDelete').on('click', async function () {
     const token = $('input[name="__RequestVerificationToken"]').val();
-
     const response = await $.ajax({
         url: '/master/DeleteSection',
         type: 'POST',

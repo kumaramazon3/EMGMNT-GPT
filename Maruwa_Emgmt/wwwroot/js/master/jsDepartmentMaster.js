@@ -5,86 +5,7 @@ let sortColumn = 'RecordNo';
 let sortDirection = 'DESC';
 let deleteId = 0;
 let debounceTimer = null;
-
-const inactiveEditConfirmMessage = 'you are going to edit the Inactive record, please confirm if you want to proceed?';
-
-function isInactiveStatus(value) {
-    if (value === undefined || value === null) return false;
-    if (typeof value === 'boolean') return value === false;
-    if (typeof value === 'number') return value === 0;
-
-    const status = String(value).trim().toLowerCase();
-    return status === 'false' ||
-        status === '0' ||
-        status === 'inactive' ||
-        status === 'n' ||
-        status === 'no';
-}
-
-function getFirstDefined() {
-    for (let i = 0; i < arguments.length; i++) {
-        if (arguments[i] !== undefined && arguments[i] !== null && String(arguments[i]).trim() !== '') {
-            return arguments[i];
-        }
-    }
-    return undefined;
-}
-
-function showInactiveEditConfirmModal(editModalSelector) {
-    return new Promise(function (resolve) {
-        const modalId = 'inactiveEditConfirmModal';
-        let modal = $('#' + modalId);
-
-        if (modal.length === 0) {
-            $('body').append(`
-                <div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-                    <div class="modal-dialog modal-dialog-centered" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header bg-danger text-white">
-                                <h5 class="modal-title">Confirm Edit</h5>
-                                <button type="button" class="close text-white" id="btnInactiveEditClose" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                ${inactiveEditConfirmMessage}
-                            </div>
-                            <div class="modal-footer justify-content-end">
-                                <button type="button" class="btn btn-secondary" id="btnInactiveEditCancel">Cancel</button>
-                                <button type="button" class="btn btn-danger" id="btnInactiveEditProceed">Proceed</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>`);
-            modal = $('#' + modalId);
-        }
-
-        modal.css('z-index', 1065);
-        setTimeout(function () { $('.modal-backdrop').last().css('z-index', 1060); }, 10);
-
-        modal.off('click.inactiveEdit');
-        modal.on('click.inactiveEdit', '#btnInactiveEditProceed', function () {
-            modal.modal('hide');
-            resolve(true);
-        });
-        modal.on('click.inactiveEdit', '#btnInactiveEditCancel, #btnInactiveEditClose', function () {
-            modal.modal('hide');
-            if (editModalSelector) {
-                $(editModalSelector).modal('hide');
-            }
-            resolve(false);
-        });
-
-        modal.modal('show');
-    });
-}
-
-async function showInactiveEditWarningAfterModal(activeStatus, editModalSelector) {
-    if (isInactiveStatus(activeStatus)) {
-        return await showInactiveEditConfirmModal(editModalSelector);
-    }
-    return true;
-}
+let inactiveEditConfirmed = false;
 
 $(document).ready(function () {
     loadDepartments();
@@ -136,35 +57,18 @@ async function loadDepartments() {
     } catch (e) { showFormMessage('Error loading department data', false); }
 }
 
-const departmentActiveStatusMap = {};
-
 function renderTable(data) {
     let rows = '';
-
     data.forEach(item => {
-        const activeStatus = getFirstDefined(item.activeStatus, item.ActiveStatus, item.isActive, item.IsActive);
-        departmentActiveStatusMap[item.recordNo] = activeStatus;
-
         rows += `<tr>
             <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editDepartment(${item.recordNo})"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteDepartment(${item.recordNo})"></i></td>
-            <td>${escapeHtml(item.departmentCode)}</td>
-            <td>${escapeHtml(item.departmentName)}</td>
-            <td>${escapeHtml(item.japanHead)}</td>
-            <td>${escapeHtml(item.office)}</td>
-            <td>${escapeHtml(item.gotSection)}</td>
-            <td>${escapeHtml(item.prefix)}</td>
-            <td>${escapeHtml(item.createdBy)}</td>
-            <td>${formatDate(item.createdOn)}</td>
-            <td>${escapeHtml(item.editedBy)}</td>
-            <td>${formatDate(item.editedOn)}</td>
-            <td>${isInactiveStatus(activeStatus) ? 'Inactive' : 'Active'}</td>
+            <td>${escapeHtml(item.departmentCode)}</td><td>${escapeHtml(item.departmentName)}</td><td>${escapeHtml(item.japanHead)}</td><td>${escapeHtml(item.office)}</td><td>${escapeHtml(item.gotSection)}</td><td>${escapeHtml(item.prefix)}</td>
+            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${item.activeStatus ? 'Active' : 'Inactive'}</td>
         </tr>`;
     });
-
     $('#tblDepartment tbody').html(rows || '<tr><td colspan="13" class="text-center">No records found</td></tr>');
 }
-
 
 function updatePaging() {
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -189,13 +93,6 @@ async function editDepartment(id) {
     if (!response.success) { alert(response.message); return; }
 
     const d = response.data;
-    const activeStatus = getFirstDefined(
-        departmentActiveStatusMap[id],
-        d.activeStatus,
-        d.ActiveStatus,
-        d.isActive,
-        d.IsActive
-    );
 
     $('#departmentModalTitle').text('Edit Department');
     $('#recordNo').val(d.recordNo);
@@ -207,11 +104,36 @@ async function editDepartment(id) {
     $('#prefix').val(d.prefix);
     $('#formMessage').addClass('d-none').text('');
     $('#departmentForm').find('input,select').removeClass('error-border valid-border');
+
+    inactiveEditConfirmed = false;
     $('#departmentModal').modal('show');
 
-    await showInactiveEditWarningAfterModal(activeStatus, '#departmentModal');
+    const isInactive =
+        d.activeStatus === false ||
+        d.activeStatus === 0 ||
+        String(d.activeStatus).toLowerCase() === 'false' ||
+        String(d.activeStatus).toLowerCase() === 'inactive';
+
+    if (isInactive) {
+        setTimeout(function () {
+            $('#inactiveEditConfirmModal').modal('show');
+        }, 300);
+    }
 }
 
+function proceedInactiveEdit() {
+    inactiveEditConfirmed = true;
+    $('#inactiveEditConfirmModal').modal('hide');
+}
+
+function cancelInactiveEdit() {
+    inactiveEditConfirmed = false;
+    $('#inactiveEditConfirmModal').modal('hide');
+    $('#departmentModal').modal('hide');
+    $('#departmentForm')[0].reset();
+    $('#departmentForm').find('input,select').removeClass('error-border valid-border');
+    $('#formMessage').addClass('d-none').text('');
+}
 
 async function saveDepartmentbkp() {
     const form = $('#departmentForm')[0];

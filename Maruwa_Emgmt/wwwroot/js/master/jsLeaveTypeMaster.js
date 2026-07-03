@@ -30,9 +30,58 @@ function getFirstDefined() {
     return undefined;
 }
 
-function confirmInactiveEditByStatus(activeStatus) {
+function showInactiveEditConfirmModal(editModalSelector) {
+    return new Promise(function (resolve) {
+        const modalId = 'inactiveEditConfirmModal';
+        let modal = $('#' + modalId);
+
+        if (modal.length === 0) {
+            $('body').append(`
+                <div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title">Confirm Edit</h5>
+                                <button type="button" class="close text-white" id="btnInactiveEditClose" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                ${inactiveEditConfirmMessage}
+                            </div>
+                            <div class="modal-footer justify-content-end">
+                                <button type="button" class="btn btn-secondary" id="btnInactiveEditCancel">Cancel</button>
+                                <button type="button" class="btn btn-danger" id="btnInactiveEditProceed">Proceed</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`);
+            modal = $('#' + modalId);
+        }
+
+        modal.css('z-index', 1065);
+        setTimeout(function () { $('.modal-backdrop').last().css('z-index', 1060); }, 10);
+
+        modal.off('click.inactiveEdit');
+        modal.on('click.inactiveEdit', '#btnInactiveEditProceed', function () {
+            modal.modal('hide');
+            resolve(true);
+        });
+        modal.on('click.inactiveEdit', '#btnInactiveEditCancel, #btnInactiveEditClose', function () {
+            modal.modal('hide');
+            if (editModalSelector) {
+                $(editModalSelector).modal('hide');
+            }
+            resolve(false);
+        });
+
+        modal.modal('show');
+    });
+}
+
+async function showInactiveEditWarningAfterModal(activeStatus, editModalSelector) {
     if (isInactiveStatus(activeStatus)) {
-        return window.confirm(inactiveEditConfirmMessage);
+        return await showInactiveEditConfirmModal(editModalSelector);
     }
     return true;
 }
@@ -126,16 +175,14 @@ async function editLeaveType(id) {
         d.ActiveStatus
     );
 
-    if (!confirmInactiveEditByStatus(activeStatus)) {
-        return;
-    }
-
     $('#leaveTypeModalTitle').text('Edit LeaveType');
     $('#leaveID').val(d.leaveID).prop('readonly', true);
     $('#leaveType').val(d.leaveType);
     $('#leaveDescription').val(d.leaveDescription);
     $('#formMessage').addClass('d-none').text('');
     $('#leaveTypeModal').modal('show');
+
+    await showInactiveEditWarningAfterModal(activeStatus, '#leaveTypeModal');
 }
 
 

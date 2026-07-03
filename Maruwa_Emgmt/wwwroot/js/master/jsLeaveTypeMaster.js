@@ -6,6 +6,41 @@ let sortDirection = 'ASC';
 let deleteId = '';
 let debounceTimer = null;
 
+const inactiveEditConfirmMessage = 'you are going to edit the Inactive record, please confirm if you want to proceed?';
+
+function isInactiveStatus(value) {
+    if (value === undefined || value === null) return false;
+
+    if (typeof value === 'boolean') return value === false;
+
+    if (typeof value === 'number') return value === 0;
+
+    const status = String(value).trim().toLowerCase();
+
+    return status === 'false' ||
+        status === '0' ||
+        status === 'inactive' ||
+        status === 'n' ||
+        status === 'no';
+}
+
+function confirmInactiveEdit(activeStatus) {
+    if (isInactiveStatus(activeStatus)) {
+        return window.confirm(inactiveEditConfirmMessage);
+    }
+
+    return true;
+}
+
+function escapeJs(value) {
+    return String(value ?? '')
+        .replace(/\/g, '\\')
+        .replace(/'/g, "\'")
+        .replace(//g, '')
+        .replace(/
+/g, ' ');
+}
+
 $(document).ready(function () {
     loadLeaveTypes();
     $('#pageSizeSelect').on('change', function () { pageSize = parseInt($(this).val()); currentPage = 1; loadLeaveTypes(); });
@@ -39,22 +74,11 @@ async function loadLeaveTypes() {
     } catch (e) { showFormMessage('Error loading LeaveType data', false); }
 }
 
-
-function isInactiveStatus(status) {
-    if (status === false || status === 0) return true;
-    const value = String(status ?? '').trim().toLowerCase();
-    return value === 'false' || value === '0' || value === 'inactive' || value === 'n' || value === 'no';
-}
-
-function confirmInactiveEdit() {
-    return confirm('You are going to edit the Inactive record, please confirm if you want to proceed?');
-}
-
 function renderTable(data) {
     let rows = '';
     data.forEach(item => {
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editLeaveType('${escapeAttr(item.leaveID)}', ${isInactiveStatus(item.isActive) ? 1 : 0})"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editLeaveType('${escapeAttr(item.leaveID)}', '${escapeJs(item.isActive)}')"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteLeaveType('${escapeAttr(item.leaveID)}')"></i></td>
             <td>${escapeHtml(item.leaveID)}</td><td>${escapeHtml(item.leaveType)}</td><td>${escapeHtml(item.leaveDescription)}</td>
             <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${isInactiveStatus(item.isActive) ? 'Inactive' : 'Active'}</td>
@@ -79,14 +103,18 @@ function openLeaveTypeModal() {
     $('#leaveTypeModal').modal('show');
 }
 
-async function editLeaveType(id, inactiveFlag) {
-    if (isInactiveStatus(inactiveFlag)) {
-        if (!confirmInactiveEdit()) return;
-    }
+async function editLeaveType(id, activeStatus) {
+    if (!confirmInactiveEdit(activeStatus)) { return; }
 
     const response = await $.get('/master/GetLeaveType', { id: id });
     if (!response.success) { alert(response.message); return; }
     const d = response.data;
+
+    if ((activeStatus === undefined || activeStatus === null || activeStatus === '') &&
+        !confirmInactiveEdit(d.isActive ?? d.IsActive ?? d.activeStatus ?? d.ActiveStatus)) {
+        return;
+    }
+
     $('#leaveTypeModalTitle').text('Edit LeaveType');
     $('#leaveID').val(d.leaveID).prop('readonly', true);
     $('#leaveType').val(d.leaveType);

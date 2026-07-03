@@ -6,6 +6,41 @@ let sortDirection = 'DESC';
 let deleteId = 0;
 let debounceTimer = null;
 
+const inactiveEditConfirmMessage = 'you are going to edit the Inactive record, please confirm if you want to proceed?';
+
+function isInactiveStatus(value) {
+    if (value === undefined || value === null) return false;
+
+    if (typeof value === 'boolean') return value === false;
+
+    if (typeof value === 'number') return value === 0;
+
+    const status = String(value).trim().toLowerCase();
+
+    return status === 'false' ||
+        status === '0' ||
+        status === 'inactive' ||
+        status === 'n' ||
+        status === 'no';
+}
+
+function confirmInactiveEdit(activeStatus) {
+    if (isInactiveStatus(activeStatus)) {
+        return window.confirm(inactiveEditConfirmMessage);
+    }
+
+    return true;
+}
+
+function escapeJs(value) {
+    return String(value ?? '')
+        .replace(/\/g, '\\')
+        .replace(/'/g, "\'")
+        .replace(//g, '')
+        .replace(/
+/g, ' ');
+}
+
 $(document).ready(function () {
     loadDepartments();
     $('#pageSizeSelect').on('change', function () { pageSize = parseInt($(this).val()); currentPage = 1; loadDepartments(); });
@@ -56,22 +91,11 @@ async function loadDepartments() {
     } catch (e) { showFormMessage('Error loading department data', false); }
 }
 
-
-function isInactiveStatus(status) {
-    if (status === false || status === 0) return true;
-    const value = String(status ?? '').trim().toLowerCase();
-    return value === 'false' || value === '0' || value === 'inactive' || value === 'n' || value === 'no';
-}
-
-function confirmInactiveEdit() {
-    return confirm('You are going to edit the Inactive record, please confirm if you want to proceed?');
-}
-
 function renderTable(data) {
     let rows = '';
     data.forEach(item => {
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editDepartment(${item.recordNo}, ${isInactiveStatus(item.activeStatus) ? 1 : 0})"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editDepartment(${item.recordNo}, '${escapeJs(item.activeStatus)}')"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteDepartment(${item.recordNo})"></i></td>
             <td>${escapeHtml(item.departmentCode)}</td><td>${escapeHtml(item.departmentName)}</td><td>${escapeHtml(item.japanHead)}</td><td>${escapeHtml(item.office)}</td><td>${escapeHtml(item.gotSection)}</td><td>${escapeHtml(item.prefix)}</td>
             <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${isInactiveStatus(item.activeStatus) ? 'Inactive' : 'Active'}</td>
@@ -98,14 +122,18 @@ function openDepartmentModal() {
     $('#departmentModal').modal('show');
 }
 
-async function editDepartment(id, inactiveFlag) {
-    if (isInactiveStatus(inactiveFlag)) {
-        if (!confirmInactiveEdit()) return;
-    }
+async function editDepartment(id, activeStatus) {
+    if (!confirmInactiveEdit(activeStatus)) { return; }
 
     const response = await $.get('/master/GetDepartment', { id: id });
     if (!response.success) { alert(response.message); return; }
     const d = response.data;
+
+    if ((activeStatus === undefined || activeStatus === null || activeStatus === '') &&
+        !confirmInactiveEdit(d.activeStatus ?? d.ActiveStatus ?? d.isActive ?? d.IsActive)) {
+        return;
+    }
+
     $('#departmentModalTitle').text('Edit Department');
     $('#recordNo').val(d.recordNo); $('#departmentCode').val(d.departmentCode).prop('readonly', true); $('#departmentName').val(d.departmentName);
     $('#japanHead').val(d.japanHead); $('#office').val(d.office); $('#gotSection').val(d.gotSection); $('#prefix').val(d.prefix);

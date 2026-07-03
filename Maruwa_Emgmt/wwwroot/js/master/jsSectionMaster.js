@@ -5,6 +5,41 @@ let sortColumn = 'SectionId';
 let sortDirection = 'DESC';
 let deleteId = 0;
 let debounceTimer = null;
+
+const inactiveEditConfirmMessage = 'you are going to edit the Inactive record, please confirm if you want to proceed?';
+
+function isInactiveStatus(value) {
+    if (value === undefined || value === null) return false;
+
+    if (typeof value === 'boolean') return value === false;
+
+    if (typeof value === 'number') return value === 0;
+
+    const status = String(value).trim().toLowerCase();
+
+    return status === 'false' ||
+        status === '0' ||
+        status === 'inactive' ||
+        status === 'n' ||
+        status === 'no';
+}
+
+function confirmInactiveEdit(activeStatus) {
+    if (isInactiveStatus(activeStatus)) {
+        return window.confirm(inactiveEditConfirmMessage);
+    }
+
+    return true;
+}
+
+function escapeJs(value) {
+    return String(value ?? '')
+        .replace(/\/g, '\\')
+        .replace(/'/g, "\'")
+        .replace(//g, '')
+        .replace(/
+/g, ' ');
+}
 let departmentLookupTimer = null;
 let allDepartments = [];
 
@@ -199,23 +234,12 @@ function validateDepartmentLookup() {
     return true;
 }
 
-
-function isInactiveStatus(status) {
-    if (status === false || status === 0) return true;
-    const value = String(status ?? '').trim().toLowerCase();
-    return value === 'false' || value === '0' || value === 'inactive' || value === 'n' || value === 'no';
-}
-
-function confirmInactiveEdit() {
-    return confirm('You are going to edit the Inactive record, please confirm if you want to proceed?');
-}
-
 function renderTable(data) {
     let rows = '';
 
     data.forEach(item => {
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editSection(${item.sectionId}, ${isInactiveStatus(item.issectionActive) ? 1 : 0})"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editSection(${item.sectionId}, '${escapeJs(item.issectionActive)}')"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteSection(${item.sectionId})"></i></td>
             <td>${escapeHtml(item.sectionCode)}</td>
             <td>${escapeHtml(item.sectionname)}</td>
@@ -253,10 +277,8 @@ function openSectionModal() {
     $('#sectionModal').modal('show');
 }
 
-async function editSection(id, inactiveFlag) {
-    if (isInactiveStatus(inactiveFlag)) {
-        if (!confirmInactiveEdit()) return;
-    }
+async function editSection(id, activeStatus) {
+    if (!confirmInactiveEdit(activeStatus)) { return; }
 
     const response = await $.get('/master/GetSection', { id: id });
 
@@ -266,6 +288,11 @@ async function editSection(id, inactiveFlag) {
     }
 
     const d = response.data;
+
+    if ((activeStatus === undefined || activeStatus === null || activeStatus === '') &&
+        !confirmInactiveEdit(d.issectionActive ?? d.IssectionActive ?? d.activeStatus ?? d.ActiveStatus ?? d.isActive ?? d.IsActive)) {
+        return;
+    }
 
     $('#sectionModalTitle').text('Edit Section');
     $('#sectionId').val(d.sectionId);

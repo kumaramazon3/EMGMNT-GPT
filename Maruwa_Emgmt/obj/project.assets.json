@@ -7293,23 +7293,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\OEM\\.nuget\\packages\\": {},
+    "C:\\Users\\Admin\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Maruwa_Projects\\gan\\EMGMNT-Test-working\\EMGMNT-GPT\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj",
+      "projectUniqueName": "C:\\Users\\Admin\\source\\repos\\EMGMNT-GPT-popup\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj",
       "projectName": "Maruwa_Emgmt",
-      "projectPath": "C:\\Maruwa_Projects\\gan\\EMGMNT-Test-working\\EMGMNT-GPT\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj",
-      "packagesPath": "C:\\Users\\OEM\\.nuget\\packages\\",
-      "outputPath": "C:\\Maruwa_Projects\\gan\\EMGMNT-Test-working\\EMGMNT-GPT\\Maruwa_Emgmt\\obj\\",
+      "projectPath": "C:\\Users\\Admin\\source\\repos\\EMGMNT-GPT-popup\\Maruwa_Emgmt\\Maruwa_Emgmt.csproj",
+      "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Admin\\source\\repos\\EMGMNT-GPT-popup\\Maruwa_Emgmt\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\OEM\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -7442,6 +7442,16 @@
       "code": "NU1902",
       "level": "Warning",
       "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2hhq-c99x-492r",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
       "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2rgj-gx5x-f62w",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
@@ -7512,6 +7522,16 @@
       "code": "NU1902",
       "level": "Warning",
       "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-44cp-c3ww-9rv5",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
       "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-467j-76j7-5885",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
@@ -7533,6 +7553,16 @@
       "level": "Warning",
       "warningLevel": 1,
       "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-4g75-9r48-jf92",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-4v89-6mgq-6rgc",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
         "net8.0"
@@ -7593,6 +7623,16 @@
       "level": "Warning",
       "warningLevel": 1,
       "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5r4x-w6p5-222q",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5v62-8fq6-cp9m",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
         "net8.0"
@@ -7759,6 +7799,16 @@
       ]
     },
     {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-8pj9-6897-74xc",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
       "code": "NU1901",
       "level": "Warning",
       "warningLevel": 1,
@@ -7899,6 +7949,16 @@
       ]
     },
     {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-g22q-f7gc-5jhr",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
       "code": "NU1902",
       "level": "Warning",
       "warningLevel": 1,
@@ -7972,6 +8032,16 @@
       "code": "NU1902",
       "level": "Warning",
       "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-h36c-3666-h489",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
       "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-h95r-c8c7-mrwx",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
@@ -7983,6 +8053,16 @@
       "level": "Warning",
       "warningLevel": 1,
       "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-hffp-q43q-qq76",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j989-f892-2335",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
         "net8.0"
@@ -8102,6 +8182,16 @@
       "code": "NU1902",
       "level": "Warning",
       "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-p9rq-q46c-g4x6",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
       "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-pcvx-ph33-r5vv",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
@@ -8153,6 +8243,26 @@
       "level": "Warning",
       "warningLevel": 1,
       "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-pwg5-6jfc-crvh",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-px7q-ggqj-hcf2",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-q62c-h75r-2xhc",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
         "net8.0"
@@ -8433,6 +8543,16 @@
       "level": "Warning",
       "warningLevel": 1,
       "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-x9h5-r9v2-vcww",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 14.9.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xcjm-wqff-m669",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
         "net8.0"

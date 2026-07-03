@@ -39,14 +39,25 @@ async function loadLeaveTypes() {
     } catch (e) { showFormMessage('Error loading LeaveType data', false); }
 }
 
+
+function isInactiveStatus(status) {
+    if (status === false || status === 0) return true;
+    const value = String(status ?? '').trim().toLowerCase();
+    return value === 'false' || value === '0' || value === 'inactive' || value === 'n' || value === 'no';
+}
+
+function confirmInactiveEdit() {
+    return confirm('You are going to edit the Inactive record, please confirm if you want to proceed?');
+}
+
 function renderTable(data) {
     let rows = '';
     data.forEach(item => {
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editLeaveType('${escapeAttr(item.leaveID)}')"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editLeaveType('${escapeAttr(item.leaveID)}', ${isInactiveStatus(item.isActive) ? 1 : 0})"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteLeaveType('${escapeAttr(item.leaveID)}')"></i></td>
             <td>${escapeHtml(item.leaveID)}</td><td>${escapeHtml(item.leaveType)}</td><td>${escapeHtml(item.leaveDescription)}</td>
-            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${item.isActive ? 'Active' : 'Inactive'}</td>
+            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${isInactiveStatus(item.isActive) ? 'Inactive' : 'Active'}</td>
         </tr>`;
     });
     $('#tblLeaveType tbody').html(rows || '<tr><td colspan="10" class="text-center">No records found</td></tr>');
@@ -68,7 +79,11 @@ function openLeaveTypeModal() {
     $('#leaveTypeModal').modal('show');
 }
 
-async function editLeaveType(id) {
+async function editLeaveType(id, inactiveFlag) {
+    if (isInactiveStatus(inactiveFlag)) {
+        if (!confirmInactiveEdit()) return;
+    }
+
     const response = await $.get('/master/GetLeaveType', { id: id });
     if (!response.success) { alert(response.message); return; }
     const d = response.data;

@@ -199,18 +199,29 @@ function validateDepartmentLookup() {
     return true;
 }
 
+
+function isInactiveStatus(status) {
+    if (status === false || status === 0) return true;
+    const value = String(status ?? '').trim().toLowerCase();
+    return value === 'false' || value === '0' || value === 'inactive' || value === 'n' || value === 'no';
+}
+
+function confirmInactiveEdit() {
+    return confirm('You are going to edit the Inactive record, please confirm if you want to proceed?');
+}
+
 function renderTable(data) {
     let rows = '';
 
     data.forEach(item => {
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editSection(${item.sectionId})"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editSection(${item.sectionId}, ${isInactiveStatus(item.issectionActive) ? 1 : 0})"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteSection(${item.sectionId})"></i></td>
             <td>${escapeHtml(item.sectionCode)}</td>
             <td>${escapeHtml(item.sectionname)}</td>
             <td>${item.sectionId}</td>
             <td>${escapeHtml(item.departmentcode)}</td>
-            <td>${item.issectionActive ? 'Active' : 'Inactive'}</td>
+            <td>${isInactiveStatus(item.issectionActive) ? 'Inactive' : 'Active'}</td>
             <td>${escapeHtml(item.createdBy)}</td>
             <td>${formatDate(item.createdOn)}</td>
             <td>${escapeHtml(item.editedBy)}</td>
@@ -242,7 +253,11 @@ function openSectionModal() {
     $('#sectionModal').modal('show');
 }
 
-async function editSection(id) {
+async function editSection(id, inactiveFlag) {
+    if (isInactiveStatus(inactiveFlag)) {
+        if (!confirmInactiveEdit()) return;
+    }
+
     const response = await $.get('/master/GetSection', { id: id });
 
     if (!response.success) {

@@ -56,14 +56,25 @@ async function loadDepartments() {
     } catch (e) { showFormMessage('Error loading department data', false); }
 }
 
+
+function isInactiveStatus(status) {
+    if (status === false || status === 0) return true;
+    const value = String(status ?? '').trim().toLowerCase();
+    return value === 'false' || value === '0' || value === 'inactive' || value === 'n' || value === 'no';
+}
+
+function confirmInactiveEdit() {
+    return confirm('You are going to edit the Inactive record, please confirm if you want to proceed?');
+}
+
 function renderTable(data) {
     let rows = '';
     data.forEach(item => {
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editDepartment(${item.recordNo})"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editDepartment(${item.recordNo}, ${isInactiveStatus(item.activeStatus) ? 1 : 0})"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteDepartment(${item.recordNo})"></i></td>
             <td>${escapeHtml(item.departmentCode)}</td><td>${escapeHtml(item.departmentName)}</td><td>${escapeHtml(item.japanHead)}</td><td>${escapeHtml(item.office)}</td><td>${escapeHtml(item.gotSection)}</td><td>${escapeHtml(item.prefix)}</td>
-            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${item.activeStatus ? 'Active' : 'Inactive'}</td>
+            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${isInactiveStatus(item.activeStatus) ? 'Inactive' : 'Active'}</td>
         </tr>`;
     });
     $('#tblDepartment tbody').html(rows || '<tr><td colspan="13" class="text-center">No records found</td></tr>');
@@ -87,7 +98,11 @@ function openDepartmentModal() {
     $('#departmentModal').modal('show');
 }
 
-async function editDepartment(id) {
+async function editDepartment(id, inactiveFlag) {
+    if (isInactiveStatus(inactiveFlag)) {
+        if (!confirmInactiveEdit()) return;
+    }
+
     const response = await $.get('/master/GetDepartment', { id: id });
     if (!response.success) { alert(response.message); return; }
     const d = response.data;

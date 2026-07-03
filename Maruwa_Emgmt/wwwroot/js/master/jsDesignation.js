@@ -60,14 +60,25 @@ async function loadProbations(searchText, selectedValue) {
     if (selectedValue) ddl.val(selectedValue);
 }
 
+
+function isInactiveStatus(status) {
+    if (status === false || status === 0) return true;
+    const value = String(status ?? '').trim().toLowerCase();
+    return value === 'false' || value === '0' || value === 'inactive' || value === 'n' || value === 'no';
+}
+
+function confirmInactiveEdit() {
+    return confirm('You are going to edit the Inactive record, please confirm if you want to proceed?');
+}
+
 function renderTable(data) {
     let rows = '';
     data.forEach(item => {
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editDesignation(${item.sno})"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editDesignation(${item.sno}, ${isInactiveStatus(item.isActive) ? 1 : 0})"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteDesignation(${item.sno})"></i></td>
             <td>${escapeHtml(item.designationcode)}</td><td>${escapeHtml(item.designationName)}</td><td>${escapeHtml(item.probation)}</td><td>${escapeHtml(item.insCatergory)}</td><td>${escapeHtml(item.insamount)}</td>
-            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${item.isActive ? 'Active' : 'Inactive'}</td>
+            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${isInactiveStatus(item.isActive) ? 'Inactive' : 'Active'}</td>
         </tr>`;
     });
     $('#tblDesignation tbody').html(rows || '<tr><td colspan="12" class="text-center">No records found</td></tr>');
@@ -92,7 +103,11 @@ function openDesignationModal() {
     $('#designationModal').modal('show');
 }
 
-async function editDesignation(id) {
+async function editDesignation(id, inactiveFlag) {
+    if (isInactiveStatus(inactiveFlag)) {
+        if (!confirmInactiveEdit()) return;
+    }
+
     const response = await $.get('/master/GetDesignation', { id });
     if (!response.success) { alert(response.message); return; }
     const d = response.data;

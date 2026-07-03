@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Maruwa_Emgmt")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+395e2fea32cb699ea9aa1ce2d996a89b2e6a14d9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0e1df037c824307228fc9ede55d7a441d808f9a2")]
 [assembly: System.Reflection.AssemblyProductAttribute("Maruwa_Emgmt")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Maruwa_Emgmt")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

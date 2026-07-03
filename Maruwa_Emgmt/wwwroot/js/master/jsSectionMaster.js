@@ -10,13 +10,10 @@ const inactiveEditConfirmMessage = 'you are going to edit the Inactive record, p
 
 function isInactiveStatus(value) {
     if (value === undefined || value === null) return false;
-
     if (typeof value === 'boolean') return value === false;
-
     if (typeof value === 'number') return value === 0;
 
     const status = String(value).trim().toLowerCase();
-
     return status === 'false' ||
         status === '0' ||
         status === 'inactive' ||
@@ -24,24 +21,21 @@ function isInactiveStatus(value) {
         status === 'no';
 }
 
-function confirmInactiveEdit(activeStatus) {
+function getFirstDefined() {
+    for (let i = 0; i < arguments.length; i++) {
+        if (arguments[i] !== undefined && arguments[i] !== null && String(arguments[i]).trim() !== '') {
+            return arguments[i];
+        }
+    }
+    return undefined;
+}
+
+function confirmInactiveEditByStatus(activeStatus) {
     if (isInactiveStatus(activeStatus)) {
         return window.confirm(inactiveEditConfirmMessage);
     }
-
     return true;
 }
-
-function escapeJs(value) {
-    return String(value ?? '')
-        .replace(/\/g, '\\')
-        .replace(/'/g, "\'")
-        .replace(//g, '')
-        .replace(/
-/g, ' ');
-}
-let departmentLookupTimer = null;
-let allDepartments = [];
 
 $(document).ready(function () {
     loadDepartmentsForDropdown('');
@@ -234,18 +228,23 @@ function validateDepartmentLookup() {
     return true;
 }
 
+const sectionActiveStatusMap = {};
+
 function renderTable(data) {
     let rows = '';
 
     data.forEach(item => {
+        const activeStatus = getFirstDefined(item.issectionActive, item.IssectionActive, item.activeStatus, item.ActiveStatus, item.isActive, item.IsActive);
+        sectionActiveStatusMap[item.sectionId] = activeStatus;
+
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editSection(${item.sectionId}, '${escapeJs(item.issectionActive)}')"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editSection(${item.sectionId})"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteSection(${item.sectionId})"></i></td>
             <td>${escapeHtml(item.sectionCode)}</td>
             <td>${escapeHtml(item.sectionname)}</td>
             <td>${item.sectionId}</td>
             <td>${escapeHtml(item.departmentcode)}</td>
-            <td>${isInactiveStatus(item.issectionActive) ? 'Inactive' : 'Active'}</td>
+            <td>${isInactiveStatus(activeStatus) ? 'Inactive' : 'Active'}</td>
             <td>${escapeHtml(item.createdBy)}</td>
             <td>${formatDate(item.createdOn)}</td>
             <td>${escapeHtml(item.editedBy)}</td>
@@ -255,6 +254,7 @@ function renderTable(data) {
 
     $('#tblSection tbody').html(rows || '<tr><td colspan="11" class="text-center">No records found</td></tr>');
 }
+
 
 function updatePaging() {
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -277,9 +277,7 @@ function openSectionModal() {
     $('#sectionModal').modal('show');
 }
 
-async function editSection(id, activeStatus) {
-    if (!confirmInactiveEdit(activeStatus)) { return; }
-
+async function editSection(id) {
     const response = await $.get('/master/GetSection', { id: id });
 
     if (!response.success) {
@@ -288,9 +286,17 @@ async function editSection(id, activeStatus) {
     }
 
     const d = response.data;
+    const activeStatus = getFirstDefined(
+        sectionActiveStatusMap[id],
+        d.issectionActive,
+        d.IssectionActive,
+        d.activeStatus,
+        d.ActiveStatus,
+        d.isActive,
+        d.IsActive
+    );
 
-    if ((activeStatus === undefined || activeStatus === null || activeStatus === '') &&
-        !confirmInactiveEdit(d.issectionActive ?? d.IssectionActive ?? d.activeStatus ?? d.ActiveStatus ?? d.isActive ?? d.IsActive)) {
+    if (!confirmInactiveEditByStatus(activeStatus)) {
         return;
     }
 
@@ -304,6 +310,7 @@ async function editSection(id, activeStatus) {
     await loadDepartmentsForDropdown('', d.departmentcode);
     $('#sectionModal').modal('show');
 }
+
 
 async function saveSection() {
     let valid = true;

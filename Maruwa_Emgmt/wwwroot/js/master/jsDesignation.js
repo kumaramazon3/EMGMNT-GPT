@@ -10,13 +10,10 @@ const inactiveEditConfirmMessage = 'you are going to edit the Inactive record, p
 
 function isInactiveStatus(value) {
     if (value === undefined || value === null) return false;
-
     if (typeof value === 'boolean') return value === false;
-
     if (typeof value === 'number') return value === 0;
 
     const status = String(value).trim().toLowerCase();
-
     return status === 'false' ||
         status === '0' ||
         status === 'inactive' ||
@@ -24,21 +21,20 @@ function isInactiveStatus(value) {
         status === 'no';
 }
 
-function confirmInactiveEdit(activeStatus) {
+function getFirstDefined() {
+    for (let i = 0; i < arguments.length; i++) {
+        if (arguments[i] !== undefined && arguments[i] !== null && String(arguments[i]).trim() !== '') {
+            return arguments[i];
+        }
+    }
+    return undefined;
+}
+
+function confirmInactiveEditByStatus(activeStatus) {
     if (isInactiveStatus(activeStatus)) {
         return window.confirm(inactiveEditConfirmMessage);
     }
-
     return true;
-}
-
-function escapeJs(value) {
-    return String(value ?? '')
-        .replace(/\/g, '\\')
-        .replace(/'/g, "\'")
-        .replace(//g, '')
-        .replace(/
-/g, ' ');
 }
 
 $(document).ready(function () {
@@ -95,18 +91,34 @@ async function loadProbations(searchText, selectedValue) {
     if (selectedValue) ddl.val(selectedValue);
 }
 
+const designationActiveStatusMap = {};
+
 function renderTable(data) {
     let rows = '';
+
     data.forEach(item => {
+        const activeStatus = getFirstDefined(item.isActive, item.IsActive, item.activeStatus, item.ActiveStatus);
+        designationActiveStatusMap[item.sno] = activeStatus;
+
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editDesignation(${item.sno}, '${escapeJs(item.isActive)}')"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editDesignation(${item.sno})"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteDesignation(${item.sno})"></i></td>
-            <td>${escapeHtml(item.designationcode)}</td><td>${escapeHtml(item.designationName)}</td><td>${escapeHtml(item.probation)}</td><td>${escapeHtml(item.insCatergory)}</td><td>${escapeHtml(item.insamount)}</td>
-            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${isInactiveStatus(item.isActive) ? 'Inactive' : 'Active'}</td>
+            <td>${escapeHtml(item.designationcode)}</td>
+            <td>${escapeHtml(item.designationName)}</td>
+            <td>${escapeHtml(item.probation)}</td>
+            <td>${escapeHtml(item.insCatergory)}</td>
+            <td>${escapeHtml(item.insamount)}</td>
+            <td>${escapeHtml(item.createdBy)}</td>
+            <td>${formatDate(item.createdOn)}</td>
+            <td>${escapeHtml(item.editedBy)}</td>
+            <td>${formatDate(item.editedOn)}</td>
+            <td>${isInactiveStatus(activeStatus) ? 'Inactive' : 'Active'}</td>
         </tr>`;
     });
+
     $('#tblDesignation tbody').html(rows || '<tr><td colspan="12" class="text-center">No records found</td></tr>');
 }
+
 
 function updatePaging() {
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -127,26 +139,34 @@ function openDesignationModal() {
     $('#designationModal').modal('show');
 }
 
-async function editDesignation(id, activeStatus) {
-    if (!confirmInactiveEdit(activeStatus)) { return; }
-
+async function editDesignation(id) {
     const response = await $.get('/master/GetDesignation', { id });
     if (!response.success) { alert(response.message); return; }
-    const d = response.data;
 
-    if ((activeStatus === undefined || activeStatus === null || activeStatus === '') &&
-        !confirmInactiveEdit(d.isActive ?? d.IsActive ?? d.activeStatus ?? d.ActiveStatus)) {
+    const d = response.data;
+    const activeStatus = getFirstDefined(
+        designationActiveStatusMap[id],
+        d.isActive,
+        d.IsActive,
+        d.activeStatus,
+        d.ActiveStatus
+    );
+
+    if (!confirmInactiveEditByStatus(activeStatus)) {
         return;
     }
 
     $('#designationModalTitle').text('Edit Designation');
-    $('#sno').val(d.sno); $('#designationcode').val(d.designationcode).prop('readonly', true); $('#designationName').val(d.designationName);
+    $('#sno').val(d.sno);
+    $('#designationcode').val(d.designationcode).prop('readonly', true);
+    $('#designationName').val(d.designationName);
     $('#insamount').val(d.insamount);
     await loadInsuranceCategories(d.insCatergory, d.insCatergory);
     await loadProbations(d.probation, d.probation);
     $('#formMessage').addClass('d-none').text('');
     $('#designationModal').modal('show');
 }
+
 
 async function saveDesignation() {
     const form = $('#designationForm')[0];

@@ -456,7 +456,7 @@ namespace Maruwa_Emgmt.Controllers
             foreach (var d in sections)
             {
                 string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
-                sb.AppendLine(string.Join(',', Csv(d.SectionCode), Csv(d.Sectionname), Csv(d.SectionId.ToString()), Csv(d.Departmentcode), Csv(d.SubDepartmentName), Csv(d.issectionActive ? "Active" : "Inactive"), Csv(d.CreatedBy), Csv(d.CreatedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.EditedBy), Csv(d.EditedOn?.ToString("yyyy-MM-dd HH:mm"))));
+                sb.AppendLine(string.Join(',', Csv(d.SectionCode), Csv(d.Sectionname), Csv(d.SectionId.ToString()), Csv(d.Departmentcode), Csv(d.issectionActive ? "Active" : "Inactive"), Csv(d.CreatedBy), Csv(d.CreatedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.EditedBy), Csv(d.EditedOn?.ToString("yyyy-MM-dd HH:mm"))));
             }
             return Encoding.UTF8.GetBytes(sb.ToString());
         }
@@ -474,7 +474,7 @@ namespace Maruwa_Emgmt.Controllers
             foreach (var h in headers) table.AddCell(new Phrase(h));
             foreach (var d in sections)
             {
-                table.AddCell(d.SectionCode); table.AddCell(d.Sectionname); table.AddCell(d.SectionId.ToString()); table.AddCell(d.Departmentcode); table.AddCell(d.SubDepartmentName); table.AddCell(d.issectionActive ? "Active" : "Inactive");
+                table.AddCell(d.SectionCode); table.AddCell(d.Sectionname); table.AddCell(d.SectionId.ToString()); table.AddCell(d.Departmentcode); table.AddCell(d.issectionActive ? "Active" : "Inactive");
                 table.AddCell(d.CreatedBy ?? ""); table.AddCell(d.CreatedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.EditedBy ?? ""); table.AddCell(d.EditedOn?.ToString("yyyy-MM-dd") ?? "");
             }
             doc.Add(table);
@@ -504,7 +504,7 @@ namespace Maruwa_Emgmt.Controllers
             rows.Append(BuildXlsxRow(rowIndex++, headers));
             foreach (var d in sections)
             {
-                rows.Append(BuildXlsxRow(rowIndex++, [d.SectionCode, d.Sectionname, d.SectionId.ToString(), d.Departmentcode, d.SubDepartmentName, d.issectionActive ? "Active" : "Inactive", d.CreatedBy ?? "", d.CreatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.EditedBy ?? "", d.EditedOn?.ToString("yyyy-MM-dd HH:mm") ?? ""]));
+                rows.Append(BuildXlsxRow(rowIndex++, [d.SectionCode, d.Sectionname, d.SectionId.ToString(), d.Departmentcode, d.issectionActive ? "Active" : "Inactive", d.CreatedBy ?? "", d.CreatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.EditedBy ?? "", d.EditedOn?.ToString("yyyy-MM-dd HH:mm") ?? ""]));
             }
             return $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>{rows}</sheetData></worksheet>";
         }

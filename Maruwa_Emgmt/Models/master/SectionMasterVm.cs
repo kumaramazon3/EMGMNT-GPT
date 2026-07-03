@@ -18,10 +18,6 @@ namespace Maruwa_Emgmt.Models.master
         [StringLength(20)]
         public string Departmentcode { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Sub Department Name is required")]
-        [StringLength(150)]
-        public string SubDepartmentName { get; set; } = string.Empty;
-
         public bool issectionActive { get; set; } = true;
         public string? CreatedBy { get; set; }
         public DateTime? CreatedOn { get; set; }

@@ -2,6 +2,134 @@
     ViewData["Title"] = "Section Master";
 }
 
+<style>
+    .section-custom-modal {
+        max-width: 80vw !important;
+        width: 80vw !important;
+    }
+
+        .section-custom-modal .modal-content {
+            min-height: 80vh;
+        }
+
+        .section-custom-modal .modal-body {
+            min-height: calc(80vh - 130px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            padding: 35px 20px;
+        }
+
+    .section-form-wrapper {
+        width: 100%;
+        max-width: 780px;
+        margin: 0 auto;
+    }
+
+    .section-form-row {
+        width: 100%;
+        margin: 0 auto 22px auto;
+    }
+
+        .section-form-row label {
+            font-size: 17px;
+            font-weight: 600;
+            color: #34446b;
+            text-align: right;
+            padding-right: 8px !important;
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+
+        .section-form-row .col-md-4,
+        .section-form-row .col-md-6 {
+            padding-left: 4px !important;
+            padding-right: 4px !important;
+        }
+
+    .section-form-wrapper .form-control,
+    .section-form-wrapper select {
+        height: 42px;
+        font-size: 16px;
+        border: 2px solid #42cef5;
+        border-radius: 6px;
+        box-shadow: none;
+    }
+
+        .section-form-wrapper .form-control:focus,
+        .section-form-wrapper select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 5px rgba(13, 110, 253, .35);
+        }
+
+    .required-star {
+        color: #dc3545;
+        font-weight: 700;
+        margin-left: 4px;
+    }
+
+    .department-combo-wrapper {
+        width: 100%;
+        position: relative;
+    }
+
+        .department-combo-wrapper input[list] {
+            width: 100%;
+        }
+
+    .department-help-text {
+        display: block;
+        margin-top: 5px;
+        color: #7d8797;
+        font-size: 12px;
+    }
+
+    .section-modal-footer {
+        display: flex;
+        justify-content: center !important;
+        align-items: center;
+        gap: 20px;
+        border-top: none;
+        padding: 20px 0 30px;
+    }
+
+        .section-modal-footer .btn {
+            min-width: 120px;
+        }
+
+    .error-border {
+        border: 2px solid #dc3545 !important;
+        background: #fff5f5;
+    }
+
+    .valid-border {
+        border: 2px solid #0d6efd !important;
+    }
+
+    @@media (max-width: 768px) {
+        .section-custom-modal {
+            width: 95vw !important;
+            max-width: 95vw !important;
+        }
+
+            .section-custom-modal .modal-body {
+                align-items: flex-start;
+                padding: 25px 10px;
+            }
+
+        .section-form-wrapper {
+            max-width: 95%;
+        }
+
+        .section-form-row label {
+            text-align: left;
+            margin-bottom: 6px;
+            padding-right: 4px !important;
+        }
+    }
+</style>
+
 <div class="container-fluid mt-3">
     @Html.AntiForgeryToken()
     <div class="card shadow-sm">
@@ -20,13 +148,10 @@
                         <option value="100">100</option>
                     </select>
                 </div>
-                <div class="col-md-4">
+                 <div class="col-md-6">
                     <input type="text" id="globalSearch" class="form-control form-control-sm" placeholder="Global search across all columns" />
                 </div>
-                <div class="col-md-3">
-                    <input type="text" id="departmentManualSearch" class="form-control form-control-sm" placeholder="Search department manually by code/name" />
-                </div>
-                <div class="col-md-3 text-right">
+                <div class="col-md-4 text-right">
                     <button class="btn btn-success btn-sm" onclick="exportSection('xlsx')">Excel</button>
                     <button class="btn btn-info btn-sm" onclick="exportSection('csv')">CSV</button>
                     <button class="btn btn-danger btn-sm" onclick="exportSection('pdf')">PDF</button>
@@ -43,7 +168,6 @@
                             <th data-sort="Sectionname">Sectionname</th>
                             <th data-sort="SectionId">SectionId</th>
                             <th data-sort="Departmentcode">Departmentcode</th>
-                            <th data-sort="SubDepartmentName">SubDepartmentName</th>
                             <th data-sort="issectionActive">issectionActive</th>
                             <th data-sort="CreatedBy">Created By</th>
                             <th data-sort="CreatedOn">Created On</th>
@@ -51,12 +175,12 @@
                             <th data-sort="EditedOn">Edited On</th>
                         </tr>
                         <tr class="bg-light text-dark">
-                            <th></th><th></th>
+                            <th></th>
+                            <th></th>
                             <th><input class="form-control form-control-sm column-search" data-field="sectionCode" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="sectionname" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="sectionId" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="departmentcode" /></th>
-                            <th><input class="form-control form-control-sm column-search" data-field="subDepartmentName" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="issectionActive" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="createdBy" /></th>
                             <th></th>
@@ -80,31 +204,57 @@
 </div>
 
 <div class="modal fade" id="sectionModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered section-custom-modal" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="sectionModalTitle">Add Section</h5>
                 <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
             </div>
             <div class="modal-body">
-                <form id="sectionForm">
-                    <input type="hidden" id="sectionId" name="SectionId" value="0" />
-                    <div class="row">
-                        <div class="col-md-6 form-group"><label>Section Code</label><input class="form-control" id="sectionCode" name="SectionCode" required maxlength="20" /></div>
-                        <div class="col-md-6 form-group"><label>Section Name</label><input class="form-control" id="sectionname" name="Sectionname" required maxlength="150" /></div>
-                        <div class="col-md-6 form-group">
-                            <label>Department Code</label>
-                            <select class="form-control" id="departmentcode" name="Departmentcode" required></select>
-                            <small class="form-text text-muted">Type in department search to filter by code/name.</small>
+                <div class="section-form-wrapper">
+                    <form id="sectionForm">
+                        <input type="hidden" id="sectionId" name="SectionId" value="0" />
+                        <input type="hidden" id="subDepartmentName" name="SubDepartmentName" value="-" />
+
+                        <div class="row gx-0 justify-content-center align-items-center section-form-row">
+                            <label class="col-md-4 col-form-label text-end pe-1">Section Code <span class="required-star">*</span></label>
+                            <div class="col-md-6 ps-1">
+                                <input class="form-control" id="sectionCode" name="SectionCode" required maxlength="20" />
+                            </div>
                         </div>
-                        <div class="col-md-6 form-group"><label>Sub Department Name</label><input class="form-control" id="subDepartmentName" name="SubDepartmentName" required maxlength="150" /></div>
-                    </div>
-                </form>
-                <div class="alert d-none" id="formMessage"></div>
+
+                        <div class="row gx-0 justify-content-center align-items-center section-form-row">
+                            <label class="col-md-4 col-form-label text-end pe-1">Section Name <span class="required-star">*</span></label>
+                            <div class="col-md-6 ps-1">
+                                <input class="form-control" id="sectionname" name="Sectionname" required maxlength="150" />
+                            </div>
+                        </div>
+
+                        <div class="row gx-0 justify-content-center align-items-center section-form-row">
+                            <label class="col-md-4 col-form-label text-end pe-1">Department Code <span class="required-star">*</span></label>
+                            <div class="col-md-6 ps-1">
+                                <div class="department-combo-wrapper">
+                                    <input type="text"
+                                           class="form-control"
+                                           id="departmentLookupSearch"
+                                           list="departmentOptions"
+                                           placeholder="Search / Select Department"
+                                           autocomplete="off"
+                                           required />
+                                    <datalist id="departmentOptions"></datalist>
+                                    <input type="hidden" id="departmentcode" name="Departmentcode" />
+                                </div>
+                                <small class="department-help-text">Type department code/name and select a department from the suggestions.</small>
+                            </div>
+                        </div>
+
+                        <div class="alert d-none" id="formMessage"></div>
+                    </form>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Exit</button>
-                <button type="button" class="btn btn-primary" onclick="saveSection()">Save</button>
+            <div class="modal-footer justify-content-center section-modal-footer">
+                <button type="button" class="btn btn-secondary px-4" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+                <button type="button" class="btn btn-primary px-4" onclick="saveSection()"><i class="fa fa-save"></i> Save</button>
             </div>
         </div>
     </div>

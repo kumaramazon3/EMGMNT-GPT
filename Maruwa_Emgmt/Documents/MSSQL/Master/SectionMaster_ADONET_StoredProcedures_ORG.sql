@@ -12,7 +12,7 @@ BEGIN
         SectionCode NVARCHAR(20) NOT NULL,
         Sectionname NVARCHAR(150) NOT NULL,
         Departmentcode NVARCHAR(20) NOT NULL,
-        
+        SubDepartmentName NVARCHAR(150) NOT NULL,
         issectionActive BIT NOT NULL CONSTRAINT DF_DepartmentSectionMaster_issectionActive DEFAULT 1,
         CreatedBy NVARCHAR(50) NULL,
         CreatedOn DATETIME2(0) NOT NULL CONSTRAINT DF_DepartmentSectionMaster_CreatedOn DEFAULT SYSDATETIME(),
@@ -57,16 +57,7 @@ BEGIN
 END
 GO
 
-USE [EHRM]
-GO
-/****** Object:  StoredProcedure [dbo].[usp_SectionMaster_GetPaged]    Script Date: 07/03/2026 12:08:10 PM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-
-
-CREATE OR ALTER   PROCEDURE [dbo].[usp_SectionMaster_GetPaged]
+CREATE OR ALTER PROCEDURE dbo.usp_SectionMaster_GetPaged
     @GlobalSearch NVARCHAR(150) = NULL,
     @SectionCode NVARCHAR(50) = NULL,
     @Sectionname NVARCHAR(150) = NULL,
@@ -93,6 +84,7 @@ BEGIN
         SectionCode NVARCHAR(20) NOT NULL,
         Sectionname NVARCHAR(150) NOT NULL,
         Departmentcode NVARCHAR(20) NOT NULL,
+        SubDepartmentName NVARCHAR(150) NOT NULL,
         issectionActive BIT NOT NULL,
         CreatedBy NVARCHAR(50) NULL,
         CreatedOn DATETIME2(0) NULL,
@@ -101,101 +93,19 @@ BEGIN
     );
 
     INSERT INTO #Filtered
-    SELECT SectionId, SectionCode, Sectionname, Departmentcode,
-           issectionActive, CreatedBy, CreatedOn, EditedBy, EditedOn
-    FROM dbo.DepartmentSectionMaster
-    WHERE
-	---issectionActive = 1 AND 
-	(NULLIF(@GlobalSearch, '') IS NULL OR
-           SectionCode LIKE '%' + @GlobalSearch + '%' OR Sectionname LIKE '%' + @GlobalSearch + '%' OR
-           CONVERT(NVARCHAR(20), SectionId) LIKE '%' + @GlobalSearch + '%' OR Departmentcode LIKE '%' + @GlobalSearch + '%' OR
-           ISNULL(CreatedBy,'') LIKE '%' + @GlobalSearch + '%' OR ISNULL(EditedBy,'') LIKE '%' + @GlobalSearch + '%')
-      AND (NULLIF(@SectionCode, '') IS NULL OR SectionCode LIKE '%' + @SectionCode + '%')
-      AND (NULLIF(@Sectionname, '') IS NULL OR Sectionname LIKE '%' + @Sectionname + '%')
-      AND (NULLIF(@SectionId, '') IS NULL OR CONVERT(NVARCHAR(20), SectionId) LIKE '%' + @SectionId + '%')
-      AND (NULLIF(@Departmentcode, '') IS NULL OR Departmentcode LIKE '%' + @Departmentcode + '%' OR EXISTS (SELECT 1 FROM dbo.DepartmentMaster d WHERE d.DepartmentCode = DepartmentSectionMaster.Departmentcode AND d.DepartmentName LIKE '%' + @Departmentcode + '%'))
-      AND (NULLIF(@issectionActive, '') IS NULL OR CASE WHEN issectionActive = 1 THEN 'Active' ELSE 'Inactive' END LIKE '%' + @issectionActive + '%')
-      AND (NULLIF(@CreatedBy, '') IS NULL OR ISNULL(CreatedBy,'') LIKE '%' + @CreatedBy + '%')
-      AND (NULLIF(@EditedBy, '') IS NULL OR ISNULL(EditedBy,'') LIKE '%' + @EditedBy + '%');
-
-    ;WITH Numbered AS
-    (
-        SELECT *, ROW_NUMBER() OVER
-        (
-            ORDER BY
-            CASE WHEN @SortColumn = 'SectionCode' AND @SortDirection = 'ASC' THEN SectionCode END ASC,
-            CASE WHEN @SortColumn = 'SectionCode' AND @SortDirection = 'DESC' THEN SectionCode END DESC,
-            CASE WHEN @SortColumn = 'Sectionname' AND @SortDirection = 'ASC' THEN Sectionname END ASC,
-            CASE WHEN @SortColumn = 'Sectionname' AND @SortDirection = 'DESC' THEN Sectionname END DESC,
-            CASE WHEN @SortColumn = 'SectionId' AND @SortDirection = 'ASC' THEN SectionId END ASC,
-            CASE WHEN @SortColumn = 'SectionId' AND @SortDirection = 'DESC' THEN SectionId END DESC,
-            CASE WHEN @SortColumn = 'Departmentcode' AND @SortDirection = 'ASC' THEN Departmentcode END ASC,
-            CASE WHEN @SortColumn = 'Departmentcode' AND @SortDirection = 'DESC' THEN Departmentcode END DESC,
-            CASE WHEN @SortColumn = 'CreatedOn' AND @SortDirection = 'ASC' THEN CreatedOn END ASC,
-            CASE WHEN @SortColumn = 'CreatedOn' AND @SortDirection = 'DESC' THEN CreatedOn END DESC,
-            CASE WHEN @SortColumn = 'EditedOn' AND @SortDirection = 'ASC' THEN EditedOn END ASC,
-            CASE WHEN @SortColumn = 'EditedOn' AND @SortDirection = 'DESC' THEN EditedOn END DESC,
-            SectionId DESC
-        ) AS RowNum
-        FROM #Filtered
-    )
-    SELECT SectionId, SectionCode, Sectionname, Departmentcode,
-           issectionActive, CreatedBy, CreatedOn, EditedBy, EditedOn
-    FROM Numbered
-    WHERE @PageSize = 0 OR RowNum BETWEEN ((@PageNumber - 1) * @PageSize + 1) AND (@PageNumber * @PageSize)
-    ORDER BY RowNum;
-
-    SELECT COUNT(1) AS TotalCount FROM #Filtered;
-END
-GO
-
-CREATE OR ALTER PROCEDURE dbo.usp_SectionMaster_GetPaged_bkp_org
-    @GlobalSearch NVARCHAR(150) = NULL,
-    @SectionCode NVARCHAR(50) = NULL,
-    @Sectionname NVARCHAR(150) = NULL,
-    @SectionId NVARCHAR(50) = NULL,
-    @Departmentcode NVARCHAR(150) = NULL,
-    @SubDepartmentName NVARCHAR(150) = NULL,
-    @issectionActive NVARCHAR(20) = NULL,
-    @CreatedBy NVARCHAR(50) = NULL,
-    @EditedBy NVARCHAR(50) = NULL,
-    @SortColumn NVARCHAR(50) = 'SectionId',
-    @SortDirection NVARCHAR(4) = 'DESC',
-    @PageNumber INT = 1,
-    @PageSize INT = 10
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET @PageNumber = CASE WHEN ISNULL(@PageNumber, 0) <= 0 THEN 1 ELSE @PageNumber END;
-    SET @PageSize = ISNULL(@PageSize, 10);
-    SET @SortDirection = CASE WHEN UPPER(@SortDirection) = 'ASC' THEN 'ASC' ELSE 'DESC' END;
-
-    CREATE TABLE #Filtered
-    (
-        SectionId INT NOT NULL,
-        SectionCode NVARCHAR(20) NOT NULL,
-        Sectionname NVARCHAR(150) NOT NULL,
-        Departmentcode NVARCHAR(20) NOT NULL,
-        issectionActive BIT NOT NULL,
-        CreatedBy NVARCHAR(50) NULL,
-        CreatedOn DATETIME2(0) NULL,
-        EditedBy NVARCHAR(50) NULL,
-        EditedOn DATETIME2(0) NULL
-    );
-
-    INSERT INTO #Filtered
-    SELECT SectionId, SectionCode, Sectionname, Departmentcode,
+    SELECT SectionId, SectionCode, Sectionname, Departmentcode, SubDepartmentName,
            issectionActive, CreatedBy, CreatedOn, EditedBy, EditedOn
     FROM dbo.DepartmentSectionMaster
     WHERE issectionActive = 1
       AND (NULLIF(@GlobalSearch, '') IS NULL OR
            SectionCode LIKE '%' + @GlobalSearch + '%' OR Sectionname LIKE '%' + @GlobalSearch + '%' OR
            CONVERT(NVARCHAR(20), SectionId) LIKE '%' + @GlobalSearch + '%' OR Departmentcode LIKE '%' + @GlobalSearch + '%' OR
-           ISNULL(CreatedBy,'') LIKE '%' + @GlobalSearch + '%' OR ISNULL(EditedBy,'') LIKE '%' + @GlobalSearch + '%')
+           SubDepartmentName LIKE '%' + @GlobalSearch + '%' OR ISNULL(CreatedBy,'') LIKE '%' + @GlobalSearch + '%' OR ISNULL(EditedBy,'') LIKE '%' + @GlobalSearch + '%')
       AND (NULLIF(@SectionCode, '') IS NULL OR SectionCode LIKE '%' + @SectionCode + '%')
       AND (NULLIF(@Sectionname, '') IS NULL OR Sectionname LIKE '%' + @Sectionname + '%')
       AND (NULLIF(@SectionId, '') IS NULL OR CONVERT(NVARCHAR(20), SectionId) LIKE '%' + @SectionId + '%')
       AND (NULLIF(@Departmentcode, '') IS NULL OR Departmentcode LIKE '%' + @Departmentcode + '%' OR EXISTS (SELECT 1 FROM dbo.DepartmentMaster d WHERE d.DepartmentCode = DepartmentSectionMaster.Departmentcode AND d.DepartmentName LIKE '%' + @Departmentcode + '%'))
+      AND (NULLIF(@SubDepartmentName, '') IS NULL OR SubDepartmentName LIKE '%' + @SubDepartmentName + '%')
       AND (NULLIF(@issectionActive, '') IS NULL OR CASE WHEN issectionActive = 1 THEN 'Active' ELSE 'Inactive' END LIKE '%' + @issectionActive + '%')
       AND (NULLIF(@CreatedBy, '') IS NULL OR ISNULL(CreatedBy,'') LIKE '%' + @CreatedBy + '%')
       AND (NULLIF(@EditedBy, '') IS NULL OR ISNULL(EditedBy,'') LIKE '%' + @EditedBy + '%');
@@ -213,6 +123,8 @@ BEGIN
             CASE WHEN @SortColumn = 'SectionId' AND @SortDirection = 'DESC' THEN SectionId END DESC,
             CASE WHEN @SortColumn = 'Departmentcode' AND @SortDirection = 'ASC' THEN Departmentcode END ASC,
             CASE WHEN @SortColumn = 'Departmentcode' AND @SortDirection = 'DESC' THEN Departmentcode END DESC,
+            CASE WHEN @SortColumn = 'SubDepartmentName' AND @SortDirection = 'ASC' THEN SubDepartmentName END ASC,
+            CASE WHEN @SortColumn = 'SubDepartmentName' AND @SortDirection = 'DESC' THEN SubDepartmentName END DESC,
             CASE WHEN @SortColumn = 'CreatedOn' AND @SortDirection = 'ASC' THEN CreatedOn END ASC,
             CASE WHEN @SortColumn = 'CreatedOn' AND @SortDirection = 'DESC' THEN CreatedOn END DESC,
             CASE WHEN @SortColumn = 'EditedOn' AND @SortDirection = 'ASC' THEN EditedOn END ASC,
@@ -221,7 +133,7 @@ BEGIN
         ) AS RowNum
         FROM #Filtered
     )
-    SELECT SectionId, SectionCode, Sectionname, Departmentcode,
+    SELECT SectionId, SectionCode, Sectionname, Departmentcode, SubDepartmentName,
            issectionActive, CreatedBy, CreatedOn, EditedBy, EditedOn
     FROM Numbered
     WHERE @PageSize = 0 OR RowNum BETWEEN ((@PageNumber - 1) * @PageSize + 1) AND (@PageNumber * @PageSize)
@@ -236,26 +148,19 @@ CREATE OR ALTER PROCEDURE dbo.usp_SectionMaster_GetById
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT SectionId, SectionCode, Sectionname, Departmentcode,
+    SELECT SectionId, SectionCode, Sectionname, Departmentcode, SubDepartmentName,
            issectionActive, CreatedBy, CreatedOn, EditedBy, EditedOn
     FROM dbo.DepartmentSectionMaster
     WHERE SectionId = @SectionId;
 END
 GO
 
-USE [EHRM]
-GO
-/****** Object:  StoredProcedure [dbo].[usp_SectionMaster_Save]    Script Date: 07/03/2026 12:11:43 PM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-
-ALTER   PROCEDURE [dbo].[usp_SectionMaster_Save]
+CREATE OR ALTER PROCEDURE dbo.usp_SectionMaster_Save
     @SectionId INT,
     @SectionCode NVARCHAR(20),
     @Sectionname NVARCHAR(150),
     @Departmentcode NVARCHAR(20),
+    @SubDepartmentName NVARCHAR(150),
     @EmployeeCode NVARCHAR(50),
     @Status INT OUTPUT,
     @Message NVARCHAR(250) OUTPUT
@@ -281,8 +186,8 @@ BEGIN
 
     IF ISNULL(@SectionId, 0) = 0
     BEGIN
-        INSERT INTO dbo.DepartmentSectionMaster(SectionCode, Sectionname, Departmentcode, issectionActive, CreatedBy, CreatedOn)
-        VALUES(@SectionCode, @Sectionname, @Departmentcode, 1, @EmployeeCode, SYSDATETIME());
+        INSERT INTO dbo.DepartmentSectionMaster(SectionCode, Sectionname, Departmentcode, SubDepartmentName, issectionActive, CreatedBy, CreatedOn)
+        VALUES(@SectionCode, @Sectionname, @Departmentcode, @SubDepartmentName, 1, @EmployeeCode, SYSDATETIME());
         SET @Message = 'Section saved successfully';
     END
     ELSE
@@ -290,56 +195,7 @@ BEGIN
         UPDATE dbo.DepartmentSectionMaster
         SET Sectionname = @Sectionname,
             Departmentcode = @Departmentcode,
-            issectionActive = 1,
-            EditedBy = @EmployeeCode,
-            EditedOn = SYSDATETIME()
-        WHERE SectionId = @SectionId; --AND issectionActive = 1;
-        SET @Message = 'Section updated successfully';
-    END
-    SET @Status = 1;
-END
-GO
-
-
-CREATE OR ALTER PROCEDURE dbo.usp_SectionMaster_Save_bkp
-    @SectionId INT,
-    @SectionCode NVARCHAR(20),
-    @Sectionname NVARCHAR(150),
-    @Departmentcode NVARCHAR(20),
-    @EmployeeCode NVARCHAR(50),
-    @Status INT OUTPUT,
-    @Message NVARCHAR(250) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET @SectionCode = LTRIM(RTRIM(@SectionCode));
-    SET @Departmentcode = LTRIM(RTRIM(@Departmentcode));
-
-    IF NOT EXISTS (SELECT 1 FROM dbo.DepartmentMaster WHERE DepartmentCode = @Departmentcode AND ActiveStatus = 1)
-    BEGIN
-        SET @Status = 0;
-        SET @Message = 'Please select a valid Department Code';
-        RETURN;
-    END
-
-    IF EXISTS (SELECT 1 FROM dbo.DepartmentSectionMaster WHERE SectionCode = @SectionCode AND issectionActive = 1 AND SectionId <> ISNULL(@SectionId, 0))
-    BEGIN
-        SET @Status = 0;
-        SET @Message = 'Sectioncode Already Exists';
-        RETURN;
-    END
-
-    IF ISNULL(@SectionId, 0) = 0
-    BEGIN
-        INSERT INTO dbo.DepartmentSectionMaster(SectionCode, Sectionname, Departmentcode, issectionActive, CreatedBy, CreatedOn)
-        VALUES(@SectionCode, @Sectionname, @Departmentcode, 1, @EmployeeCode, SYSDATETIME());
-        SET @Message = 'Section saved successfully';
-    END
-    ELSE
-    BEGIN
-        UPDATE dbo.DepartmentSectionMaster
-        SET Sectionname = @Sectionname,
-            Departmentcode = @Departmentcode,
+            SubDepartmentName = @SubDepartmentName,
             EditedBy = @EmployeeCode,
             EditedOn = SYSDATETIME()
         WHERE SectionId = @SectionId AND issectionActive = 1;

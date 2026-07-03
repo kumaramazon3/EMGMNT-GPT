@@ -19,6 +19,17 @@ $(document).ready(function () {
         sortColumn = selected;
         loadDepartments();
     });
+
+    $('#departmentForm').on('keyup change', 'input,select', function () {
+        if ($.trim($(this).val()) === '') $(this).removeClass('valid-border').addClass('error-border');
+        else $(this).removeClass('error-border').addClass('valid-border');
+    });
+    $('#departmentModal').on('hidden.bs.modal', function () {
+        $('#departmentForm')[0].reset();
+        $('#departmentForm').find('input,select').removeClass('error-border valid-border');
+        $('#formMessage').addClass('d-none').text('');
+    });
+
 });
 
 function debounceSearch() {
@@ -72,6 +83,7 @@ function openDepartmentModal() {
     $('#recordNo').val(0);
     $('#departmentCode').prop('readonly', false);
     $('#formMessage').addClass('d-none').text('');
+    $('#departmentForm').find('input,select').removeClass('error-border valid-border');
     $('#departmentModal').modal('show');
 }
 
@@ -86,7 +98,7 @@ async function editDepartment(id) {
     $('#departmentModal').modal('show');
 }
 
-async function saveDepartment() {
+async function saveDepartmentbkp() {
     const form = $('#departmentForm')[0];
     if (!form.checkValidity()) { form.reportValidity(); return; }
     const token = $('input[name="__RequestVerificationToken"]').val();
@@ -96,6 +108,46 @@ async function saveDepartment() {
     if (response.success) { $('#departmentModal').modal('hide'); loadDepartments(); }
 }
 
+async function saveDepartment() {
+
+    var valid = true;
+
+    $("#departmentForm")
+        .find("input[required],select[required]")
+        .each(function () {
+
+            var value = $(this).val();
+
+            if (value == null || value.trim() == "") {
+
+                $(this)
+                    .removeClass("valid-border")
+                    .addClass("error-border");
+
+                valid = false;
+            }
+            else {
+
+                $(this)
+                    .removeClass("error-border")
+                    .addClass("valid-border");
+            }
+        });
+
+    if (!valid) {
+        alert("Please enter/select all mandatory fields.");
+        return;
+    }
+
+    // Existing AJAX ...
+    const form = $('#departmentForm')[0];
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+    const token = $('input[name="__RequestVerificationToken"]').val();
+    const formData = $('#departmentForm').serialize();
+    const response = await $.ajax({ url: '/master/SaveDepartment', type: 'POST', data: formData, headers: { 'RequestVerificationToken': token } });
+    showFormMessage(response.message, response.success);
+    if (response.success) { $('#departmentModal').modal('hide'); loadDepartments(); }
+}
 function confirmDeleteDepartment(id) { deleteId = id; $('#deleteDepartmentModal').modal('show'); }
 $('#btnConfirmDepartmentDelete').on('click', async function () {
     const token = $('input[name="__RequestVerificationToken"]').val();

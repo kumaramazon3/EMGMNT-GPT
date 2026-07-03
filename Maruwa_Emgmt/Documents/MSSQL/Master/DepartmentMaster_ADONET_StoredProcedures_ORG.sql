@@ -106,8 +106,8 @@ BEGIN
     SELECT RecordNo, DepartmentCode, DepartmentName, JapanHead, Office, GotSection, Prefix,
            CreatedBy, CreatedOn, EditedBy, EditedOn, ActiveStatus
     FROM dbo.DepartmentMaster
-    WHERE --ActiveStatus = 1 AND
-      (NULLIF(@GlobalSearch, '') IS NULL OR
+    WHERE ActiveStatus = 1
+      AND (NULLIF(@GlobalSearch, '') IS NULL OR
            DepartmentCode LIKE '%' + @GlobalSearch + '%' OR DepartmentName LIKE '%' + @GlobalSearch + '%' OR
            JapanHead LIKE '%' + @GlobalSearch + '%' OR Office LIKE '%' + @GlobalSearch + '%' OR
            GotSection LIKE '%' + @GlobalSearch + '%' OR Prefix LIKE '%' + @GlobalSearch + '%' OR
@@ -203,10 +203,9 @@ BEGIN
             Office = @Office,
             GotSection = @GotSection,
             Prefix = @Prefix,
-            ActiveStatus = 1,
             EditedBy = @EmployeeCode,
             EditedOn = SYSDATETIME()
-        WHERE RecordNo = @RecordNo;-- AND ActiveStatus = 1;
+        WHERE RecordNo = @RecordNo AND ActiveStatus = 1;
         SET @Message = 'Department updated successfully';
     END
     SET @Status = 1;

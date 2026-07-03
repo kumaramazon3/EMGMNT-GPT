@@ -52,7 +52,6 @@ namespace Maruwa_Emgmt.DAL.master
                 cmd.Parameters.AddWithValue("@SectionCode", model.SectionCode.Trim());
                 cmd.Parameters.AddWithValue("@Sectionname", model.Sectionname.Trim());
                 cmd.Parameters.AddWithValue("@Departmentcode", model.Departmentcode.Trim());
-                cmd.Parameters.AddWithValue("@SubDepartmentName", model.SubDepartmentName.Trim());
                 cmd.Parameters.AddWithValue("@EmployeeCode", employeeCode);
                 var status = new SqlParameter("@Status", SqlDbType.Int) { Direction = ParameterDirection.Output };
                 var message = new SqlParameter("@Message", SqlDbType.NVarChar, 250) { Direction = ParameterDirection.Output };
@@ -151,7 +150,6 @@ namespace Maruwa_Emgmt.DAL.master
                 SectionCode = Convert.ToString(reader["SectionCode"]) ?? string.Empty,
                 Sectionname = Convert.ToString(reader["Sectionname"]) ?? string.Empty,
                 Departmentcode = Convert.ToString(reader["Departmentcode"]) ?? string.Empty,
-                SubDepartmentName = Convert.ToString(reader["SubDepartmentName"]) ?? string.Empty,
                 issectionActive = reader["issectionActive"] != DBNull.Value && Convert.ToBoolean(reader["issectionActive"]),
                 CreatedBy = Convert.ToString(reader["CreatedBy"]),
                 CreatedOn = reader["CreatedOn"] == DBNull.Value ? null : Convert.ToDateTime(reader["CreatedOn"]),

@@ -1,0 +1,13 @@
+2026-06-28 15:35:15,012 [1] WARN  Microsoft.EntityFrameworkCore.Model [?.?] - The entity type 'RowID' has the [Keyless] attribute, but the [Key] attribute was specified on property 'SelectskillMatrixDocumentData'; the two are incompatible, consider removing one. Note that the entity will have no key unless you configure one in 'OnModelCreating'.
+2026-06-28 15:35:15,177 [1] WARN  Microsoft.EntityFrameworkCore.Model [?.?] - The entity type 'RowID' has the [Keyless] attribute, but the [Key] attribute was specified on property 'new_skillMatrixDocumentData'; the two are incompatible, consider removing one. Note that the entity will have no key unless you configure one in 'OnModelCreating'.
+2026-06-28 15:35:16,751 [1] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (19ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+2026-06-28 15:35:16,760 [1] INFO  Program [Program.<Main>$] - Database connection successful.
+2026-06-28 15:35:17,211 [1] INFO  Microsoft.Hosting.Lifetime [Microsoft.Extensions.Hosting.Internal.ConsoleLifetime.OnApplicationStarted] - Application started. Press Ctrl+C to shut down.
+2026-06-28 15:35:17,213 [1] INFO  Microsoft.Hosting.Lifetime [Microsoft.Extensions.Hosting.Internal.ConsoleLifetime.OnApplicationStarted] - Hosting environment: Development
+2026-06-28 15:35:17,214 [1] INFO  Microsoft.Hosting.Lifetime [System.Threading.CancellationTokenSource.Invoke] - Content root path: C:\Maruwa_Projects\gan\EMGMNT-Test-working\EMGMNT-GPT\Maruwa_Emgmt
+2026-06-28 15:35:22,102 [.NET TP Worker] INFO  Microsoft.EntityFrameworkCore.Database.Command [?.?] - Executed DbCommand (23ms) [Parameters=[@__empcode_0='?' (Size = 4000), @__pwd_1='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [e].[empcode], [e].[empName], [e].[designation]
+FROM [empmaster] AS [e]
+WHERE [e].[empcode] = @__empcode_0 AND [e].[pwd] = @__pwd_1 AND [e].[isResigned] = N'N'
+2026-06-28 15:35:22,116 [.NET TP Worker] INFO  Maruwa_Emgmt.DAL.da_tblempmaster [Maruwa_Emgmt.DAL.da_tblempmaster.ValidateLoginInfo] - Login result for EmpCode 013784: True

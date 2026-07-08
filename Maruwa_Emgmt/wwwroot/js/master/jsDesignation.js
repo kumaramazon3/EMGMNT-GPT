@@ -5,25 +5,19 @@ let sortColumn = 'Sno';
 let sortDirection = 'DESC';
 let deleteId = 0;
 let debounceTimer = null;
-
 let inactiveEditConfirmed = false;
-let currentEditingInactiveDesignation = false;
-let showConfirmModalAfterDesignationShown = false;
 
 $(document).ready(function () {
     loadInsuranceCategories('');
     loadProbations('');
     loadDesignations();
-
     $('#pageSizeSelect').on('change', function () { pageSize = parseInt($(this).val()); currentPage = 1; loadDesignations(); });
     $('#globalSearch').on('input', debounceSearch);
     $('#insuranceCategorySearch').on('input', function () { debounceLookup(() => loadInsuranceCategories($('#insuranceCategorySearch').val())); });
     $('#probationSearch').on('input', function () { debounceLookup(() => loadProbations($('#probationSearch').val())); });
     $('.column-search').on('input', debounceSearch);
-
     $('#btnPrev').on('click', function () { if (currentPage > 1) { currentPage--; loadDesignations(); } });
     $('#btnNext').on('click', function () { const totalPages = Math.ceil(totalCount / pageSize); if (currentPage < totalPages) { currentPage++; loadDesignations(); } });
-
     $('#tblDesignation thead th[data-sort]').on('click', function () {
         const selected = $(this).data('sort');
         sortDirection = sortColumn === selected && sortDirection === 'ASC' ? 'DESC' : 'ASC';
@@ -31,26 +25,54 @@ $(document).ready(function () {
         loadDesignations();
     });
 
-    // When designation modal is shown, show confirmation if needed
-    $('#designationModal').on('shown.bs.modal', function () {
-        if (showConfirmModalAfterDesignationShown) {
-            showConfirmModalAfterDesignationShown = false;
-            setTimeout(() => {
-                showInactiveEditConfirm();
-            }, 100);
-        }
+    $('#designationForm').on('keyup change', 'input[required],select[required]', function () {
+        validateControl($(this));
     });
 
-    // When designation modal is hidden, reset flags
     $('#designationModal').on('hidden.bs.modal', function () {
-        currentEditingInactiveDesignation = false;
-        inactiveEditConfirmed = false;
-        showConfirmModalAfterDesignationShown = false;
+        resetDesignationFormValidation();
+        $('#designationForm')[0].reset();
+        $('#sno').val(0);
+        $('#designationcode').prop('readonly', false);
+        $('#insuranceCategorySearch').val('');
+        $('#probationSearch').val('');
     });
 });
 
 function debounceSearch() { clearTimeout(debounceTimer); debounceTimer = setTimeout(function () { currentPage = 1; loadDesignations(); }, 300); }
 function debounceLookup(callback) { clearTimeout(debounceTimer); debounceTimer = setTimeout(callback, 300); }
+
+function isInactiveStatus(value) {
+    if (value === undefined || value === null) return false;
+    if (typeof value === 'boolean') return value === false;
+    if (typeof value === 'number') return value === 0;
+    const status = String(value).trim().toLowerCase();
+    return status === 'false' || status === '0' || status === 'inactive' || status === 'n' || status === 'no';
+}
+
+function showInactiveEditConfirmIfNeeded(value) {
+    if (isInactiveStatus(value)) {
+        setTimeout(function () {
+            $('#inactiveEditConfirmModal').modal('show');
+        }, 300);
+    }
+}
+
+function proceedInactiveEdit() {
+    inactiveEditConfirmed = true;
+    $('#inactiveEditConfirmModal').modal('hide');
+}
+
+function cancelInactiveEdit() {
+    inactiveEditConfirmed = false;
+    $('#inactiveEditConfirmModal').modal('hide');
+    $('#designationModal').modal('hide');
+    resetDesignationFormValidation();
+    $('#designationForm')[0].reset();
+    $('#sno').val(0);
+    $('#insuranceCategorySearch').val('');
+    $('#probationSearch').val('');
+}
 
 function buildRequest() {
     const req = { globalSearch: $('#globalSearch').val(), designationcode: '', designationName: '', probation: '', insCatergory: '', insamount: '', createdBy: '', editedBy: '', isActive: '', sortColumn, sortDirection, pageNumber: currentPage, pageSize };
@@ -87,11 +109,13 @@ async function loadProbations(searchText, selectedValue) {
 function renderTable(data) {
     let rows = '';
     data.forEach(item => {
+        const activeText = isInactiveStatus(item.isActive) ? 'Inactive' : 'Active';
+        const activeArg = isInactiveStatus(item.isActive) ? 'false' : 'true';
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editDesignation(${item.sno}, this)"></i></td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editDesignation(${item.sno}, ${activeArg})"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteDesignation(${item.sno})"></i></td>
             <td>${escapeHtml(item.designationcode)}</td><td>${escapeHtml(item.designationName)}</td><td>${escapeHtml(item.probation)}</td><td>${escapeHtml(item.insCatergory)}</td><td>${escapeHtml(item.insamount)}</td>
-            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${item.isActive ? 'Active' : 'Inactive'}</td>
+            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${activeText}</td>
         </tr>`;
     });
     $('#tblDesignation tbody').html(rows || '<tr><td colspan="12" class="text-center">No records found</td></tr>');
@@ -110,88 +134,41 @@ function openDesignationModal() {
     $('#designationForm')[0].reset();
     $('#sno').val(0);
     $('#designationcode').prop('readonly', false);
-    $('#formMessage').addClass('d-none').text('');
+    $('#insuranceCategorySearch').val('');
+    $('#probationSearch').val('');
+    resetDesignationFormValidation();
     loadInsuranceCategories('');
     loadProbations('');
     $('#designationModal').modal('show');
 }
 
-async function editDesignation(id, editIcon) {
+async function editDesignation(id, activeStatusFromRow) {
     const response = await $.get('/master/GetDesignation', { id });
     if (!response.success) { alert(response.message); return; }
-
     const d = response.data;
-
     $('#designationModalTitle').text('Edit Designation');
     $('#sno').val(d.sno);
     $('#designationcode').val(d.designationcode).prop('readonly', true);
     $('#designationName').val(d.designationName);
     $('#insamount').val(d.insamount);
-
+    $('#insuranceCategorySearch').val('');
+    $('#probationSearch').val('');
     await loadInsuranceCategories(d.insCatergory, d.insCatergory);
     await loadProbations(d.probation, d.probation);
-    $('#formMessage').addClass('d-none').text('');
-
-    // Check if record is inactive
-    if (!d.isActive) {
-        currentEditingInactiveDesignation = true;
-        inactiveEditConfirmed = false;
-        showConfirmModalAfterDesignationShown = true;
-    }
-
-    // Show the designation modal (confirmation will be shown in 'shown.bs.modal' event if needed)
-    $('#designationModal').modal('show');
-}
-
-function showInactiveEditConfirm() {
-    const modal = $('#inactiveEditConfirmModal');
-
-    if (!modal.length) {
-        console.error('Modal #inactiveEditConfirmModal not found!');
-        alert('You are going to edit the Inactive record, please confirm if you want to proceed?');
-        return;
-    }
-
-    console.log('Showing inactive confirmation modal');
-
-    // Remove any existing backdrop
-    $('.modal-backdrop').remove();
-
-    // Show modal with Bootstrap 4 method
-    modal.modal({
-        backdrop: 'static',
-        keyboard: false,
-        show: true
-    });
-}
-
-function proceedInactiveEdit() {
-    console.log('User clicked Proceed');
-    inactiveEditConfirmed = true;
-    $('#inactiveEditConfirmModal').modal('hide');
-}
-
-function cancelInactiveEdit() {
-    console.log('User clicked Cancel');
+    resetDesignationFormValidation();
     inactiveEditConfirmed = false;
-    currentEditingInactiveDesignation = false;
+    $('#designationModal').modal('show');
 
-    // Hide both modals
-    $('#inactiveEditConfirmModal').modal('hide');
-
-    setTimeout(() => {
-        $('#designationModal').modal('hide');
-        $('#designationForm')[0].reset();
-        $('#sno').val(0);
-        $('#formMessage').addClass('d-none').text('');
-    }, 300);
+    const statusToCheck = activeStatusFromRow !== undefined ? activeStatusFromRow : (d.isActive ?? d.IsActive ?? d.activeStatus ?? d.ActiveStatus);
+    showInactiveEditConfirmIfNeeded(statusToCheck);
 }
 
 async function saveDesignation() {
-    if (currentEditingInactiveDesignation && !inactiveEditConfirmed) {
-        alert('Please confirm if you want to proceed with editing the inactive record.');
-        return;
-    }
+    let valid = true;
+    $('#designationForm').find('input[required],select[required]').each(function () {
+        if (!validateControl($(this))) valid = false;
+    });
+    if (!valid) { alert('Please enter/select all mandatory fields.'); return; }
 
     const form = $('#designationForm')[0];
     if (!form.checkValidity()) { form.reportValidity(); return; }
@@ -201,8 +178,22 @@ async function saveDesignation() {
     if (response.success) { $('#designationModal').modal('hide'); loadDesignations(); }
 }
 
-function confirmDeleteDesignation(id) { deleteId = id; $('#deleteDesignationModal').modal('show'); }
+function validateControl(control) {
+    const value = control.val();
+    if (value == null || String(value).trim() === '') {
+        control.removeClass('valid-border').addClass('error-border');
+        return false;
+    }
+    control.removeClass('error-border').addClass('valid-border');
+    return true;
+}
 
+function resetDesignationFormValidation() {
+    $('#designationForm').find('input,select').removeClass('error-border valid-border');
+    $('#formMessage').removeClass('alert-success alert-danger').addClass('d-none').text('');
+}
+
+function confirmDeleteDesignation(id) { deleteId = id; $('#deleteDesignationModal').modal('show'); }
 $('#btnConfirmDesignationDelete').on('click', async function () {
     const token = $('input[name="__RequestVerificationToken"]').val();
     const response = await $.ajax({ url: '/master/DeleteDesignation', type: 'POST', data: { id: deleteId }, headers: { 'RequestVerificationToken': token } });

@@ -10,7 +10,8 @@
     if (!string.IsNullOrEmpty(isLoggedIn))
     {
         var employee = JsonSerializer.Deserialize<tblempmaster>(isLoggedIn);
-        empName = employee?.empname ?? "";
+        empName = employee?.empName ?? "";
+        //empName = isLoggedIn?.Split(',')[2] ?? "";
         empCode = employee?.empcode ?? "";
     }
     // New Code for Auto Logout
@@ -104,7 +105,7 @@
                         <a class="collapse-item" href="~/master/DepartmentMaster">Department Master</a>
                         <a class="collapse-item" href="~/master/SectionMaster">Section Master</a>
                         <a class="collapse-item" href="~/master/DesignationList">Designation Master</a>
-                        <a class="collapse-item" href="~/master/LeaveTypeMaster">LeaveType Master</a>
+                        <a class="collapse-item" href="~/master/LeaveTypeMaster">LeaveType Master</a> 
                     </div>
                 </div>
             </li>

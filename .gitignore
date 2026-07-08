@@ -3,3 +3,6 @@
 ################################################################################
 
 /.vs
+/Maruwa_Emgmt/bin/Debug/net8.0/Logs
+/Maruwa_Emgmt/Models/tblempmaster.cs
+/Maruwa_Emgmt/Properties/PublishProfiles

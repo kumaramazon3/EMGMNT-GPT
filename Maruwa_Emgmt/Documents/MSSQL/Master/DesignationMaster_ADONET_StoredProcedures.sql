@@ -233,3 +233,37 @@ BEGIN
     SET @Status=1; SET @Message='Designation deleted successfully';
 END
 GO
+
+
+
+
+
+
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('A','','3','','','',200000.00,'CEO','Chief Executive Officer (CEO)','013784',CURRENT_TIMESTAMP,'',NULL,1)		
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('A','','3','','','','200000.00','Director','Director','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('A','','3','','','','200000.00','GM','General Manager)','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('C','','3','','','','50000.00','CHARGEMAN','CHARGEMAN','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('B','','3','','','','100000.00','MGR','Manager)','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('C','','3','','','','50000.00','SNR ENG','Senior Engineer','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('C','','3','','','','50000.00','ENG','Engineer','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('C','','3','','','','50000.00','ASST ENG','Asst Engineer','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('B','','3','','','','50000.00','SNR OFF','Senior Officer','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('C','','3','','','','50000.00','OFF','Officer','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('C','','3','','','','50000.00','SUP','Supervisor','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('C','','3','','','','50000.00','TECH','Technician','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('C','','3','','','','50000.00','Line Leader','Line Leader','013784',CURRENT_TIMESTAMP,'',NULL,1)
+INSERT INTO [dbo].[DesignationMaster] ([insCatergory],[dlevel] ,[probation]  ,[CTQLevel] ,[kpi] ,[positioned] ,[insamount],[designationcode] ,[designationName] ,[CreatedBy],[CreatedOn]
+           ,[EditedBy],[EditedOn],[isActive]) VALUES('D','','3','','','','30000.00','OPT','Operator','013784',CURRENT_TIMESTAMP,'',NULL,1)

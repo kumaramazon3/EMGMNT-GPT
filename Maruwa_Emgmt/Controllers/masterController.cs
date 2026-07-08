@@ -452,7 +452,7 @@ namespace Maruwa_Emgmt.Controllers
         private static byte[] CreateSectionCsv(IEnumerable<SectionMasterVm> sections)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("SectionCode,Sectionname,SectionId,Departmentcode,SubDepartmentName,issectionActive,Created By,Created On,Edited By,Edited On");
+            sb.AppendLine("SectionCode,Sectionname,SectionId,Departmentcode,issectionActive,Created By,Created On,Edited By,Edited On");
             foreach (var d in sections)
             {
                 string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
@@ -469,8 +469,8 @@ namespace Maruwa_Emgmt.Controllers
             doc.Open();
             doc.Add(new Paragraph("Section Master"));
             doc.Add(new Paragraph(" "));
-            var table = new PdfPTable(10) { WidthPercentage = 100 };
-            string[] headers = ["Section Code", "Section Name", "Section Id", "Department Code", "Sub Department", "Status", "Created By", "Created On", "Edited By", "Edited On"];
+            var table = new PdfPTable(9) { WidthPercentage = 100 };
+            string[] headers = ["Section Code", "Section Name", "Section Id", "Department Code", "Status", "Created By", "Created On", "Edited By", "Edited On"];
             foreach (var h in headers) table.AddCell(new Phrase(h));
             foreach (var d in sections)
             {
@@ -499,7 +499,7 @@ namespace Maruwa_Emgmt.Controllers
         private static string BuildSectionSheetXml(IEnumerable<SectionMasterVm> sections)
         {
             var rows = new StringBuilder();
-            string[] headers = ["SectionCode", "Sectionname", "SectionId", "Departmentcode", "SubDepartmentName", "issectionActive", "Created By", "Created On", "Edited By", "Edited On"];
+            string[] headers = ["SectionCode", "Sectionname", "SectionId", "Departmentcode", "issectionActive", "Created By", "Created On", "Edited By", "Edited On"];
             int rowIndex = 1;
             rows.Append(BuildXlsxRow(rowIndex++, headers));
             foreach (var d in sections)

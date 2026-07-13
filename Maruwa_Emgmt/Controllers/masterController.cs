@@ -19,14 +19,16 @@ namespace Maruwa_Emgmt.Controllers
         private readonly bll_DepartmentMaster _departmentBal;
         private readonly bll_SectionMaster _sectionBal;
         private readonly bll_LeaveTypeMaster _leaveTypeBal;
+        private readonly bll_ReasonMaster _reasonBal;
 
-        public masterController(bll_Designation blldesig, bal_tbldropdownData dropdownBal, bll_DepartmentMaster departmentBal, bll_SectionMaster sectionBal, bll_LeaveTypeMaster leaveTypeBal)
+        public masterController(bll_Designation blldesig, bal_tbldropdownData dropdownBal, bll_DepartmentMaster departmentBal, bll_SectionMaster sectionBal, bll_LeaveTypeMaster leaveTypeBal, bll_ReasonMaster reasonBal)
         {
             _blldesig = blldesig;
             _dropdownBal = dropdownBal;
             _departmentBal = departmentBal;
             _sectionBal = sectionBal;
             _leaveTypeBal = leaveTypeBal;
+            _reasonBal = reasonBal;
         }
 
         public IActionResult DesignationList()
@@ -313,6 +315,131 @@ namespace Maruwa_Emgmt.Controllers
             };
         }
 
+
+        public IActionResult ReasonMaster()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetReasonList([FromBody] ReasonSearchRequest request)
+        {
+            try
+            {
+                var data = await _reasonBal.GetReasonsAsync(request);
+                return Json(new { success = true, data = data.Data, totalCount = data.TotalCount });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetReason(string id)
+        {
+            var reason = await _reasonBal.GetReasonByIdAsync(id);
+            return reason == null
+                ? Json(new { success = false, message = "Reason not found" })
+                : Json(new { success = true, data = reason });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveReason(ReasonMasterVm model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = string.Join("\n", errors) });
+            }
+
+            var employeeCode = GetLoggedInEmployeeCode();
+            var result = await _reasonBal.SaveReasonAsync(model, employeeCode);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteReason(string id)
+        {
+            var employeeCode = GetLoggedInEmployeeCode();
+            var result = await _reasonBal.DeleteReasonAsync(id, employeeCode);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ExportReasons([FromBody] ReasonSearchRequest request, string format)
+        {
+            var reasons = await _reasonBal.GetReasonsForExportAsync(request);
+            format = (format ?? "csv").ToLowerInvariant();
+            return format switch
+            {
+                "xlsx" => File(CreateReasonXlsx(reasons), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ReasonMaster.xlsx"),
+                "pdf" => File(CreateReasonPdf(reasons), "application/pdf", "ReasonMaster.pdf"),
+                _ => File(CreateReasonCsv(reasons), "text/csv", "ReasonMaster.csv")
+            };
+        }
+
+
+        private static byte[] CreateReasonCsv(IEnumerable<ReasonMasterVm> reasons)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("ReasonID,ReasonType,ReasonDescription,Created By,Created On,Edited By,Edited On,isActive");
+            foreach (var d in reasons)
+            {
+                string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
+                sb.AppendLine(string.Join(',', Csv(d.ReasonID), Csv(d.ReasonType), Csv(d.ReasonDescription), Csv(d.CreatedBy), Csv(d.CreatedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.EditedBy), Csv(d.EditedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.isActive ? "Active" : "Inactive")));
+            }
+            return Encoding.UTF8.GetBytes(sb.ToString());
+        }
+
+        private static byte[] CreateReasonPdf(IEnumerable<ReasonMasterVm> reasons)
+        {
+            using var ms = new MemoryStream();
+            using var doc = new Document(PageSize.A4.Rotate(), 20, 20, 20, 20);
+            PdfWriter.GetInstance(doc, ms);
+            doc.Open();
+            doc.Add(new Paragraph("Reason Master"));
+            doc.Add(new Paragraph(" "));
+            var table = new PdfPTable(8) { WidthPercentage = 100 };
+            string[] headers = ["ReasonID", "ReasonType", "ReasonDescription", "Created By", "Created On", "Edited By", "Edited On", "Status"];
+            foreach (var h in headers) table.AddCell(new Phrase(h));
+            foreach (var d in reasons)
+            {
+                table.AddCell(d.ReasonID); table.AddCell(d.ReasonType); table.AddCell(d.ReasonDescription); table.AddCell(d.CreatedBy ?? ""); table.AddCell(d.CreatedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.EditedBy ?? ""); table.AddCell(d.EditedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.isActive ? "Active" : "Inactive");
+            }
+            doc.Add(table);
+            doc.Close();
+            return ms.ToArray();
+        }
+
+        private static byte[] CreateReasonXlsx(IEnumerable<ReasonMasterVm> reasons)
+        {
+            using var ms = new MemoryStream();
+            using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, true))
+            {
+                AddZipEntry(archive, "[Content_Types].xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/></Types>");
+                AddZipEntry(archive, "_rels/.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>");
+                AddZipEntry(archive, "xl/_rels/workbook.xml.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/></Relationships>");
+                AddZipEntry(archive, "xl/workbook.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets><sheet name=\"ReasonMaster\" sheetId=\"1\" r:id=\"rId1\"/></sheets></workbook>");
+                AddZipEntry(archive, "xl/worksheets/sheet1.xml", BuildReasonSheetXml(reasons));
+            }
+            return ms.ToArray();
+        }
+
+        private static string BuildReasonSheetXml(IEnumerable<ReasonMasterVm> reasons)
+        {
+            var rows = new StringBuilder();
+            string[] headers = ["ReasonID", "ReasonType", "ReasonDescription", "Created By", "Created On", "Edited By", "Edited On", "isActive"];
+            int rowIndex = 1;
+            rows.Append(BuildXlsxRow(rowIndex++, headers));
+            foreach (var d in reasons)
+            {
+                rows.Append(BuildXlsxRow(rowIndex++, [d.ReasonID, d.ReasonType, d.ReasonDescription, d.CreatedBy ?? "", d.CreatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.EditedBy ?? "", d.EditedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.isActive ? "Active" : "Inactive"]));
+            }
+            return $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>{rows}</sheetData></worksheet>";
+        }
 
         private static byte[] CreateLeaveTypeCsv(IEnumerable<LeaveTypeMasterVm> leaveTypes)
         {

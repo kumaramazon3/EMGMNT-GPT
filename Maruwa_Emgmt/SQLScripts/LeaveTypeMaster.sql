@@ -19,6 +19,36 @@ BEGIN
 END
 GO
 
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('AL',
+'Annual','Deduction from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CAL',
+'Calamity','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CH',
+'Company Holiday','Deduction from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CL',
+'Compassionate','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('ALE',
+'Emergency- Annual','Deduction from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('UP',
+'Emergency- Unpaid','eligible only when NO annual leave balance','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('HL',
+'Hospitalization','NA','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MC',
+'Marriage - Children','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MS',
+'Marriage -Self','1. Do not deduct from AL entitlement 2. Applicable one time in service','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('ML',
+'Maternity','Do not deduct fro AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MC',
+'Medical','Deduct from MC entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('PL',
+'Paternity','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('RPL',
+'Replacement','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('UNP',
+'Unpaid','eligible only when NO annual leave balance','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+
+
 INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('1',
 'Annual','Deduction from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
 INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('2',

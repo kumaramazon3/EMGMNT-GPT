@@ -444,11 +444,11 @@ namespace Maruwa_Emgmt.Controllers
         private static byte[] CreateLeaveTypeCsv(IEnumerable<LeaveTypeMasterVm> leaveTypes)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("LeaveID,LeaveType,LeaveDescription,Created By,Created On,Edited By,Edited On,isActive");
+            sb.AppendLine("LeaveID,LeaveType,Created By,Created On,Edited By,Edited On,isActive");
             foreach (var d in leaveTypes)
             {
                 string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
-                sb.AppendLine(string.Join(',', Csv(d.LeaveID), Csv(d.LeaveType), Csv(d.LeaveDescription), Csv(d.CreatedBy), Csv(d.CreatedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.EditedBy), Csv(d.EditedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.isActive ? "Active" : "Inactive")));
+                sb.AppendLine(string.Join(',', Csv(d.LeaveID), Csv(d.LeaveType), Csv(d.CreatedBy), Csv(d.CreatedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.EditedBy), Csv(d.EditedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.isActive ? "Active" : "Inactive")));
             }
             return Encoding.UTF8.GetBytes(sb.ToString());
         }
@@ -461,12 +461,12 @@ namespace Maruwa_Emgmt.Controllers
             doc.Open();
             doc.Add(new Paragraph("LeaveType Master"));
             doc.Add(new Paragraph(" "));
-            var table = new PdfPTable(8) { WidthPercentage = 100 };
-            string[] headers = ["LeaveID", "LeaveType", "LeaveDescription", "Created By", "Created On", "Edited By", "Edited On", "Status"];
+            var table = new PdfPTable(7) { WidthPercentage = 100 };
+            string[] headers = ["LeaveID", "LeaveType", "Created By", "Created On", "Edited By", "Edited On", "Status"];
             foreach (var h in headers) table.AddCell(new Phrase(h));
             foreach (var d in leaveTypes)
             {
-                table.AddCell(d.LeaveID); table.AddCell(d.LeaveType); table.AddCell(d.LeaveDescription); table.AddCell(d.CreatedBy ?? ""); table.AddCell(d.CreatedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.EditedBy ?? ""); table.AddCell(d.EditedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.isActive ? "Active" : "Inactive");
+                table.AddCell(d.LeaveID); table.AddCell(d.LeaveType); table.AddCell(d.CreatedBy ?? ""); table.AddCell(d.CreatedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.EditedBy ?? ""); table.AddCell(d.EditedOn?.ToString("yyyy-MM-dd") ?? ""); table.AddCell(d.isActive ? "Active" : "Inactive");
             }
             doc.Add(table);
             doc.Close();
@@ -490,12 +490,12 @@ namespace Maruwa_Emgmt.Controllers
         private static string BuildLeaveTypeSheetXml(IEnumerable<LeaveTypeMasterVm> leaveTypes)
         {
             var rows = new StringBuilder();
-            string[] headers = ["LeaveID", "LeaveType", "LeaveDescription", "Created By", "Created On", "Edited By", "Edited On", "isActive"];
+            string[] headers = ["LeaveID", "LeaveType", "Created By", "Created On", "Edited By", "Edited On", "isActive"];
             int rowIndex = 1;
             rows.Append(BuildXlsxRow(rowIndex++, headers));
             foreach (var d in leaveTypes)
             {
-                rows.Append(BuildXlsxRow(rowIndex++, [d.LeaveID, d.LeaveType, d.LeaveDescription, d.CreatedBy ?? "", d.CreatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.EditedBy ?? "", d.EditedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.isActive ? "Active" : "Inactive"]));
+                rows.Append(BuildXlsxRow(rowIndex++, [d.LeaveID, d.LeaveType, d.CreatedBy ?? "", d.CreatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.EditedBy ?? "", d.EditedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.isActive ? "Active" : "Inactive"]));
             }
             return $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>{rows}</sheetData></worksheet>";
         }

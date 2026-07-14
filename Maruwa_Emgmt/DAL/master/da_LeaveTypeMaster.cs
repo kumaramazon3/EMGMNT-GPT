@@ -50,7 +50,6 @@ namespace Maruwa_Emgmt.DAL.master
                 await using var cmd = new SqlCommand("usp_LeaveTypeMaster_Save", con) { CommandType = CommandType.StoredProcedure };
                 cmd.Parameters.AddWithValue("@LeaveID", model.LeaveID.Trim());
                 cmd.Parameters.AddWithValue("@LeaveType", model.LeaveType.Trim());
-                cmd.Parameters.AddWithValue("@LeaveDescription", model.LeaveDescription.Trim());
                 cmd.Parameters.AddWithValue("@EmployeeCode", employeeCode);
                 var status = new SqlParameter("@Status", SqlDbType.Int) { Direction = ParameterDirection.Output };
                 var message = new SqlParameter("@Message", SqlDbType.NVarChar, 250) { Direction = ParameterDirection.Output };
@@ -103,7 +102,6 @@ namespace Maruwa_Emgmt.DAL.master
             cmd.Parameters.AddWithValue("@GlobalSearch", (object?)request.GlobalSearch ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@LeaveID", (object?)request.LeaveID ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@LeaveType", (object?)request.LeaveType ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@LeaveDescription", (object?)request.LeaveDescription ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@CreatedBy", (object?)request.CreatedBy ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@EditedBy", (object?)request.EditedBy ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@isActive", (object?)request.isActive ?? DBNull.Value);
@@ -126,7 +124,6 @@ namespace Maruwa_Emgmt.DAL.master
             {
                 LeaveID = Convert.ToString(reader["LeaveID"]) ?? string.Empty,
                 LeaveType = Convert.ToString(reader["LeaveType"]) ?? string.Empty,
-                LeaveDescription = Convert.ToString(reader["LeaveDescription"]) ?? string.Empty,
                 CreatedBy = Convert.ToString(reader["CreatedBy"]),
                 CreatedOn = reader["CreatedOn"] == DBNull.Value ? null : Convert.ToDateTime(reader["CreatedOn"]),
                 EditedBy = Convert.ToString(reader["EditedBy"]),

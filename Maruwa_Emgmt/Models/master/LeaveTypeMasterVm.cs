@@ -12,9 +12,6 @@ namespace Maruwa_Emgmt.Models.master
         [StringLength(100)]
         public string LeaveType { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "LeaveDescription is required")]
-        [StringLength(500)]
-        public string LeaveDescription { get; set; } = string.Empty;
 
         public string? CreatedBy { get; set; }
         public DateTime? CreatedOn { get; set; }
@@ -28,7 +25,6 @@ namespace Maruwa_Emgmt.Models.master
         public string? GlobalSearch { get; set; }
         public string? LeaveID { get; set; }
         public string? LeaveType { get; set; }
-        public string? LeaveDescription { get; set; }
         public string? CreatedBy { get; set; }
         public string? EditedBy { get; set; }
         public string? isActive { get; set; }

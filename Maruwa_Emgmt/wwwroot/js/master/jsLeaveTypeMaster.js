@@ -66,7 +66,7 @@ function cancelInactiveEdit() {
 }
 
 function buildRequest() {
-    const req = { globalSearch: $('#globalSearch').val(), leaveID: '', leaveType: '', leaveDescription: '', createdBy: '', editedBy: '', isActive: '', sortColumn, sortDirection, pageNumber: currentPage, pageSize };
+    const req = { globalSearch: $('#globalSearch').val(), leaveID: '', leaveType: '', createdBy: '', editedBy: '', isActive: '', sortColumn, sortDirection, pageNumber: currentPage, pageSize };
     $('.column-search').each(function () { req[$(this).data('field')] = $(this).val(); });
     return req;
 }
@@ -89,11 +89,11 @@ function renderTable(data) {
         rows += `<tr>
             <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editLeaveType('${escapeAttr(item.leaveID)}', ${activeArg})"></i></td>
             <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteLeaveType('${escapeAttr(item.leaveID)}')"></i></td>
-            <td>${escapeHtml(item.leaveID)}</td><td>${escapeHtml(item.leaveType)}</td><td>${escapeHtml(item.leaveDescription)}</td>
+            <td>${escapeHtml(item.leaveID)}</td><td>${escapeHtml(item.leaveType)}</td>
             <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${activeText}</td>
         </tr>`;
     });
-    $('#tblLeaveType tbody').html(rows || '<tr><td colspan="10" class="text-center">No records found</td></tr>');
+    $('#tblLeaveType tbody').html(rows || '<tr><td colspan="9" class="text-center">No records found</td></tr>');
 }
 
 function updatePaging() {
@@ -119,7 +119,6 @@ async function editLeaveType(id, activeStatusFromRow) {
     $('#leaveTypeModalTitle').text('Edit LeaveType');
     $('#leaveID').val(d.leaveID).prop('readonly', true);
     $('#leaveType').val(d.leaveType);
-    $('#leaveDescription').val(d.leaveDescription);
     resetLeaveTypeFormValidation();
     inactiveEditConfirmed = false;
     $('#leaveTypeModal').modal('show');

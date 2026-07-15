@@ -48,7 +48,7 @@ namespace Maruwa_Emgmt.DAL.master
             {
                 await using var con = new SqlConnection(_connectionString);
                 await using var cmd = new SqlCommand("usp_ReasonTypeMaster_Save", con) { CommandType = CommandType.StoredProcedure };
-                cmd.Parameters.AddWithValue("@ReasonID", model.ReasonID.Trim());
+                cmd.Parameters.AddWithValue("@ReasonID", string.IsNullOrWhiteSpace(model.ReasonID) ? DBNull.Value : model.ReasonID.Trim());
                 cmd.Parameters.AddWithValue("@ReasonType", model.ReasonType.Trim());
                 cmd.Parameters.AddWithValue("@ReasonDescription", model.ReasonDescription.Trim());
                 cmd.Parameters.AddWithValue("@EmployeeCode", employeeCode);

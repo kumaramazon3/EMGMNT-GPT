@@ -167,7 +167,6 @@
                         <tr>
                             <th>Edit</th>
                             <th>Delete</th>
-                            <th data-sort="ReasonID">ReasonID</th>
                             <th data-sort="ReasonType">ReasonType</th>
                             <th data-sort="ReasonDescription">ReasonDescription</th>
                             <th data-sort="CreatedBy">Created By</th>
@@ -179,7 +178,6 @@
                         <tr class="bg-light text-dark">
                             <th></th>
                             <th></th>
-                            <th><input class="form-control form-control-sm column-search" data-field="reasonID" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="reasonType" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="reasonDescription" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="createdBy" /></th>
@@ -214,10 +212,12 @@
             <div class="modal-body">
                 <div class="master-form-wrapper">
                     <form id="reasonForm">
-                        <div class="row gx-0 justify-content-center align-items-center master-form-row">
-                            <label class="col-md-4 col-form-label text-end pe-1">Reason ID<span class="required-star">*</span></label>
+                        <input type="hidden" id="reasonID" name="ReasonID" value="" />
+
+                        <div class="row gx-0 justify-content-center align-items-center master-form-row d-none" id="reasonIDDisplayRow">
+                            <label class="col-md-4 col-form-label text-end pe-1">Reason ID</label>
                             <div class="col-md-6 ps-1">
-                                <input class="form-control" id="reasonID" name="ReasonID" required maxlength="50" />
+                                <input class="form-control" id="reasonIDDisplay" type="text" readonly />
                             </div>
                         </div>
 
@@ -276,5 +276,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/master/jsReasonMaster.js"></script>
+    <script src="~/js/master/jsReasonMaster.js" asp-append-version="true"></script>
 }

@@ -9,11 +9,31 @@ let inactiveEditConfirmed = false;
 
 $(document).ready(function () {
     loadReasons();
-    $('#pageSizeSelect').on('change', function () { pageSize = parseInt($(this).val()); currentPage = 1; loadReasons(); });
+
+    $('#pageSizeSelect').on('change', function () {
+        pageSize = parseInt($(this).val());
+        currentPage = 1;
+        loadReasons();
+    });
+
     $('#globalSearch').on('input', debounceSearch);
     $('.column-search').on('input', debounceSearch);
-    $('#btnPrev').on('click', function () { if (currentPage > 1) { currentPage--; loadReasons(); } });
-    $('#btnNext').on('click', function () { const totalPages = Math.ceil(totalCount / pageSize); if (currentPage < totalPages) { currentPage++; loadReasons(); } });
+
+    $('#btnPrev').on('click', function () {
+        if (currentPage > 1) {
+            currentPage--;
+            loadReasons();
+        }
+    });
+
+    $('#btnNext').on('click', function () {
+        const totalPages = Math.ceil(totalCount / pageSize);
+        if (currentPage < totalPages) {
+            currentPage++;
+            loadReasons();
+        }
+    });
+
     $('#tblReason thead th[data-sort]').on('click', function () {
         const selected = $(this).data('sort');
         sortDirection = sortColumn === selected && sortDirection === 'ASC' ? 'DESC' : 'ASC';
@@ -28,11 +48,26 @@ $(document).ready(function () {
     $('#reasonModal').on('hidden.bs.modal', function () {
         resetReasonFormValidation();
         $('#reasonForm')[0].reset();
-        $('#reasonID').prop('readonly', false);
+        clearReasonIdControls();
     });
 });
 
-function debounceSearch() { clearTimeout(debounceTimer); debounceTimer = setTimeout(function () { currentPage = 1; loadReasons(); }, 300); }
+function debounceSearch() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function () {
+        currentPage = 1;
+        loadReasons();
+    }, 300);
+}
+
+function getFirstDefined() {
+    for (let i = 0; i < arguments.length; i++) {
+        if (arguments[i] !== undefined && arguments[i] !== null) {
+            return arguments[i];
+        }
+    }
+    return '';
+}
 
 function isInactiveStatus(value) {
     if (value === undefined || value === null) return false;
@@ -61,38 +96,95 @@ function cancelInactiveEdit() {
     $('#reasonModal').modal('hide');
     resetReasonFormValidation();
     $('#reasonForm')[0].reset();
-    $('#reasonID').prop('readonly', false);
+    clearReasonIdControls();
+}
+
+function clearReasonIdControls() {
+    $('#reasonID').val('');
+    $('#reasonIDDisplay').val('');
+    $('#reasonIDDisplayRow').addClass('d-none');
+}
+
+function setReasonIdForEdit(reasonId) {
+    $('#reasonID').val(reasonId);
+    $('#reasonIDDisplay').val(reasonId);
+    $('#reasonIDDisplayRow').removeClass('d-none');
 }
 
 function buildRequest() {
-    const req = { globalSearch: $('#globalSearch').val(), reasonID: '', reasonType: '', reasonDescription: '', createdBy: '', editedBy: '', isActive: '', sortColumn, sortDirection, pageNumber: currentPage, pageSize };
-    $('.column-search').each(function () { req[$(this).data('field')] = $(this).val(); });
+    const req = {
+        globalSearch: $('#globalSearch').val(),
+        reasonID: '',
+        reasonType: '',
+        reasonDescription: '',
+        createdBy: '',
+        editedBy: '',
+        isActive: '',
+        sortColumn: sortColumn,
+        sortDirection: sortDirection,
+        pageNumber: currentPage,
+        pageSize: pageSize
+    };
+
+    $('.column-search').each(function () {
+        req[$(this).data('field')] = $(this).val();
+    });
+
     return req;
 }
 
 async function loadReasons() {
     try {
-        const response = await $.ajax({ url: '/master/GetReasonList', type: 'POST', contentType: 'application/json', data: JSON.stringify(buildRequest()) });
-        if (!response.success) { showFormMessage(response.message, false); return; }
+        const response = await $.ajax({
+            url: '/master/GetReasonList',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(buildRequest())
+        });
+
+        if (!response.success) {
+            showFormMessage(response.message, false);
+            return;
+        }
+
         totalCount = response.totalCount;
         renderTable(response.data || []);
         updatePaging();
-    } catch (e) { showFormMessage('Error loading Reason data', false); }
+    } catch (e) {
+        showFormMessage('Error loading Reason data', false);
+    }
 }
 
 function renderTable(data) {
     let rows = '';
+
     data.forEach(item => {
-        const activeText = isInactiveStatus(item.isActive) ? 'Inactive' : 'Active';
-        const activeArg = isInactiveStatus(item.isActive) ? 'false' : 'true';
+        const reasonId = getFirstDefined(item.reasonID, item.ReasonID);
+        const reasonType = getFirstDefined(item.reasonType, item.ReasonType);
+        const reasonDescription = getFirstDefined(item.reasonDescription, item.ReasonDescription);
+        const createdBy = getFirstDefined(item.createdBy, item.CreatedBy);
+        const createdOn = getFirstDefined(item.createdOn, item.CreatedOn);
+        const editedBy = getFirstDefined(item.editedBy, item.EditedBy);
+        const editedOn = getFirstDefined(item.editedOn, item.EditedOn);
+        const isActive = getFirstDefined(item.isActive, item.IsActive);
+        const activeText = isInactiveStatus(isActive) ? 'Inactive' : 'Active';
+        const activeArg = isInactiveStatus(isActive) ? 'false' : 'true';
+
+        // ReasonID is intentionally NOT displayed in the grid.
         rows += `<tr>
-            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editReason('${escapeAttr(item.reasonID)}', ${activeArg})"></i></td>
-            <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteReason('${escapeAttr(item.reasonID)}')"></i></td>
-            <td>${escapeHtml(item.reasonID)}</td><td>${escapeHtml(item.reasonType)}</td><td>${escapeHtml(item.reasonDescription)}</td>
-            <td>${escapeHtml(item.createdBy)}</td><td>${formatDate(item.createdOn)}</td><td>${escapeHtml(item.editedBy)}</td><td>${formatDate(item.editedOn)}</td><td>${activeText}</td>
+            <td><i class="bi bi-pencil-square text-primary" style="cursor:pointer" onclick="editReason('${escapeAttr(reasonId)}', ${activeArg})"></i></td>
+            <td><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="confirmDeleteReason('${escapeAttr(reasonId)}')"></i></td>
+            <td>${escapeHtml(reasonType)}</td>
+            <td>${escapeHtml(reasonDescription)}</td>
+            <td>${escapeHtml(createdBy)}</td>
+            <td>${formatDate(createdOn)}</td>
+            <td>${escapeHtml(editedBy)}</td>
+            <td>${formatDate(editedOn)}</td>
+            <td>${activeText}</td>
         </tr>`;
     });
-    $('#tblReason tbody').html(rows || '<tr><td colspan="10" class="text-center">No records found</td></tr>');
+
+    $('#tblReason tbody').html(rows || '<tr><td colspan="9" class="text-center">No records found</td></tr>');
 }
 
 function updatePaging() {
@@ -106,49 +198,83 @@ function updatePaging() {
 function openReasonModal() {
     $('#reasonModalTitle').text('Add Reason');
     $('#reasonForm')[0].reset();
-    $('#reasonID').prop('readonly', false);
+    clearReasonIdControls();
     resetReasonFormValidation();
     $('#reasonModal').modal('show');
 }
 
 async function editReason(id, activeStatusFromRow) {
     const response = await $.get('/master/GetReason', { id: id });
-    if (!response.success) { alert(response.message); return; }
+    if (!response.success) {
+        alert(response.message);
+        return;
+    }
+
     const d = response.data;
+    const reasonId = getFirstDefined(d.reasonID, d.ReasonID, id);
+    const reasonType = getFirstDefined(d.reasonType, d.ReasonType);
+    const reasonDescription = getFirstDefined(d.reasonDescription, d.ReasonDescription);
+
     $('#reasonModalTitle').text('Edit Reason');
-    $('#reasonID').val(d.reasonID).prop('readonly', true);
-    $('#reasonType').val(d.reasonType);
-    $('#reasonDescription').val(d.reasonDescription);
+    setReasonIdForEdit(reasonId);
+    $('#reasonType').val(reasonType);
+    $('#reasonDescription').val(reasonDescription);
+
     resetReasonFormValidation();
     inactiveEditConfirmed = false;
     $('#reasonModal').modal('show');
 
-    const statusToCheck = activeStatusFromRow !== undefined ? activeStatusFromRow : (d.isActive ?? d.IsActive ?? d.activeStatus ?? d.ActiveStatus);
+    const statusToCheck = activeStatusFromRow !== undefined
+        ? activeStatusFromRow
+        : getFirstDefined(d.isActive, d.IsActive, d.activeStatus, d.ActiveStatus);
+
     showInactiveEditConfirmIfNeeded(statusToCheck);
 }
 
 async function saveReason() {
     let valid = true;
+
     $('#reasonForm').find('input[required],textarea[required],select[required]').each(function () {
         if (!validateControl($(this))) valid = false;
     });
-    if (!valid) { alert('Please enter/select all mandatory fields.'); return; }
+
+    if (!valid) {
+        alert('Please enter/select all mandatory fields.');
+        return;
+    }
 
     const form = $('#reasonForm')[0];
-    if (!form.checkValidity()) { form.reportValidity(); return; }
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
     const token = $('input[name="__RequestVerificationToken"]').val();
     const formData = $('#reasonForm').serialize();
-    const response = await $.ajax({ url: '/master/SaveReason', type: 'POST', data: formData, headers: { 'RequestVerificationToken': token } });
+
+    const response = await $.ajax({
+        url: '/master/SaveReason',
+        type: 'POST',
+        data: formData,
+        headers: { 'RequestVerificationToken': token }
+    });
+
     showFormMessage(response.message, response.success);
-    if (response.success) { $('#reasonModal').modal('hide'); loadReasons(); }
+
+    if (response.success) {
+        $('#reasonModal').modal('hide');
+        loadReasons();
+    }
 }
 
 function validateControl(control) {
     const value = control.val();
+
     if (value == null || String(value).trim() === '') {
         control.removeClass('valid-border').addClass('error-border');
         return false;
     }
+
     control.removeClass('error-border').addClass('valid-border');
     return true;
 }
@@ -158,25 +284,62 @@ function resetReasonFormValidation() {
     $('#formMessage').removeClass('alert-success alert-danger').addClass('d-none').text('');
 }
 
-function confirmDeleteReason(id) { deleteId = id; $('#deleteReasonModal').modal('show'); }
+function confirmDeleteReason(id) {
+    deleteId = id;
+    $('#deleteReasonModal').modal('show');
+}
+
 $('#btnConfirmReasonDelete').on('click', async function () {
     const token = $('input[name="__RequestVerificationToken"]').val();
-    const response = await $.ajax({ url: '/master/DeleteReason', type: 'POST', data: { id: deleteId }, headers: { 'RequestVerificationToken': token } });
+
+    const response = await $.ajax({
+        url: '/master/DeleteReason',
+        type: 'POST',
+        data: { id: deleteId },
+        headers: { 'RequestVerificationToken': token }
+    });
+
     $('#deleteReasonModal').modal('hide');
     alert(response.message);
+
     if (response.success) loadReasons();
 });
 
 async function exportReason(format) {
-    const response = await fetch('/master/ExportReasons?format=' + format, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildRequest()) });
+    const response = await fetch('/master/ExportReasons?format=' + format, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildRequest())
+    });
+
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `ReasonMaster.${format}`; document.body.appendChild(a); a.click(); a.remove();
+    a.href = url;
+    a.download = `ReasonMaster.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
     window.URL.revokeObjectURL(url);
 }
 
-function showFormMessage(message, success) { const el = $('#formMessage'); el.removeClass('d-none alert-success alert-danger').addClass(success ? 'alert-success' : 'alert-danger').text(message); }
-function escapeHtml(value) { return $('<div>').text(value || '').html(); }
-function escapeAttr(value) { return String(value || '').replace(/'/g, '&#39;').replace(/"/g, '&quot;'); }
-function formatDate(value) { if (!value) return ''; const d = new Date(value); return isNaN(d) ? '' : d.toLocaleString(); }
+function showFormMessage(message, success) {
+    const el = $('#formMessage');
+    el.removeClass('d-none alert-success alert-danger')
+        .addClass(success ? 'alert-success' : 'alert-danger')
+        .text(message);
+}
+
+function escapeHtml(value) {
+    return $('<div>').text(value ?? '').html();
+}
+
+function escapeAttr(value) {
+    return String(value ?? '').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+}
+
+function formatDate(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    return isNaN(d) ? '' : d.toLocaleString();
+}

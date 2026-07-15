@@ -144,7 +144,7 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE dbo.usp_ReasonTypeMaster_Save
-    @ReasonID NVARCHAR(50) = NULL,
+    @ReasonID NVARCHAR(50),
     @ReasonType NVARCHAR(100),
     @ReasonDescription NVARCHAR(500),
     @EmployeeCode NVARCHAR(50),
@@ -153,14 +153,6 @@ CREATE OR ALTER PROCEDURE dbo.usp_ReasonTypeMaster_Save
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    SET @ReasonID = NULLIF(LTRIM(RTRIM(@ReasonID)), '');
-
-    IF @ReasonID IS NULL
-    BEGIN
-        SELECT @ReasonID = CONVERT(NVARCHAR(50), ISNULL(MAX(TRY_CONVERT(INT, ReasonID)), 0) + 1)
-        FROM dbo.ReasonTypeMaster;
-    END
 
     IF EXISTS (SELECT 1 FROM dbo.ReasonTypeMaster WHERE ReasonID = @ReasonID AND isActive = 1)
     BEGIN
@@ -205,7 +197,7 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE dbo.usp_ReasonTypeMaster_Delete
-    @ReasonID NVARCHAR(50) = NULL,
+    @ReasonID NVARCHAR(50),
     @EmployeeCode NVARCHAR(50),
     @Status INT OUTPUT,
     @Message NVARCHAR(250) OUTPUT

@@ -4,9 +4,8 @@ namespace Maruwa_Emgmt.Models.master
 {
     public class ReasonMasterVm
     {
-        [Required(ErrorMessage = "ReasonID is required")]
         [StringLength(50)]
-        public string ReasonID { get; set; } = string.Empty;
+        public string? ReasonID { get; set; }
 
         [Required(ErrorMessage = "ReasonType is required")]
         [StringLength(100)]

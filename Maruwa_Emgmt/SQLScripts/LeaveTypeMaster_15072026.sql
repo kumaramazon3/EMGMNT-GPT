@@ -234,34 +234,3 @@ BEGIN
     SET @Message = 'LeaveType deleted successfully';
 END
 GO
-
-
-
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('AL',
-'Annual','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CAL',
-'Calamity','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CH',
-'Company Holiday','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CL',
-'Compassionate','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('ALE',
-'Emergency- Annual','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('UP',
-'Emergency- Unpaid','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) 
-VALUES ('HL','Hospitalization','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MC',
-'Marriage - Children','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MS',
-'Marriage -Self','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('ML',
-'Maternity','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MCL',
-'Medical','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('PL',
-'Paternity','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('RPL',
-'Replacement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('UNP',
-'Unpaid','013784',CURRENT_TIMESTAMP,'013784',NULL,1)

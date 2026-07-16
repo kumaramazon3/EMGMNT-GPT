@@ -1,5 +1,6 @@
 /*
     LeaveType Master table and stored procedures.
+    LeaveDescription column removed.
     Execute this script manually in SQL Server database configured by EHRMConnection.
 */
 
@@ -9,7 +10,6 @@ BEGIN
     (
         LeaveID NVARCHAR(50) NOT NULL CONSTRAINT PK_LeaveTypeMaster PRIMARY KEY,
         LeaveType NVARCHAR(100) NOT NULL,
-        LeaveDescription NVARCHAR(500) NOT NULL,
         CreatedBy NVARCHAR(50) NULL,
         CreatedOn DATETIME2(0) NOT NULL CONSTRAINT DF_LeaveTypeMaster_CreatedOn DEFAULT SYSUTCDATETIME(),
         EditedBy NVARCHAR(50) NULL,
@@ -19,41 +19,41 @@ BEGIN
 END
 GO
 
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('1',
-'Annual','Deduction from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('2',
-'Calamity','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('3',
-'Company Holiday','Deduction from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('4',
-'Compassionate','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('5',
-'Emergency- Annual','Deduction from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('6',
-'Emergency- Unpaid','eligible only when NO annual leave balance','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('7',
-'Hospitalization','NA','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('8',
-'Marriage - Children','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('9',
-'Marriage -Self','1. Do not deduct from AL entitlement 2. Applicable one time in service','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('10',
-'Maternity','Do not deduct fro AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('11',
-'Medical','Deduct from MC entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('12',
-'Paternity','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('13',
-'Replacement','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('14',
-'Unpaid','eligible only when NO annual leave balance','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
+IF COL_LENGTH('dbo.LeaveTypeMaster', 'LeaveDescription') IS NOT NULL
+BEGIN
+    ALTER TABLE dbo.LeaveTypeMaster DROP COLUMN LeaveDescription;
+END
+GO
 
+MERGE dbo.LeaveTypeMaster AS target
+USING (VALUES
+    ('1','Annual'),
+    ('2','Calamity'),
+    ('3','Company Holiday'),
+    ('4','Compassionate'),
+    ('5','Emergency- Annual'),
+    ('6','Emergency- Unpaid'),
+    ('7','Hospitalization'),
+    ('8','Marriage - Children'),
+    ('9','Marriage -Self'),
+    ('10','Maternity'),
+    ('11','Medical'),
+    ('12','Paternity'),
+    ('13','Replacement'),
+    ('14','Unpaid')
+) AS source (LeaveID, LeaveType)
+ON target.LeaveID = source.LeaveID
+WHEN MATCHED THEN
+    UPDATE SET LeaveType = source.LeaveType
+WHEN NOT MATCHED BY TARGET THEN
+    INSERT (LeaveID, LeaveType, CreatedBy, CreatedOn, EditedBy, EditedOn, isActive)
+    VALUES (source.LeaveID, source.LeaveType, '013784', CURRENT_TIMESTAMP, '013784', NULL, 1);
+GO
 
 CREATE OR ALTER PROCEDURE dbo.usp_LeaveTypeMaster_GetPaged
     @GlobalSearch NVARCHAR(200) = NULL,
     @LeaveID NVARCHAR(50) = NULL,
     @LeaveType NVARCHAR(100) = NULL,
-    @LeaveDescription NVARCHAR(500) = NULL,
     @CreatedBy NVARCHAR(50) = NULL,
     @EditedBy NVARCHAR(50) = NULL,
     @isActive NVARCHAR(20) = NULL,
@@ -65,24 +65,22 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SET @SortColumn = CASE WHEN @SortColumn IN ('LeaveID','LeaveType','LeaveDescription','CreatedBy','CreatedOn','EditedBy','EditedOn','isActive') THEN @SortColumn ELSE 'LeaveID' END;
+    SET @SortColumn = CASE WHEN @SortColumn IN ('LeaveID','LeaveType','CreatedBy','CreatedOn','EditedBy','EditedOn','isActive') THEN @SortColumn ELSE 'LeaveID' END;
     SET @SortDirection = CASE WHEN UPPER(@SortDirection) = 'DESC' THEN 'DESC' ELSE 'ASC' END;
     SET @PageNumber = CASE WHEN ISNULL(@PageNumber, 0) <= 0 THEN 1 ELSE @PageNumber END;
 
-    SELECT LeaveID, LeaveType, LeaveDescription, CreatedBy, CreatedOn, EditedBy, EditedOn, isActive
+    SELECT LeaveID, LeaveType, CreatedBy, CreatedOn, EditedBy, EditedOn, isActive
     INTO #FilteredLeaveType
     FROM dbo.LeaveTypeMaster
     WHERE
         (@GlobalSearch IS NULL OR @GlobalSearch = '' OR
             LeaveID LIKE '%' + @GlobalSearch + '%' OR
             LeaveType LIKE '%' + @GlobalSearch + '%' OR
-            LeaveDescription LIKE '%' + @GlobalSearch + '%' OR
             CreatedBy LIKE '%' + @GlobalSearch + '%' OR
             EditedBy LIKE '%' + @GlobalSearch + '%' OR
             CASE WHEN isActive = 1 THEN 'Active' ELSE 'Inactive' END LIKE '%' + @GlobalSearch + '%')
         AND (@LeaveID IS NULL OR @LeaveID = '' OR LeaveID LIKE '%' + @LeaveID + '%')
         AND (@LeaveType IS NULL OR @LeaveType = '' OR LeaveType LIKE '%' + @LeaveType + '%')
-        AND (@LeaveDescription IS NULL OR @LeaveDescription = '' OR LeaveDescription LIKE '%' + @LeaveDescription + '%')
         AND (@CreatedBy IS NULL OR @CreatedBy = '' OR CreatedBy LIKE '%' + @CreatedBy + '%')
         AND (@EditedBy IS NULL OR @EditedBy = '' OR EditedBy LIKE '%' + @EditedBy + '%')
         AND (@isActive IS NULL OR @isActive = '' OR CASE WHEN isActive = 1 THEN 'Active' ELSE 'Inactive' END LIKE '%' + @isActive + '%');
@@ -96,8 +94,6 @@ BEGIN
                 CASE WHEN @SortColumn = 'LeaveID' AND @SortDirection = 'DESC' THEN LeaveID END DESC,
                 CASE WHEN @SortColumn = 'LeaveType' AND @SortDirection = 'ASC' THEN LeaveType END ASC,
                 CASE WHEN @SortColumn = 'LeaveType' AND @SortDirection = 'DESC' THEN LeaveType END DESC,
-                CASE WHEN @SortColumn = 'LeaveDescription' AND @SortDirection = 'ASC' THEN LeaveDescription END ASC,
-                CASE WHEN @SortColumn = 'LeaveDescription' AND @SortDirection = 'DESC' THEN LeaveDescription END DESC,
                 CASE WHEN @SortColumn = 'CreatedBy' AND @SortDirection = 'ASC' THEN CreatedBy END ASC,
                 CASE WHEN @SortColumn = 'CreatedBy' AND @SortDirection = 'DESC' THEN CreatedBy END DESC,
                 CASE WHEN @SortColumn = 'CreatedOn' AND @SortDirection = 'ASC' THEN CreatedOn END ASC,
@@ -112,7 +108,7 @@ BEGIN
         ) AS RowNum
         FROM #FilteredLeaveType
     )
-    SELECT LeaveID, LeaveType, LeaveDescription, CreatedBy, CreatedOn, EditedBy, EditedOn, isActive
+    SELECT LeaveID, LeaveType, CreatedBy, CreatedOn, EditedBy, EditedOn, isActive
     FROM Ordered
     WHERE @PageSize = 0 OR RowNum BETWEEN ((@PageNumber - 1) * @PageSize + 1) AND (@PageNumber * @PageSize);
 
@@ -125,7 +121,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_LeaveTypeMaster_GetById
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT LeaveID, LeaveType, LeaveDescription, CreatedBy, CreatedOn, EditedBy, EditedOn, isActive
+    SELECT LeaveID, LeaveType, CreatedBy, CreatedOn, EditedBy, EditedOn, isActive
     FROM dbo.LeaveTypeMaster
     WHERE LeaveID = @LeaveID;
 END
@@ -134,7 +130,6 @@ GO
 CREATE OR ALTER PROCEDURE dbo.usp_LeaveTypeMaster_Save
     @LeaveID NVARCHAR(50),
     @LeaveType NVARCHAR(100),
-    @LeaveDescription NVARCHAR(500),
     @EmployeeCode NVARCHAR(50),
     @Status INT OUTPUT,
     @Message NVARCHAR(250) OUTPUT
@@ -146,7 +141,6 @@ BEGIN
     BEGIN
         UPDATE dbo.LeaveTypeMaster
            SET LeaveType = @LeaveType,
-               LeaveDescription = @LeaveDescription,
                EditedBy = @EmployeeCode,
                EditedOn = SYSUTCDATETIME()
          WHERE LeaveID = @LeaveID;
@@ -166,7 +160,6 @@ BEGIN
     BEGIN
         UPDATE dbo.LeaveTypeMaster
            SET LeaveType = @LeaveType,
-               LeaveDescription = @LeaveDescription,
                isActive = 1,
                EditedBy = @EmployeeCode,
                EditedOn = SYSUTCDATETIME()
@@ -176,8 +169,8 @@ BEGIN
         RETURN;
     END
 
-    INSERT INTO dbo.LeaveTypeMaster (LeaveID, LeaveType, LeaveDescription, CreatedBy, CreatedOn, isActive)
-    VALUES (@LeaveID, @LeaveType, @LeaveDescription, @EmployeeCode, SYSUTCDATETIME(), 1);
+    INSERT INTO dbo.LeaveTypeMaster (LeaveID, LeaveType, CreatedBy, CreatedOn, isActive)
+    VALUES (@LeaveID, @LeaveType, @EmployeeCode, SYSUTCDATETIME(), 1);
 
     SET @Status = 1;
     SET @Message = 'LeaveType saved successfully';

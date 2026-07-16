@@ -19,37 +19,6 @@ BEGIN
 END
 GO
 
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('AL',
-'Annual','Deduction from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CAL',
-'Calamity','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CH',
-'Company Holiday','Deduction from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CL',
-'Compassionate','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('ALE',
-'Emergency- Annual','Deduction from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('UP',
-'Emergency- Unpaid','eligible only when NO annual leave balance','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('HL',
-'Hospitalization','NA','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MC',
-'Marriage - Children','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MS',
-'Marriage -Self','1. Do not deduct from AL entitlement 2. Applicable one time in service','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('ML',
-'Maternity','Do not deduct fro AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MC',
-'Medical','Deduct from MC entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('PL',
-'Paternity','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('RPL',
-'Replacement','Do not deduct from AL entitlement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[LeaveDescription],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('UNP',
-'Unpaid','eligible only when NO annual leave balance','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-
-
-
 IF COL_LENGTH('dbo.LeaveTypeMaster', 'LeaveDescription') IS NOT NULL
 BEGIN
     ALTER TABLE dbo.LeaveTypeMaster DROP COLUMN LeaveDescription;
@@ -234,34 +203,3 @@ BEGIN
     SET @Message = 'LeaveType deleted successfully';
 END
 GO
-
-
-
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('AL',
-'Annual','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CAL',
-'Calamity','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CH',
-'Company Holiday','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('CL',
-'Compassionate','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('ALE',
-'Emergency- Annual','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('UP',
-'Emergency- Unpaid','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) 
-VALUES ('HL','Hospitalization','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MC',
-'Marriage - Children','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MS',
-'Marriage -Self','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('ML',
-'Maternity','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('MCL',
-'Medical','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('PL',
-'Paternity','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('RPL',
-'Replacement','013784',CURRENT_TIMESTAMP,'013784',NULL,1)
-INSERT INTO [dbo].[LeaveTypeMaster] ([LeaveID],[LeaveType],[CreatedBy],[CreatedOn],[EditedBy],[EditedOn],[isActive]) VALUES ('UNP',
-'Unpaid','013784',CURRENT_TIMESTAMP,'013784',NULL,1)

@@ -10,7 +10,8 @@
     if (!string.IsNullOrEmpty(isLoggedIn))
     {
         var employee = JsonSerializer.Deserialize<tblempmaster>(isLoggedIn);
-        empName = employee?.empname ?? "";
+        empName = employee?.empName ?? "";
+        //empName = isLoggedIn?.Split(',')[2] ?? "";
         empCode = employee?.empcode ?? "";
     }
     // New Code for Auto Logout
@@ -102,6 +103,26 @@
                         <a class="collapse-item" href="~/EmpMaster/EmpRegisteration" data-i18n="Layout.addemployee"></a>
                         <a class="collapse-item" href="~/EmpMaster/empList" data-i18n="Layout.employeesdetails"></a>
                         <a class="collapse-item" href="~/master/DepartmentMaster">Department Master</a>
+                        <a class="collapse-item" href="~/master/SectionMaster">Section Master</a>
+                        <a class="collapse-item" href="~/master/DesignationList">Designation Master</a>
+                        <a class="collapse-item" href="~/master/LeaveTypeMaster">LeaveType Master</a>
+                        <a class="collapse-item" href="~/master/ReasonMaster">Reason Master</a>
+                    </div>
+                </div>
+            </li>
+
+
+
+            <!-- ER and HR Letters -->
+            <li class="nav-item active">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#ERHRLetters"
+                   aria-expanded="true" aria-controls="ERHRLetters">
+                    <i class="fa fa-file-text-o"></i>
+                    <span>ER and HR Letters</span>
+                </a>
+                <div id="ERHRLetters" class="collapse" aria-labelledby="headingERHRLetters" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="~/ERHRLetters/EmployeeGrievanceForm">EMPLOYEE GRIEVANCE FORM</a>
                     </div>
                 </div>
             </li>
@@ -148,7 +169,9 @@
                 </a>
                 <div id="MasterData" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="~/master/DesignationList">Designation List</a>
+                        <a class="collapse-item" href="~/master/DesignationList">Designation Master</a>
+                        <a class="collapse-item" href="~/master/LeaveTypeMaster">LeaveType Master</a>
+                        <a class="collapse-item" href="~/master/ReasonMaster">Reason Master</a>
                         <a class="collapse-item" href="~/TM/Trainingmaster">Training Master</a>
                     </div>
                 </div>

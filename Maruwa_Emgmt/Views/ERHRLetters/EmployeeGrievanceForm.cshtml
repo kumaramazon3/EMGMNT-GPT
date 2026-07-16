@@ -1,0 +1,350 @@
+@{
+    ViewData["Title"] = "Employee Grievance Form";
+}
+
+<style>
+    .egf-card-header {
+        background-color: #24436d;
+        color: #fff;
+        font-weight: 700;
+        padding: 8px 12px;
+        margin: 16px 0 10px;
+        text-transform: uppercase;
+    }
+
+    .egf-custom-modal {
+        max-width: 90vw !important;
+        width: 90vw !important;
+    }
+
+        .egf-custom-modal .modal-content {
+            min-height: 85vh;
+        }
+
+        .egf-custom-modal .modal-body {
+            max-height: calc(85vh - 130px);
+            overflow-y: auto;
+            padding: 24px 28px;
+        }
+
+    .egf-title {
+        text-align: center;
+        font-weight: 800;
+        font-size: 22px;
+        color: #24436d;
+        text-transform: uppercase;
+    }
+
+    .egf-subtitle {
+        text-align: center;
+        color: #666;
+        font-style: italic;
+        margin-bottom: 10px;
+    }
+
+    .egf-form-row label {
+        font-size: 15px;
+        font-weight: 600;
+        color: #34446b;
+    }
+
+    .egf-form .form-control,
+    .egf-form select,
+    .egf-form textarea {
+        border: 2px solid #42cef5;
+        border-radius: 6px;
+        box-shadow: none;
+        font-size: 15px;
+    }
+
+    .egf-form .form-control:focus,
+    .egf-form select:focus,
+    .egf-form textarea:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 5px rgba(13, 110, 253, .35);
+    }
+
+    .egf-form textarea {
+        min-height: 85px;
+        resize: vertical;
+    }
+
+    .required-star {
+        color: #dc3545;
+        font-weight: 700;
+    }
+
+    .error-border {
+        border: 2px solid #dc3545 !important;
+        background: #fff5f5;
+    }
+
+    .valid-border {
+        border: 2px solid #0d6efd !important;
+    }
+
+    .egf-checkbox-grid {
+        border: 1px solid #d3d3d3;
+    }
+
+        .egf-checkbox-grid .col-md-4 {
+            border: 1px solid #d3d3d3;
+            padding: 10px 12px;
+            min-height: 45px;
+        }
+
+    .egf-modal-footer {
+        display: flex;
+        justify-content: center !important;
+        align-items: center;
+        gap: 24px;
+        border-top: none;
+        padding: 16px 0 28px;
+    }
+
+        .egf-modal-footer .btn {
+            min-width: 120px;
+        }
+
+    .signature-preview {
+        max-width: 260px;
+        max-height: 90px;
+        border: 1px solid #ddd;
+        padding: 4px;
+        background: #fff;
+    }
+
+    .view-only-note {
+        display: none;
+    }
+
+    .modal-view-mode .view-only-note {
+        display: block;
+    }
+
+    .modal-view-mode .save-only {
+        display: none !important;
+    }
+
+    @@media (max-width: 768px) {
+        .egf-custom-modal {
+            max-width: 96vw !important;
+            width: 96vw !important;
+        }
+    }
+</style>
+
+<div class="container-fluid mt-3">
+    @Html.AntiForgeryToken()
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <span>EMPLOYEE GRIEVANCE FORM</span>
+            <button type="button" class="btn btn-light btn-sm" onclick="openNewGrievanceForm()"><i class="bi bi-plus-circle"></i> Raise a New Complaint</button>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2 align-items-center">
+                <div class="col-md-2">
+                    <select id="pageSizeSelect" class="form-control form-control-sm">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" id="globalSearch" class="form-control form-control-sm" placeholder="Global search by reference no, employee, department, status" />
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-sm" id="tblGrievance" style="font-size:13px;">
+                    <thead class="bg-secondary text-white">
+                        <tr>
+                            <th>View</th>
+                            <th data-sort="ReferenceNo">Reference No</th>
+                            <th data-sort="DateOfReport">Date of Report</th>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
+                            <th>Department</th>
+                            <th>Complaint Summary</th>
+                            <th data-sort="Status">Status</th>
+                            <th data-sort="CreatedOn">Created On</th>
+                        </tr>
+                        <tr class="bg-light text-dark">
+                            <th></th>
+                            <th><input class="form-control form-control-sm column-search" data-field="referenceNo" /></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th><input class="form-control form-control-sm column-search" data-field="status" /></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span id="recordInfo"></span>
+                <div>
+                    <button class="btn btn-outline-secondary btn-sm" id="btnPrev">Prev</button>
+                    <span id="pageInfo" class="mx-2"></span>
+                    <button class="btn btn-outline-secondary btn-sm" id="btnNext">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="grievanceModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered egf-custom-modal" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="grievanceModalTitle">EMPLOYEE GRIEVANCE FORM</h5>
+                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="egf-title">EMPLOYEE GRIEVANCE FORM</div>
+                <div class="egf-subtitle">Report of Workplace Complaint, Misconduct, or Breach of Company Policy</div>
+                <div class="alert alert-info view-only-note">View mode: this submitted form is read-only.</div>
+                <div id="formMessage" class="alert d-none"></div>
+
+                <form id="grievanceForm" class="egf-form">
+                    <input type="hidden" id="grievanceID" name="GrievanceID" value="0" />
+                    <input type="hidden" id="involvedPartiesJson" name="involvedPartiesJson" />
+
+                    <div class="egf-card-header">1. COMPLAINANT'S PARTICULARS</div>
+                    <div class="row egf-form-row">
+                        <div class="col-md-2"><label>Employee ID <span class="required-star">*</span></label></div>
+                        <div class="col-md-4">
+                            <input type="text" id="complainantEmpSearch" class="form-control" placeholder="Search Emp Id" list="employeeOptions" />
+                            <input type="hidden" id="complainantEmpId" name="ComplainantEmpId" required />
+                            <datalist id="employeeOptions"></datalist>
+                        </div>
+                        <div class="col-md-2"><label>Employee Name</label></div>
+                        <div class="col-md-4"><input type="text" id="complainantName" name="ComplainantName" class="form-control" readonly /></div>
+                    </div>
+                    <div class="row egf-form-row mt-2">
+                        <div class="col-md-2"><label>Department</label></div>
+                        <div class="col-md-4"><input type="text" id="department" name="Department" class="form-control" readonly /></div>
+                        <div class="col-md-2"><label>Position / Title</label></div>
+                        <div class="col-md-4"><input type="text" id="positionTitle" name="PositionTitle" class="form-control" readonly /></div>
+                    </div>
+                    <div class="row egf-form-row mt-2">
+                        <div class="col-md-2"><label>Date of Report</label></div>
+                        <div class="col-md-4"><input type="text" id="dateOfReportDisplay" class="form-control" readonly /></div>
+                        <div class="col-md-2"><label>Reference No</label></div>
+                        <div class="col-md-4"><input type="text" id="referenceNo" name="ReferenceNo" class="form-control" placeholder="Auto-generated after submit" readonly /></div>
+                    </div>
+
+                    <div class="egf-card-header">2. NATURE OF GRIEVANCE / COMPLAINT</div>
+                    <div class="mb-1"><em>Please tick all boxes that apply.</em></div>
+                    <div class="row egf-checkbox-grid mx-0">
+                        <div class="col-md-4"><label><input type="checkbox" id="unfairTreatment" /> Unfair treatment / discrimination</label></div>
+                        <div class="col-md-4"><label><input type="checkbox" id="harassmentBullying" /> Harassment / bullying</label></div>
+                        <div class="col-md-4"><label><input type="checkbox" id="workLapses" /> Work lapses</label></div>
+                        <div class="col-md-4"><label><input type="checkbox" id="policySopBreach" /> Breach of company policy / SOP</label></div>
+                        <div class="col-md-4"><label><input type="checkbox" id="oshaConcern" /> Safety, health & environment (OSH) concern</label></div>
+                        <div class="col-md-4"><label><input type="checkbox" id="supervisorMisconduct" /> Misconduct by supervisor / colleague</label></div>
+                        <div class="col-md-4"><label><input type="checkbox" id="abuseOfAuthority" /> Abuse of authority / power</label></div>
+                        <div class="col-md-4"><label><input type="checkbox" id="workingHoursIssue" /> Working hours / shift scheduling issue</label></div>
+                        <div class="col-md-4"><label><input type="checkbox" id="otherComplaint" /> Other</label></div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-2"><label>If Other, specify</label></div>
+                        <div class="col-md-10"><input type="text" id="otherComplaintText" name="OtherComplaintText" class="form-control" /></div>
+                    </div>
+
+                    <div class="egf-card-header">3. PARTICULARS OF PERSON(S) / PARTY INVOLVED (IF ANY)</div>
+                    <div class="row egf-form-row align-items-end">
+                        <div class="col-md-3">
+                            <label>Employee ID</label>
+                            <input type="text" id="partyEmpSearch" class="form-control" placeholder="Key in or search Emp Id" list="partyEmployeeOptions" />
+                            <datalist id="partyEmployeeOptions"></datalist>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Employee Name</label>
+                            <input type="text" id="partyEmployeeName" class="form-control" readonly />
+                        </div>
+                        <div class="col-md-3">
+                            <label>Position</label>
+                            <input type="text" id="partyPositionTitle" class="form-control" readonly />
+                        </div>
+                        <div class="col-md-2">
+                            <label>Department</label>
+                            <input type="text" id="partyDepartment" class="form-control" readonly />
+                        </div>
+                        <div class="col-md-1 save-only">
+                            <button type="button" class="btn btn-primary btn-sm mt-4" onclick="addInvolvedParty()">Add</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive mt-2">
+                        <table class="table table-bordered table-sm" id="tblInvolvedParties">
+                            <thead class="bg-light"><tr><th>Employee ID</th><th>Employee Name</th><th>Position</th><th>Department</th><th class="save-only">Remove</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="egf-card-header">4. DETAILS OF THE GRIEVANCE</div>
+                    <div class="row egf-form-row">
+                        <div class="col-md-2"><label>Date(s) of Conduct</label></div>
+                        <div class="col-md-4"><input type="date" id="conductDate" name="ConductDate" class="form-control" /></div>
+                        <div class="col-md-2"><label>Time</label></div>
+                        <div class="col-md-4"><input type="time" id="conductTime" name="ConductTime" class="form-control" step="1" /></div>
+                    </div>
+                    <div class="row egf-form-row mt-2">
+                        <div class="col-md-2"><label>Location</label></div>
+                        <div class="col-md-10"><input type="text" id="location" name="Location" class="form-control" /></div>
+                    </div>
+                    <div class="row egf-form-row mt-2">
+                        <div class="col-md-12">
+                            <label>Please describe the incident(s) clearly, including date, time, location, what happened, and any witnesses. <span class="required-star">*</span></label>
+                            <textarea id="incidentDescription" name="IncidentDescription" class="form-control" required></textarea>
+                        </div>
+                    </div>
+                    <div class="row egf-form-row mt-2">
+                        <div class="col-md-12"><label>Witness(es), if any (Name & Department):</label><textarea id="witnesses" name="Witnesses" class="form-control"></textarea></div>
+                    </div>
+                    <div class="row egf-form-row mt-2">
+                        <div class="col-md-12">
+                            <label>Supporting Documents Attached (photos, messages, medical report, CCTV request):</label><br />
+                            <label class="mr-3"><input type="radio" name="supportDocsRadio" value="true" id="supportDocsYes" /> Yes</label>
+                            <label><input type="radio" name="supportDocsRadio" value="false" id="supportDocsNo" checked /> No</label>
+                            <input type="file" id="supportingFiles" class="form-control mt-2 save-only" multiple style="display:none;" />
+                            <div id="supportingFilePreview" class="mt-2 small"></div>
+                        </div>
+                    </div>
+
+                    <div class="egf-card-header">5. DESIRED OUTCOME</div>
+                    <textarea id="desiredOutcome" name="DesiredOutcome" class="form-control" placeholder="What action or resolution are you hoping for?"></textarea>
+
+                    <div class="egf-card-header">6. DECLARATION</div>
+                    <p>I declare that the information provided in this form is true and accurate to the best of my knowledge.</p>
+                    <div class="row egf-form-row">
+                        <div class="col-md-4">
+                            <label>Employee Signature</label>
+                            <input type="file" id="employeeSignatureFile" class="form-control save-only" accept="image/*" />
+                            <div id="signaturePreview" class="mt-2"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Employee Name & Emp Id</label>
+                            <input type="text" id="declarationEmployee" class="form-control" readonly />
+                        </div>
+                        <div class="col-md-4">
+                            <label>Date</label>
+                            <input type="text" id="declarationDateDisplay" class="form-control" readonly />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer egf-modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="bi bi-x-lg"></i> Cancel</button>
+                <button type="button" class="btn btn-primary save-only" onclick="saveEmployeeGrievance()"><i class="bi bi-save"></i> Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/ERHRLetters/jsEmployeeGrievanceForm.js" asp-append-version="true"></script>
+}

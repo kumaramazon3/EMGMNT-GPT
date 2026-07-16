@@ -5,17 +5,20 @@ using Maruwa_Emgmt.BAL.Leave;
 using Maruwa_Emgmt.BAL.master;
 using Maruwa_Emgmt.BAL.SkillMatrix;
 using Maruwa_Emgmt.BAL.Training;
+using Maruwa_Emgmt.BAL.ER;
 using Maruwa_Emgmt.DAL;
 using Maruwa_Emgmt.DAL.Leave;
 using Maruwa_Emgmt.DAL.master;
 using Maruwa_Emgmt.DAL.SkillMatrix;
 using Maruwa_Emgmt.DAL.Training;
+using Maruwa_Emgmt.DAL.ER;
 using Maruwa_Emgmt.DBcontex;
 using Maruwa_Emgmt.InterFace;
 using Maruwa_Emgmt.InterFace.Leave;
 using Maruwa_Emgmt.InterFace.master;
 using Maruwa_Emgmt.InterFace.SkillMatrix;
 using Maruwa_Emgmt.InterFace.Training;
+using Maruwa_Emgmt.InterFace.ER;
 using Maruwa_Emgmt.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -112,9 +115,18 @@ builder.Services.AddScoped<i_Designation, da_Designation>();// DAL
 builder.Services.AddScoped<bll_Designation>();// BLL
 builder.Services.AddScoped<i_DepartmentMaster, da_DepartmentMaster>();// ADO.NET DAL
 builder.Services.AddScoped<bll_DepartmentMaster>();// BLL
+builder.Services.AddScoped<i_SectionMaster, da_SectionMaster>();// ADO.NET DAL
+builder.Services.AddScoped<bll_SectionMaster>();// BLL
+builder.Services.AddScoped<i_LeaveTypeMaster, da_LeaveTypeMaster>();// ADO.NET DAL
+builder.Services.AddScoped<bll_LeaveTypeMaster>();// BLL
+builder.Services.AddScoped<i_ReasonMaster, da_ReasonMaster>();// ADO.NET DAL
+builder.Services.AddScoped<bll_ReasonMaster>();// BLL
 
+#endregion
 
-
+#region ER and HR Letters
+builder.Services.AddScoped<i_EmployeeGrievance, da_EmployeeGrievance>();// ADO.NET DAL
+builder.Services.AddScoped<bll_EmployeeGrievance>();// BLL
 #endregion
 
 #endregion

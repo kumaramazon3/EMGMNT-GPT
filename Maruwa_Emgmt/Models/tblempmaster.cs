@@ -9,7 +9,7 @@ namespace Maruwa_Emgmt.Models
         #region Div-1 (Employee Details) 09-Columns
         [Key]
         public string? empcode { get; set; }
-        public string? empname { get; set; }
+        public string? empName { get; set; }
         public string? pwd { get; set; }
         public string? resigned { get; set; }
         public string? departmentcode { get; set; }

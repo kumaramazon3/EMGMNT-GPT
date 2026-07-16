@@ -1,9 +1,139 @@
 @{
     ViewData["Title"] = "Department Master";
 }
+<style>
+    .custom-modal {
+        max-width: 80vw !important;
+        width: 80vw !important;
+    }
+
+        .custom-modal .modal-content {
+            min-height: 80vh;
+        }
+
+        .custom-modal .modal-body {
+            min-height: calc(80vh - 130px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            padding: 30px 20px;
+        }
+
+    .department-form-wrapper {
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto;
+    }
+
+    .department-form-row {
+        width: 100%;
+        margin: 0 auto 18px auto;
+    }
+
+        .department-form-row label {
+            font-size: 17px;
+            font-weight: 600;
+            color: #5f6678;
+            text-align:;
+            padding-right: 6px !important;
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+
+        .department-form-row .col-md-4,
+        .department-form-row .col-md-6 {
+            padding-left: 4px !important;
+            padding-right: 4px !important;
+        }
+
+        .department-form-row .form-control,
+        .department-form-row select {
+            height: 42px;
+            font-size: 16px;
+        }
+
+    .department-form-wrapper .form-control,
+    .department-form-wrapper .form-select,
+    .department-form-wrapper select {
+        border: 2px solid #42cef5;
+        border-radius: 6px;
+        box-shadow: none;
+    }
+
+        .department-form-wrapper .form-control:focus,
+        .department-form-wrapper .form-select:focus,
+        .department-form-wrapper select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 5px rgba(13, 110, 253, .35);
+        }
+
+    .department-modal-footer {
+        display: flex;
+        justify-content: center !important;
+        align-items: center;
+        gap: 15px;
+        border-top: none;
+        padding: 20px 0 25px;
+    }
+
+        .department-modal-footer .btn {
+            min-width: 120px;
+        }
+
+    .error-border {
+        border: 2px solid #dc3545 !important;
+        background: #fff5f5;
+    }
+
+    .valid-border {
+        border: 2px solid #0d6efd !important;
+    }
+
+    .department-modal-footer {
+        border-top: 0;
+        padding-bottom: 30px;
+    }
+
+        .department-modal-footer .btn {
+            min-width: 100px;
+        }
+
+    @@media (max-width: 768px) {
+        .custom-modal {
+            width: 95vw !important;
+            max-width: 95vw !important;
+        }
+
+            .custom-modal .modal-body {
+                align-items: flex-start;
+                padding: 25px 10px;
+            }
+
+        .department-form-wrapper {
+            max-width: 95%;
+        }
+
+        .department-form-row label {
+            text-align: left;
+            padding-right: 4px !important;
+            margin-bottom: 6px;
+        }
+    }
+
+
+    .inactive-edit-confirm-modal {
+        z-index: 1065;
+    }
+
+        .inactive-edit-confirm-modal .modal-dialog {
+            max-width: 520px;
+        }
+</style>
 
 <div class="container-fluid mt-3">
     @Html.AntiForgeryToken()
+
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <span>Department Master</span>
@@ -49,7 +179,8 @@
                             <th data-sort="ActiveStatus">Active Status</th>
                         </tr>
                         <tr class="bg-light text-dark">
-                            <th></th><th></th>
+                            <th></th>
+                            <th></th>
                             <th><input class="form-control form-control-sm column-search" data-field="departmentCode" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="departmentName" /></th>
                             <th><input class="form-control form-control-sm column-search" data-field="japanHead" /></th>
@@ -75,29 +206,141 @@
 </div>
 
 <div class="modal fade" id="departmentModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered custom-modal" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="departmentModalTitle">Add Department</h5>
                 <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
             </div>
+
             <div class="modal-body">
-                <form id="departmentForm">
-                    <input type="hidden" id="recordNo" name="RecordNo" value="0" />
-                    <div class="row">
-                        <div class="col-md-6 form-group"><label>Department Code</label><input class="form-control" id="departmentCode" name="DepartmentCode" required maxlength="20" /></div>
-                        <div class="col-md-6 form-group"><label>Department Name</label><input class="form-control" id="departmentName" name="DepartmentName" required maxlength="150" /></div>
-                        <div class="col-md-4 form-group"><label>Get Japanese Head</label><select class="form-control" id="japanHead" name="JapanHead" required><option value="">--Select--</option><option>Yes</option><option>No</option></select></div>
-                        <div class="col-md-4 form-group"><label>Got Section</label><select class="form-control" id="gotSection" name="GotSection" required><option value="">--Select--</option><option>Yes</option><option>No</option></select></div>
-                        <div class="col-md-4 form-group"><label>Direct/Indirect Dept</label><select class="form-control" id="office" name="Office" required><option value="">--Select--</option><option>Direct</option><option>Indirect</option></select></div>
-                        <div class="col-md-6 form-group"><label>General Abbreviation</label><input class="form-control" id="prefix" name="Prefix" required maxlength="20" /></div>
-                    </div>
-                </form>
-                <div class="alert d-none" id="formMessage"></div>
+                <div class="department-form-wrapper">
+                    <form id="departmentForm">
+                        <input type="hidden" id="recordNo" name="RecordNo" value="0" />
+
+                        <div class="row gx-0 justify-content-center align-items-center department-form-row">
+                            <label class="col-md-4 col-form-label text-end pe-1">Department Code <span class="text-danger">*</span></label>
+                            <div class="col-md-6 ps-1">
+                                <input class="form-control"
+                                       id="departmentCode"
+                                       name="DepartmentCode"
+                                       maxlength="20"
+                                       required />
+
+                            </div>
+                        </div>
+
+                        <div class="row gx-0 justify-content-center align-items-center department-form-row">
+                            <label class="col-md-4 col-form-label text-end pe-1">Department Name <span class="text-danger">*</span></label>
+                            <div class="col-md-6 ps-1">
+                                <input class="form-control"
+                                       id="departmentName"
+                                       name="DepartmentName"
+                                       maxlength="150"
+                                       required />
+                            </div>
+                        </div>
+
+                        <div class="row gx-0 justify-content-center align-items-center department-form-row">
+                            <label class="col-md-4 col-form-label text-end pe-1">Get Japanese Head <span class="text-danger">*</span></label>
+                            <div class="col-md-6 ps-1">
+                                <select class="form-control"
+                                        id="japanHead"
+                                        name="JapanHead"
+                                        required>
+                                    <option value="">--Select--</option>
+                                    <option>Yes</option>
+                                    <option>No</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row gx-0 justify-content-center align-items-center department-form-row">
+                            <label class="col-md-4 col-form-label text-end pe-1">Got Section <span class="text-danger">*</span></label>
+                            <div class="col-md-6 ps-1">
+                                <select class="form-control"
+                                        id="gotSection"
+                                        name="GotSection"
+                                        required>
+                                    <option value="">--Select--</option>
+                                    <option>Yes</option>
+                                    <option>No</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row gx-0 justify-content-center align-items-center department-form-row">
+                            <label class="col-md-4 col-form-label text-end pe-1">Direct/Indirect Dept <span class="text-danger">*</span></label>
+                            <div class="col-md-6 ps-1">
+                                <select class="form-control"
+                                        id="office"
+                                        name="Office"
+                                        required>
+                                    <option value="">--Select--</option>
+                                    <option>Direct</option>
+                                    <option>Indirect</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row gx-0 justify-content-center align-items-center department-form-row">
+                            <label class="col-md-4 col-form-label text-end pe-1">General Abbreviations <span class="text-danger">*</span></label>
+                            <div class="col-md-6 ps-1">
+                                <input class="form-control"
+                                       id="prefix"
+                                       name="Prefix"
+                                       maxlength="20"
+                                       required />
+                                <span class="ms-2 fw-bold">(Extrusion - EX)</span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="modal-footer justify-content-center department-modal-footer">
+
+                            <button type="button"
+                                    class="btn btn-secondary me-3 px-4"
+                                    data-dismiss="modal">
+                                <i class="fa fa-times"></i> Close
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-primary px-4"
+                                    onclick="saveDepartment()">
+                                <i class="fa fa-save"></i> Save
+                            </button>
+
+                        </div>
+
+                        <div class="alert d-none" id="formMessage"></div>
+
+
+                    </form>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Exit</button>
-                <button type="button" class="btn btn-primary" onclick="saveDepartment()">Save</button>
+
+
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade inactive-edit-confirm-modal" id="inactiveEditConfirmModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-warning">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Confirm Edit</h5>
+                <button type="button" class="close text-dark" onclick="cancelInactiveEdit()"><span>&times;</span></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="mb-0 font-weight-bold">You are going to edit the Inactive record, please confirm if you want to proceed?</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" onclick="cancelInactiveEdit()">Cancel</button>
+                <button type="button" class="btn btn-warning px-4" onclick="proceedInactiveEdit()">Proceed</button>
             </div>
         </div>
     </div>

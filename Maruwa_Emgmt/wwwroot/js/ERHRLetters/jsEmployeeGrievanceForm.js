@@ -9,8 +9,10 @@ let partyLookupList = [];
 let hrActionLookupList = [];
 let involvedParties = [];
 let hrActionEmployeeRows = [];
+let hrEmployeeSignatureDrawing = {};
 let isViewMode = false;
 let isHrUserLogin = false;
+let isHrActionEditable = false;
 let loginInfo = {};
 let departmentLookupMap = {};
 
@@ -132,6 +134,7 @@ $(document).ready(function () {
         resizeSignatureCanvas('hr', false);
         redrawSavedSignatureIfAvailable('employee');
         redrawSavedSignatureIfAvailable('hr');
+        initialiseHrEmployeeSignatureCanvases();
     });
 
     $(window).on('resize', function () {
@@ -497,7 +500,7 @@ async function addHrActionEmployee() {
     addHrActionEmployeeRow(employeeID, employeeName, positionTitle, department, true);
 }
 
-function addHrActionEmployeeRow(employeeID, employeeName, positionTitle, department, clearAfterAdd) {
+function addHrActionEmployeeRow(employeeID, employeeName, positionTitle, department, clearAfterAdd, employeeSignaturePath, employeeSignatureData) {
     const cleanId = String(employeeID || '').trim();
     const cleanName = String(employeeName || '').trim();
     if (!cleanId) return false;
@@ -508,11 +511,18 @@ function addHrActionEmployeeRow(employeeID, employeeName, positionTitle, departm
         return false;
     }
 
+    const signaturePath = getFirstDefined(employeeSignaturePath, '');
+    const signatureData = getFirstDefined(employeeSignatureData, '');
+
     hrActionEmployeeRows.push({
         employeeID: cleanId,
         employeeName: cleanName,
         positionTitle: positionTitle || '',
-        department: department || ''
+        department: department || '',
+        employeeSignaturePath: signaturePath || '',
+        employeeSignatureData: signatureData || '',
+        employeeSignatureHasSignature: !!(signaturePath || signatureData),
+        employeeSignatureSaved: !!(signaturePath || signatureData)
     });
 
     renderHrActionEmployeeTable();
@@ -523,10 +533,9 @@ function addHrActionEmployeeRow(employeeID, employeeName, positionTitle, departm
 
     return true;
 }
-
-function setHrActionEmployeeRow(employeeID, employeeName, positionTitle, department) {
+function setHrActionEmployeeRow(employeeID, employeeName, positionTitle, department, employeeSignaturePath) {
     // Kept for backward compatibility with older code paths; now supports multiple rows.
-    return addHrActionEmployeeRow(employeeID, employeeName, positionTitle, department, false);
+    return addHrActionEmployeeRow(employeeID, employeeName, positionTitle, department, false, employeeSignaturePath);
 }
 
 function clearHrActionEmployeeSearchFields() {
@@ -545,19 +554,227 @@ function removeHrActionEmployee(index) {
     renderHrActionEmployeeTable();
 }
 
+function canEditHrActionSignature() {
+    return isHrUserLogin && isHrActionEditable;
+}
+
 function renderHrActionEmployeeTable() {
     let rows = '';
+    const canEditSignatures = canEditHrActionSignature();
+
     hrActionEmployeeRows.forEach((p, index) => {
+        const employeeId = getFirstDefined(p.employeeID, p.EmployeeID);
+        const employeeName = getFirstDefined(p.employeeName, p.EmployeeName);
+        const positionTitle = getFirstDefined(p.positionTitle, p.PositionTitle);
+        const department = getDepartmentDisplayValue(p);
+        const hasSavedSignature = !!getHrEmployeeSignatureSource(index);
+        const signatureBoxClass = hasSavedSignature ? 'valid-border' : '';
+        const disabledClass = canEditSignatures ? '' : 'signature-disabled';
+
         rows += `<tr>
-            <td>${escapeHtml(getFirstDefined(p.employeeID, p.EmployeeID))}</td>
-            <td>${escapeHtml(getFirstDefined(p.employeeName, p.EmployeeName))}</td>
-            <td>${escapeHtml(getFirstDefined(p.positionTitle, p.PositionTitle))}</td>
-            <td>${escapeHtml(getDepartmentDisplayValue(p))}</td>
+            <td>${escapeHtml(employeeId)}</td>
+            <td>${escapeHtml(employeeName)}</td>
+            <td>${escapeHtml(positionTitle)}</td>
+            <td>${escapeHtml(department)}</td>
+            <td class="hr-employee-signature-cell">
+                <div id="hrEmployeeSignatureBox_${index}" class="hr-employee-signature-box ${signatureBoxClass}">
+                    <canvas id="hrEmployeeSignatureCanvas_${index}" class="hr-employee-signature-canvas ${disabledClass}" data-index="${index}"></canvas>
+                </div>
+                <div id="hrEmployeeSignatureValidation_${index}" class="text-danger mt-1 d-none">Employee signature is required.</div>
+                <div class="hr-employee-signature-actions hr-action-edit-only">
+                    <button type="button" class="btn btn-success btn-sm" onclick="saveHrEmployeeSignature(${index}, true)"><i class="bi bi-check2-circle"></i> Save Signature</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearHrEmployeeSignature(${index})"><i class="bi bi-eraser"></i> Clear</button>
+                </div>
+                <div id="hrEmployeeSignatureMessage_${index}" class="text-success mt-1 d-none hr-employee-signature-message"></div>
+            </td>
             <td class="hr-action-edit-only"><i class="bi bi-trash text-danger" style="cursor:pointer" onclick="removeHrActionEmployee(${index})"></i></td>
         </tr>`;
     });
 
-    $('#tblHrActionEmployee tbody').html(rows || '<tr><td colspan="5" class="text-center">No employees selected</td></tr>');
+    $('#tblHrActionEmployee tbody').html(rows || '<tr><td colspan="6" class="text-center">No employees selected</td></tr>');
+    setTimeout(initialiseHrEmployeeSignatureCanvases, 0);
+}
+
+function getHrEmployeeSignatureSource(index) {
+    const row = hrActionEmployeeRows[index] || {};
+    return getFirstDefined(row.employeeSignatureData, row.EmployeeSignatureData, row.employeeSignaturePath, row.EmployeeSignaturePath, '');
+}
+
+function initialiseHrEmployeeSignatureCanvases() {
+    $('#tblHrActionEmployee canvas.hr-employee-signature-canvas').each(function () {
+        const canvas = this;
+        const index = parseInt($(canvas).data('index'), 10);
+        prepareHrEmployeeSignatureCanvas(canvas, index);
+    });
+}
+
+function prepareHrEmployeeSignatureCanvas(canvas, index) {
+    if (!canvas || Number.isNaN(index)) return;
+    const row = hrActionEmployeeRows[index];
+    if (!row) return;
+
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(280, Math.floor(rect.width || 320));
+    canvas.height = Math.max(82, Math.floor(rect.height || 88));
+    const ctx = canvas.getContext('2d');
+    configureSignatureContext(ctx);
+
+    const source = getHrEmployeeSignatureSource(index);
+    if (source) {
+        drawImageOnCanvas(canvas, source, function () {
+            configureSignatureContext(ctx);
+        });
+    }
+
+    if (canvas.dataset.initialized === 'true') return;
+    canvas.dataset.initialized = 'true';
+
+    const startDraw = function (event) {
+        if (!canEditHrActionSignature()) return;
+        event.preventDefault();
+        hrEmployeeSignatureDrawing[index] = true;
+        const point = getCanvasPointFromEvent(event, canvas);
+        const context = canvas.getContext('2d');
+        context.beginPath();
+        context.moveTo(point.x, point.y);
+    };
+
+    const draw = function (event) {
+        if (!hrEmployeeSignatureDrawing[index] || !canEditHrActionSignature()) return;
+        event.preventDefault();
+        const point = getCanvasPointFromEvent(event, canvas);
+        const context = canvas.getContext('2d');
+        context.lineTo(point.x, point.y);
+        context.stroke();
+        markHrEmployeeSignatureChanged(index, canvas);
+    };
+
+    const stopDraw = function () {
+        if (!hrEmployeeSignatureDrawing[index]) return;
+        hrEmployeeSignatureDrawing[index] = false;
+        markHrEmployeeSignatureChanged(index, canvas);
+    };
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDraw);
+    canvas.addEventListener('touchcancel', stopDraw);
+}
+
+function getCanvasPointFromEvent(event, canvas) {
+    const pointer = getPointerEvent(event);
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+        x: (pointer.clientX - rect.left) * scaleX,
+        y: (pointer.clientY - rect.top) * scaleY
+    };
+}
+
+function markHrEmployeeSignatureChanged(index, canvas) {
+    const row = hrActionEmployeeRows[index];
+    if (!row || !canvas) return;
+    row.employeeSignatureData = canvas.toDataURL('image/png');
+    row.employeeSignaturePath = '';
+    row.employeeSignatureHasSignature = true;
+    row.employeeSignatureSaved = false;
+    $('#hrEmployeeSignatureBox_' + index).removeClass('error-border').addClass('valid-border');
+    $('#hrEmployeeSignatureValidation_' + index).addClass('d-none');
+    $('#hrEmployeeSignatureMessage_' + index).addClass('d-none').text('');
+}
+
+function saveHrEmployeeSignature(index, showMessage) {
+    const row = hrActionEmployeeRows[index];
+    const canvas = document.getElementById('hrEmployeeSignatureCanvas_' + index);
+    if (!row || !canvas) return false;
+
+    if (!row.employeeSignatureData && !row.employeeSignaturePath && !row.employeeSignatureHasSignature) {
+        $('#hrEmployeeSignatureBox_' + index).removeClass('valid-border').addClass('error-border');
+        $('#hrEmployeeSignatureValidation_' + index).removeClass('d-none');
+        $('#hrEmployeeSignatureMessage_' + index)
+            .removeClass('d-none text-success')
+            .addClass('text-danger')
+            .text('Please draw and save employee signature.');
+        return false;
+    }
+
+    if (!row.employeeSignatureData && !row.employeeSignaturePath) {
+        row.employeeSignatureData = canvas.toDataURL('image/png');
+    }
+
+    row.employeeSignatureSaved = true;
+    row.employeeSignatureHasSignature = true;
+    $('#hrEmployeeSignatureBox_' + index).removeClass('error-border').addClass('valid-border');
+    $('#hrEmployeeSignatureValidation_' + index).addClass('d-none');
+
+    if (showMessage) {
+        $('#hrEmployeeSignatureMessage_' + index)
+            .removeClass('d-none text-danger')
+            .addClass('text-success')
+            .text('Signature saved.');
+    }
+
+    return true;
+}
+
+function clearHrEmployeeSignature(index) {
+    if (!canEditHrActionSignature()) return;
+    const row = hrActionEmployeeRows[index];
+    const canvas = document.getElementById('hrEmployeeSignatureCanvas_' + index);
+    if (!row || !canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    configureSignatureContext(ctx);
+    row.employeeSignaturePath = '';
+    row.employeeSignatureData = '';
+    row.employeeSignatureHasSignature = false;
+    row.employeeSignatureSaved = false;
+    $('#hrEmployeeSignatureBox_' + index).removeClass('valid-border').addClass('error-border');
+    $('#hrEmployeeSignatureValidation_' + index).removeClass('d-none');
+    $('#hrEmployeeSignatureMessage_' + index).addClass('d-none').text('');
+}
+
+function validateHrActionEmployeeSignatures() {
+    let valid = true;
+    hrActionEmployeeRows.forEach(function (row, index) {
+        const hasSource = !!(row.employeeSignatureData || row.employeeSignaturePath || row.EmployeeSignatureData || row.EmployeeSignaturePath);
+        if (hasSource && !row.employeeSignatureSaved) {
+            saveHrEmployeeSignature(index, false);
+        }
+
+        if (!(row.employeeSignatureData || row.employeeSignaturePath || row.EmployeeSignatureData || row.EmployeeSignaturePath) || !row.employeeSignatureSaved) {
+            $('#hrEmployeeSignatureBox_' + index).removeClass('valid-border').addClass('error-border');
+            $('#hrEmployeeSignatureValidation_' + index).removeClass('d-none');
+            valid = false;
+        }
+    });
+
+    if (!valid) {
+        alert('Please draw and save employee signature for each HR action employee row.');
+    }
+
+    return valid;
+}
+
+function drawImageOnCanvas(canvas, src, callback) {
+    if (!canvas || !src) return;
+    const ctx = canvas.getContext('2d');
+    const image = new Image();
+    image.onload = function () {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const scale = Math.min(canvas.width / image.width, canvas.height / image.height);
+        const drawWidth = image.width * scale;
+        const drawHeight = image.height * scale;
+        const x = (canvas.width - drawWidth) / 2;
+        const y = (canvas.height - drawHeight) / 2;
+        ctx.drawImage(image, x, y, drawWidth, drawHeight);
+        if (typeof callback === 'function') callback();
+    };
+    image.src = src;
 }
 
 function addInvolvedParty() {
@@ -770,7 +987,9 @@ function fillHrAction(data) {
                 getFirstDefined(empRow.employeeName, empRow.EmployeeName),
                 getFirstDefined(empRow.positionTitle, empRow.PositionTitle),
                 getDepartmentDisplayValue(empRow),
-                false
+                false,
+                getFirstDefined(empRow.employeeSignaturePath, empRow.EmployeeSignaturePath),
+                getFirstDefined(empRow.employeeSignatureData, empRow.EmployeeSignatureData)
             );
         });
     } else {
@@ -837,7 +1056,16 @@ function collectHrActionData() {
     const selectedHrEmployee = hrActionEmployeeRows.length > 0 ? hrActionEmployeeRows[0] : null;
     formData.append('ActionEmployeeId', (selectedHrEmployee ? selectedHrEmployee.employeeID : '') || $('#hrActionEmployeeId').val() || extractEmployeeCode($('#hrActionEmpSearch').val()));
     formData.append('ActionEmployeeName', (selectedHrEmployee ? selectedHrEmployee.employeeName : '') || $('#hrActionEmployeeName').val());
-    formData.append('hrActionEmployeesJson', JSON.stringify(hrActionEmployeeRows));
+    formData.append('hrActionEmployeesJson', JSON.stringify(hrActionEmployeeRows.map(function (row) {
+        return {
+            employeeID: getFirstDefined(row.employeeID, row.EmployeeID),
+            employeeName: getFirstDefined(row.employeeName, row.EmployeeName),
+            positionTitle: getFirstDefined(row.positionTitle, row.PositionTitle),
+            department: getDepartmentDisplayValue(row),
+            employeeSignaturePath: getFirstDefined(row.employeeSignaturePath, row.EmployeeSignaturePath),
+            employeeSignatureData: getFirstDefined(row.employeeSignatureData, row.EmployeeSignatureData)
+        };
+    })));
     formData.append('InvestigationSummary', $('#hrInvestigationSummary').val());
     formData.append('EmployeeExplanation', $('#hrEmployeeExplanation').val());
     formData.append('Remarks', $('#hrRemarks').val());
@@ -866,6 +1094,8 @@ async function saveHrAction() {
         alert('Please add at least one employee in HR action section.');
         return;
     }
+
+    if (!validateHrActionEmployeeSignatures()) return;
 
     if (!validateSignature('hr', 'Please draw and save the HR signature.')) return;
 
@@ -898,6 +1128,8 @@ function setEmployeeFormReadonly(readonly) {
 }
 
 function setHrActionVisibility(visible, canEdit) {
+    isHrActionEditable = !!(visible && canEdit);
+    $('#grievanceModal').toggleClass('hr-action-edit-mode', isHrActionEditable);
     $('#hrActionSection').toggleClass('hr-action-visible', visible);
     $('#btnHrSubmit').toggle(visible && canEdit);
     $('.hr-action-edit-only').toggle(visible && canEdit);
@@ -1034,7 +1266,13 @@ function saveSignaturePreview(type, showMessage, successText) {
         return false;
     }
 
-    showSignaturePreview(type, signatureSource);
+    showSignaturePreview(type, signatureSource, type === 'hr' && canEditHrActionSignature());
+
+    if (type === 'hr' && canEditHrActionSignature()) {
+        $('#' + pad.previewImgId).attr('src', signatureSource);
+        $('#' + pad.previewContainerId).removeClass('d-none').show();
+    }
+
     pad.isSaved = true;
     setSignatureValid(type);
 
@@ -1043,10 +1281,14 @@ function saveSignaturePreview(type, showMessage, successText) {
         .addClass('text-success')
         .text(successText || 'Signature saved. Preview shown below.');
 
+    if (type === 'hr' && canEditHrActionSignature()) {
+        $('#' + pad.saveMessageId).removeClass('d-none').show();
+    }
+
     return true;
 }
 
-function showSignaturePreview(type, src) {
+function showSignaturePreview(type, src, forceShow) {
     const pad = signaturePads[type];
     if (!src) {
         hideSignaturePreview(type);
@@ -1054,7 +1296,7 @@ function showSignaturePreview(type, src) {
     }
 
     $('#' + pad.previewImgId).attr('src', src);
-    if (isViewMode) {
+    if (isViewMode && !forceShow) {
         $('#' + pad.previewContainerId).addClass('d-none');
         return;
     }
@@ -1181,6 +1423,7 @@ function setSignatureValid(type) {
 }
 
 function resetGrievanceForm() {
+    $('#grievanceModal').removeClass('hr-action-edit-mode');
     $('#grievanceForm')[0].reset();
     $('#grievanceID').val(0);
     $('#hrActionID').val('');
@@ -1201,6 +1444,7 @@ function resetGrievanceForm() {
     resetSignature('employee');
     resetSignature('hr');
     setHrActionVisibility(false, false);
+    isHrActionEditable = false;
     $('#grievanceModal').removeClass('modal-view-mode');
     isViewMode = false;
 }

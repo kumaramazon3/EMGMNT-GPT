@@ -249,6 +249,22 @@ namespace Maruwa_Emgmt.Controllers
                 if (model.ActionEmployees.Count == 0)
                     return Json(new { success = false, message = "Please add at least one employee in HR action section." });
 
+                foreach (var actionEmployee in model.ActionEmployees)
+                {
+                    if (string.IsNullOrWhiteSpace(actionEmployee.EmployeeID))
+                        return Json(new { success = false, message = "Invalid employee row in HR action section." });
+
+                    if (string.IsNullOrWhiteSpace(actionEmployee.EmployeeSignatureData) && string.IsNullOrWhiteSpace(actionEmployee.EmployeeSignaturePath))
+                        return Json(new { success = false, message = $"Employee signature is required for {actionEmployee.EmployeeID}." });
+
+                    if (!string.IsNullOrWhiteSpace(actionEmployee.EmployeeSignatureData))
+                    {
+                        var suffix = $"hr-action-employee-{actionEmployee.EmployeeID}-signature.png";
+                        actionEmployee.EmployeeSignaturePath = await SaveBase64SignatureAsync(actionEmployee.EmployeeSignatureData, suffix);
+                        actionEmployee.EmployeeSignatureData = null;
+                    }
+                }
+
                 var firstEmployee = model.ActionEmployees[0];
                 model.ActionEmployeeId = firstEmployee.EmployeeID;
                 model.ActionEmployeeName = firstEmployee.EmployeeName;

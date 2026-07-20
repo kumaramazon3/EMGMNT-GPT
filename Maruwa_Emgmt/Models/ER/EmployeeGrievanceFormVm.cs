@@ -117,6 +117,8 @@ namespace Maruwa_Emgmt.Models.ER
         public string EmployeeName { get; set; } = string.Empty;
         public string PositionTitle { get; set; } = string.Empty;
         public string Department { get; set; } = string.Empty;
+        public string? EmployeeSignaturePath { get; set; }
+        public string? EmployeeSignatureData { get; set; }
     }
 
     public class EmployeeGrievanceHrActionVm

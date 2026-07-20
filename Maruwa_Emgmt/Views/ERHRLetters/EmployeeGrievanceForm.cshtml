@@ -188,10 +188,18 @@
     }
 
     .modal-view-mode #employeeSignaturePreviewContainer,
-    .modal-view-mode #hrSignaturePreviewContainer,
-    .modal-view-mode #employeeSignatureSaveMessage,
-    .modal-view-mode #hrSignatureSaveMessage {
+    .modal-view-mode #employeeSignatureSaveMessage {
         display: none !important;
+    }
+
+    .modal-view-mode:not(.hr-action-edit-mode) #hrSignaturePreviewContainer,
+    .modal-view-mode:not(.hr-action-edit-mode) #hrSignatureSaveMessage {
+        display: none !important;
+    }
+
+    .modal-view-mode.hr-action-edit-mode #hrSignaturePreviewContainer:not(.d-none),
+    .modal-view-mode.hr-action-edit-mode #hrSignatureSaveMessage:not(.d-none) {
+        display: block !important;
     }
 
     .hr-list .hr-only {
@@ -214,6 +222,58 @@
         min-height: 38px;
         font-size: 12px;
     }
+
+
+    .hr-employee-signature-cell {
+        min-width: 360px;
+        vertical-align: top !important;
+    }
+
+    .hr-employee-signature-box {
+        width: 320px;
+        max-width: 100%;
+        height: 92px;
+        border: 2px solid #42cef5;
+        border-radius: 6px;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    .hr-employee-signature-box.error-border {
+        border-color: #dc3545 !important;
+        background: #fff5f5;
+    }
+
+    .hr-employee-signature-box.valid-border {
+        border-color: #0d6efd !important;
+    }
+
+    .hr-employee-signature-canvas {
+        width: 100%;
+        height: 88px;
+        display: block;
+        cursor: crosshair;
+        touch-action: none;
+        background: #fff;
+    }
+
+    .hr-employee-signature-canvas.signature-disabled {
+        cursor: default;
+    }
+
+    .hr-employee-signature-actions {
+        margin-top: 6px;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .hr-employee-signature-message {
+        font-size: 12px;
+        font-weight: 600;
+    }
+
 
     @@media (max-width: 768px) {
         .egf-custom-modal {
@@ -496,6 +556,7 @@
                                         <th>Employee Name</th>
                                         <th>Position</th>
                                         <th>Department (Code - Name)</th>
+                                        <th>Employee Signature <span class="required-star hr-required-star">*</span></th>
                                         <th class="hr-action-edit-only">Remove</th>
                                     </tr>
                                 </thead>

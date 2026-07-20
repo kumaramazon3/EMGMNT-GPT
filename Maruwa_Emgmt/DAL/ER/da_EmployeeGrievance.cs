@@ -400,7 +400,8 @@ namespace Maruwa_Emgmt.DAL.ER
             EmployeeID = Value(reader, "EmployeeID"),
             EmployeeName = Value(reader, "EmployeeName"),
             PositionTitle = Value(reader, "PositionTitle"),
-            Department = Value(reader, "Department")
+            Department = Value(reader, "Department"),
+            EmployeeSignaturePath = Value(reader, "EmployeeSignaturePath")
         };
 
         private static bool ToBool(object value) => value != DBNull.Value && Convert.ToBoolean(value);

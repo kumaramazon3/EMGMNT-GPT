@@ -141,9 +141,15 @@ BEGIN
         EmployeeName NVARCHAR(200) NULL,
         PositionTitle NVARCHAR(200) NULL,
         Department NVARCHAR(200) NULL,
+        EmployeeSignaturePath NVARCHAR(1000) NULL,
         CreatedOn DATETIME2(0) NOT NULL CONSTRAINT DF_EGF_HRActionEmployee_CreatedOn DEFAULT SYSUTCDATETIME()
     );
 END
+GO
+
+
+IF COL_LENGTH('dbo.EmployeeGrievanceHRActionEmployee', 'EmployeeSignaturePath') IS NULL
+    ALTER TABLE dbo.EmployeeGrievanceHRActionEmployee ADD EmployeeSignaturePath NVARCHAR(1000) NULL;
 GO
 
 IF COL_LENGTH('dbo.EmployeeGrievanceHRAction', 'EmployeeSignaturePath') IS NOT NULL
@@ -637,7 +643,8 @@ BEGIN
         EmployeeID,
         EmployeeName,
         PositionTitle,
-        Department
+        Department,
+        EmployeeSignaturePath
     FROM dbo.EmployeeGrievanceHRActionEmployee
     WHERE GrievanceID = @GrievanceID
     ORDER BY HRActionEmployeeID;
@@ -713,30 +720,32 @@ BEGIN
         IF ISJSON(@HrActionEmployeesJson) = 1
         BEGIN
             INSERT INTO dbo.EmployeeGrievanceHRActionEmployee
-            (HRActionID, GrievanceID, EmployeeID, EmployeeName, PositionTitle, Department)
+            (HRActionID, GrievanceID, EmployeeID, EmployeeName, PositionTitle, Department, EmployeeSignaturePath)
             SELECT
                 @HRActionID,
                 @GrievanceID,
                 EmployeeID,
                 EmployeeName,
                 PositionTitle,
-                Department
+                Department,
+                EmployeeSignaturePath
             FROM OPENJSON(@HrActionEmployeesJson)
             WITH
             (
                 EmployeeID NVARCHAR(100) '$.employeeID',
                 EmployeeName NVARCHAR(200) '$.employeeName',
                 PositionTitle NVARCHAR(200) '$.positionTitle',
-                Department NVARCHAR(200) '$.department'
+                Department NVARCHAR(200) '$.department',
+                EmployeeSignaturePath NVARCHAR(1000) '$.employeeSignaturePath'
             ) J
             WHERE NULLIF(LTRIM(RTRIM(EmployeeID)), '') IS NOT NULL;
         END
         ELSE IF NULLIF(LTRIM(RTRIM(ISNULL(@ActionEmployeeId, ''))), '') IS NOT NULL
         BEGIN
             INSERT INTO dbo.EmployeeGrievanceHRActionEmployee
-            (HRActionID, GrievanceID, EmployeeID, EmployeeName, PositionTitle, Department)
+            (HRActionID, GrievanceID, EmployeeID, EmployeeName, PositionTitle, Department, EmployeeSignaturePath)
             VALUES
-            (@HRActionID, @GrievanceID, @ActionEmployeeId, @ActionEmployeeName, NULL, NULL);
+            (@HRActionID, @GrievanceID, @ActionEmployeeId, @ActionEmployeeName, NULL, NULL, NULL);
         END
 
         UPDATE dbo.EmployeeGrievanceComplaint

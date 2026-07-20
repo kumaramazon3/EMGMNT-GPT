@@ -774,10 +774,10 @@ function fillHrAction(data) {
             );
         });
     } else {
-        const actionEmployeeId = getFirstDefined(hrAction.actionEmployeeId, hrAction.ActionEmployeeId, complainantEmpId);
-        const actionEmployeeName = getFirstDefined(hrAction.actionEmployeeName, hrAction.ActionEmployeeName, complainantName);
-        const actionEmployeePosition = getFirstDefined(hrAction.actionEmployeePositionTitle, hrAction.ActionEmployeePositionTitle, data.positionTitle, data.PositionTitle);
-        const actionEmployeeDepartment = getFirstDefined(hrAction.actionEmployeeDepartment, hrAction.ActionEmployeeDepartment, getDepartmentDisplayValue(data));
+        const actionEmployeeId = getFirstDefined(hrAction.actionEmployeeId, hrAction.ActionEmployeeId);
+        const actionEmployeeName = getFirstDefined(hrAction.actionEmployeeName, hrAction.ActionEmployeeName);
+        const actionEmployeePosition = getFirstDefined(hrAction.actionEmployeePositionTitle, hrAction.ActionEmployeePositionTitle);
+        const actionEmployeeDepartment = getFirstDefined(hrAction.actionEmployeeDepartment, hrAction.ActionEmployeeDepartment);
 
         if (actionEmployeeId) {
             addHrActionEmployeeRow(actionEmployeeId, actionEmployeeName, actionEmployeePosition, actionEmployeeDepartment, false);
@@ -800,6 +800,11 @@ function fillHrAction(data) {
 
     const hrSignaturePath = getFirstDefined(hrAction.hrSignaturePath, hrAction.HRSignaturePath);
     setSignatureExistingPath('hr', hrSignaturePath);
+
+    if (isViewMode) {
+        hideSignaturePreview('employee');
+        hideSignaturePreview('hr');
+    }
 
     $('#hrFooterEmpId').val(getFirstDefined(hrAction.hrEmpId, hrAction.HREmpId, loginInfo.empCode));
     $('#hrFooterEmpName').val(getFirstDefined(hrAction.hrName, hrAction.HRName, loginInfo.empName));
@@ -1049,6 +1054,11 @@ function showSignaturePreview(type, src) {
     }
 
     $('#' + pad.previewImgId).attr('src', src);
+    if (isViewMode) {
+        $('#' + pad.previewContainerId).addClass('d-none');
+        return;
+    }
+
     $('#' + pad.previewContainerId).removeClass('d-none');
 }
 

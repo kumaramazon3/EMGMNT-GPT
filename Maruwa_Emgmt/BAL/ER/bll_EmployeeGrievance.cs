@@ -17,6 +17,8 @@ namespace Maruwa_Emgmt.BAL.ER
         public Task<EmployeeGrievanceListResult> GetMyGrievancesAsync(EmployeeGrievanceSearchRequest request, string loggedInEmpCode, bool isHrUser = false) => _employeeGrievanceDal.GetMyGrievancesAsync(request, loggedInEmpCode, isHrUser);
         public Task<EmployeeGrievanceFormVm?> GetGrievanceByIdAsync(int grievanceId, string loggedInEmpCode, bool isHrUser = false) => _employeeGrievanceDal.GetGrievanceByIdAsync(grievanceId, loggedInEmpCode, isHrUser);
         public Task<(bool Success, string Message, int GrievanceID, string ReferenceNo)> SaveComplaintAsync(EmployeeGrievanceFormVm model, string employeeCode) => _employeeGrievanceDal.SaveComplaintAsync(model, employeeCode);
+        public Task<(bool Success, string Message)> MarkViewedByHrAsync(int grievanceId, string employeeCode) => _employeeGrievanceDal.MarkViewedByHrAsync(grievanceId, employeeCode);
+        public Task<(bool Success, string Message)> UpdateHrRemarksAsync(int grievanceId, string remarks, string employeeCode) => _employeeGrievanceDal.UpdateHrRemarksAsync(grievanceId, remarks, employeeCode);
         public Task<(bool Success, string Message)> SaveHrActionAsync(EmployeeGrievanceHrActionVm model, string employeeCode) => _employeeGrievanceDal.SaveHrActionAsync(model, employeeCode);
     }
 }

@@ -1,19 +1,24 @@
-﻿@using System.Text.Json
+@using System.Text.Json
 @using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
 @{
     string isLoggedIn = HttpContextAccessor.HttpContext.Session.GetString("EmployeeDetails");// Get serialized employee object from session
     var userRole = HttpContextAccessor.HttpContext?.Session.GetString("Role");
     var role = userRole?.ToUpperInvariant();
+    bool isHrDesignation = false;
     string empName = "";
     string empCode = "";
+    string designation = "";
     if (!string.IsNullOrEmpty(isLoggedIn))
     {
         var employee = JsonSerializer.Deserialize<tblempmaster>(isLoggedIn);
         empName = employee?.empName ?? "";
         //empName = isLoggedIn?.Split(',')[2] ?? "";
         empCode = employee?.empcode ?? "";
+        designation = employee?.designation ?? "";
     }
+    var designationUpper = (designation ?? string.Empty).ToUpperInvariant();
+    isHrDesignation = role == "HR" || role == "ADMIN" || designationUpper == "HR" || designationUpper.Contains(" HR") || designationUpper.Contains("HR ") || designationUpper.Contains("HUMAN RESOURCE") || designationUpper.Contains("EMPLOYEE RELATIONS");
     // New Code for Auto Logout
     bool isLoggedIn_ = !string.IsNullOrEmpty(isLoggedIn);
     var session = HttpContextAccessor.HttpContext.Session;
@@ -92,7 +97,7 @@
             </a>
 
             <!-- Employee Details -->
-            <li class="nav-item active">
+            <li class="nav-item active @(isHrDesignation ? "d-none" : "")">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#HRDepartment"
                    aria-expanded="true" aria-controls="HRDepartment">
                     <i class="fa fa-users"></i>

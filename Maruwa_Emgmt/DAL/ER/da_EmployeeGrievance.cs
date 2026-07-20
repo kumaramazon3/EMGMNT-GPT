@@ -2,6 +2,7 @@ using Maruwa_Emgmt.InterFace.ER;
 using Maruwa_Emgmt.Models.ER;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Text.Json;
 
 namespace Maruwa_Emgmt.DAL.ER
 {
@@ -21,7 +22,7 @@ namespace Maruwa_Emgmt.DAL.ER
             var list = new List<EmployeeLookupVm>();
             await using var con = new SqlConnection(_connectionString);
             await using var cmd = new SqlCommand("usp_EGF_SearchEmployee", con) { CommandType = CommandType.StoredProcedure };
-            cmd.Parameters.AddWithValue("@SearchText", string.IsNullOrWhiteSpace(searchText) ? (object)DBNull.Value : searchText.Trim());
+            cmd.Parameters.AddWithValue("@SearchText", DbValue(searchText));
             await con.OpenAsync();
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync()) list.Add(MapEmployee(reader));
@@ -92,6 +93,14 @@ namespace Maruwa_Emgmt.DAL.ER
                 if (await reader.ReadAsync()) model.HrAction = MapHrAction(reader);
             }
 
+            if (model.HrAction != null)
+            {
+                await using var empCmd = new SqlCommand("usp_EGF_GetHrActionEmployees", con) { CommandType = CommandType.StoredProcedure };
+                empCmd.Parameters.AddWithValue("@GrievanceID", grievanceId);
+                await using var empReader = await empCmd.ExecuteReaderAsync();
+                while (await empReader.ReadAsync()) model.HrAction.ActionEmployees.Add(MapHrActionEmployee(empReader));
+            }
+
             return model;
         }
 
@@ -160,6 +169,40 @@ namespace Maruwa_Emgmt.DAL.ER
             }
         }
 
+        public async Task<(bool Success, string Message)> MarkViewedByHrAsync(int grievanceId, string employeeCode)
+        {
+            return await ExecuteStatusProcedureAsync("usp_EGF_MarkViewedByHr", grievanceId, employeeCode, null);
+        }
+
+        public async Task<(bool Success, string Message)> UpdateHrRemarksAsync(int grievanceId, string remarks, string employeeCode)
+        {
+            return await ExecuteStatusProcedureAsync("usp_EGF_UpdateHrRemarks", grievanceId, employeeCode, remarks);
+        }
+
+        private async Task<(bool Success, string Message)> ExecuteStatusProcedureAsync(string procedureName, int grievanceId, string employeeCode, string? remarks)
+        {
+            try
+            {
+                await using var con = new SqlConnection(_connectionString);
+                await using var cmd = new SqlCommand(procedureName, con) { CommandType = CommandType.StoredProcedure };
+                cmd.Parameters.AddWithValue("@GrievanceID", grievanceId);
+                if (remarks != null) cmd.Parameters.AddWithValue("@HRRemarks", DbValue(remarks));
+                cmd.Parameters.AddWithValue("@EmployeeCode", employeeCode);
+                var status = new SqlParameter("@Status", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var message = new SqlParameter("@Message", SqlDbType.NVarChar, 500) { Direction = ParameterDirection.Output };
+                cmd.Parameters.Add(status);
+                cmd.Parameters.Add(message);
+                await con.OpenAsync();
+                await cmd.ExecuteNonQueryAsync();
+                return (Convert.ToInt32(status.Value) == 1, Convert.ToString(message.Value) ?? "Updated successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing {ProcedureName} for grievance", procedureName);
+                return (false, ex.Message);
+            }
+        }
+
         public async Task<(bool Success, string Message)> SaveHrActionAsync(EmployeeGrievanceHrActionVm model, string employeeCode)
         {
             try
@@ -169,8 +212,13 @@ namespace Maruwa_Emgmt.DAL.ER
                 cmd.Parameters.AddWithValue("@GrievanceID", model.GrievanceID);
                 cmd.Parameters.AddWithValue("@HREmpId", DbValue(model.HREmpId ?? employeeCode));
                 cmd.Parameters.AddWithValue("@HRName", DbValue(model.HRName));
+                cmd.Parameters.AddWithValue("@ActionEmployeeId", DbValue(model.ActionEmployeeId));
+                cmd.Parameters.AddWithValue("@ActionEmployeeName", DbValue(model.ActionEmployeeName));
+                var hrEmployeesJson = JsonSerializer.Serialize(model.ActionEmployees ?? new List<EmployeeGrievanceHrActionEmployeeVm>(), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                cmd.Parameters.AddWithValue("@HrActionEmployeesJson", DbValue(hrEmployeesJson));
                 cmd.Parameters.AddWithValue("@InvestigationSummary", DbValue(model.InvestigationSummary));
                 cmd.Parameters.AddWithValue("@EmployeeExplanation", DbValue(model.EmployeeExplanation));
+                cmd.Parameters.AddWithValue("@Remarks", DbValue(model.Remarks));
                 cmd.Parameters.AddWithValue("@OutcomeResolved", model.OutcomeResolved);
                 cmd.Parameters.AddWithValue("@OutcomeReferredToER", model.OutcomeReferredToER);
                 cmd.Parameters.AddWithValue("@OutcomeReferredToDomesticInquiry", model.OutcomeReferredToDomesticInquiry);
@@ -178,7 +226,6 @@ namespace Maruwa_Emgmt.DAL.ER
                 cmd.Parameters.AddWithValue("@MajorMisconduct", model.MajorMisconduct);
                 cmd.Parameters.AddWithValue("@MajorMisconductText", DbValue(model.MajorMisconductText));
                 cmd.Parameters.AddWithValue("@HRSignaturePath", DbValue(model.HRSignaturePath));
-                cmd.Parameters.AddWithValue("@EmployeeSignaturePath", DbValue(model.EmployeeSignaturePath));
                 cmd.Parameters.AddWithValue("@Department", DbValue(model.Department ?? "HUMAN RESOURCE"));
                 cmd.Parameters.AddWithValue("@EmployeeCode", employeeCode);
                 var status = new SqlParameter("@Status", SqlDbType.Int) { Direction = ParameterDirection.Output };
@@ -201,10 +248,10 @@ namespace Maruwa_Emgmt.DAL.ER
             cmd.Parameters.AddWithValue("@GlobalSearch", DbValue(request.GlobalSearch));
             cmd.Parameters.AddWithValue("@ReferenceNo", DbValue(request.ReferenceNo));
             cmd.Parameters.AddWithValue("@StatusFilter", DbValue(request.Status));
-            cmd.Parameters.AddWithValue("@SortColumn", request.SortColumn);
-            cmd.Parameters.AddWithValue("@SortDirection", request.SortDirection);
-            cmd.Parameters.AddWithValue("@PageNumber", request.PageNumber);
-            cmd.Parameters.AddWithValue("@PageSize", request.PageSize);
+            cmd.Parameters.AddWithValue("@SortColumn", string.IsNullOrWhiteSpace(request.SortColumn) ? "CreatedOn" : request.SortColumn);
+            cmd.Parameters.AddWithValue("@SortDirection", string.Equals(request.SortDirection, "ASC", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC");
+            cmd.Parameters.AddWithValue("@PageNumber", request.PageNumber <= 0 ? 1 : request.PageNumber);
+            cmd.Parameters.AddWithValue("@PageSize", request.PageSize <= 0 ? 10 : request.PageSize);
         }
 
         private static void AddComplaintParameters(SqlCommand cmd, EmployeeGrievanceFormVm model, string employeeCode)
@@ -241,37 +288,41 @@ namespace Maruwa_Emgmt.DAL.ER
 
         private static object DbValue(string? value) => string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
 
+        private static string Value(IDataRecord reader, string name) => reader[name] == DBNull.Value ? string.Empty : Convert.ToString(reader[name]) ?? string.Empty;
+        private static DateTime? NullableDate(IDataRecord reader, string name) => reader[name] == DBNull.Value ? null : Convert.ToDateTime(reader[name]);
+
         private static EmployeeLookupVm MapEmployee(IDataRecord reader) => new()
         {
-            EmpCode = Convert.ToString(reader["EmpCode"]) ?? string.Empty,
-            EmpName = Convert.ToString(reader["EmpName"]) ?? string.Empty,
-            Department = Convert.ToString(reader["Department"]) ?? string.Empty,
-            PositionTitle = Convert.ToString(reader["PositionTitle"]) ?? string.Empty,
-            EmailID = Convert.ToString(reader["EmailID"]) ?? string.Empty
+            EmpCode = Value(reader, "EmpCode"),
+            EmpName = Value(reader, "EmpName"),
+            Department = Value(reader, "Department"),
+            PositionTitle = Value(reader, "PositionTitle"),
+            EmailID = Value(reader, "EmailID")
         };
 
         private static EmployeeGrievanceListItemVm MapListItem(IDataRecord reader) => new()
         {
             GrievanceID = Convert.ToInt32(reader["GrievanceID"]),
-            ReferenceNo = Convert.ToString(reader["ReferenceNo"]) ?? string.Empty,
-            ComplainantEmpId = Convert.ToString(reader["ComplainantEmpId"]) ?? string.Empty,
-            ComplainantName = Convert.ToString(reader["ComplainantName"]) ?? string.Empty,
-            Department = Convert.ToString(reader["Department"]) ?? string.Empty,
-            DateOfReport = reader["DateOfReport"] == DBNull.Value ? null : Convert.ToDateTime(reader["DateOfReport"]),
-            GrievanceSummary = Convert.ToString(reader["GrievanceSummary"]) ?? string.Empty,
-            Status = Convert.ToString(reader["Status"]) ?? string.Empty,
-            CreatedOn = reader["CreatedOn"] == DBNull.Value ? null : Convert.ToDateTime(reader["CreatedOn"])
+            ReferenceNo = Value(reader, "ReferenceNo"),
+            ComplainantEmpId = Value(reader, "ComplainantEmpId"),
+            ComplainantName = Value(reader, "ComplainantName"),
+            Department = Value(reader, "Department"),
+            DateOfReport = NullableDate(reader, "DateOfReport"),
+            GrievanceSummary = Value(reader, "GrievanceSummary"),
+            Status = Value(reader, "Status"),
+            HRRemarks = Value(reader, "HRRemarks"),
+            CreatedOn = NullableDate(reader, "CreatedOn")
         };
 
         private static EmployeeGrievanceFormVm MapForm(IDataRecord reader) => new()
         {
             GrievanceID = Convert.ToInt32(reader["GrievanceID"]),
-            ReferenceNo = Convert.ToString(reader["ReferenceNo"]),
-            ComplainantEmpId = Convert.ToString(reader["ComplainantEmpId"]) ?? string.Empty,
-            ComplainantName = Convert.ToString(reader["ComplainantName"]) ?? string.Empty,
-            Department = Convert.ToString(reader["Department"]) ?? string.Empty,
-            PositionTitle = Convert.ToString(reader["PositionTitle"]) ?? string.Empty,
-            DateOfReport = reader["DateOfReport"] == DBNull.Value ? null : Convert.ToDateTime(reader["DateOfReport"]),
+            ReferenceNo = Value(reader, "ReferenceNo"),
+            ComplainantEmpId = Value(reader, "ComplainantEmpId"),
+            ComplainantName = Value(reader, "ComplainantName"),
+            Department = Value(reader, "Department"),
+            PositionTitle = Value(reader, "PositionTitle"),
+            DateOfReport = NullableDate(reader, "DateOfReport"),
             UnfairTreatment = ToBool(reader["UnfairTreatment"]),
             HarassmentBullying = ToBool(reader["HarassmentBullying"]),
             WorkLapses = ToBool(reader["WorkLapses"]),
@@ -281,61 +332,75 @@ namespace Maruwa_Emgmt.DAL.ER
             AbuseOfAuthority = ToBool(reader["AbuseOfAuthority"]),
             WorkingHoursIssue = ToBool(reader["WorkingHoursIssue"]),
             OtherComplaint = ToBool(reader["OtherComplaint"]),
-            OtherComplaintText = Convert.ToString(reader["OtherComplaintText"]),
-            ConductDate = reader["ConductDate"] == DBNull.Value ? null : Convert.ToDateTime(reader["ConductDate"]),
+            OtherComplaintText = Value(reader, "OtherComplaintText"),
+            ConductDate = NullableDate(reader, "ConductDate"),
             ConductTime = reader["ConductTime"] == DBNull.Value ? (TimeSpan?)null : (TimeSpan)reader["ConductTime"],
-            Location = Convert.ToString(reader["Location"]),
-            IncidentDescription = Convert.ToString(reader["IncidentDescription"]),
-            Witnesses = Convert.ToString(reader["Witnesses"]),
+            Location = Value(reader, "Location"),
+            IncidentDescription = Value(reader, "IncidentDescription"),
+            Witnesses = Value(reader, "Witnesses"),
             SupportingDocumentsAttached = ToBool(reader["SupportingDocumentsAttached"]),
-            DesiredOutcome = Convert.ToString(reader["DesiredOutcome"]),
-            EmployeeSignaturePath = Convert.ToString(reader["EmployeeSignaturePath"]),
-            DeclarationEmployeeName = Convert.ToString(reader["DeclarationEmployeeName"]),
-            DeclarationEmployeeId = Convert.ToString(reader["DeclarationEmployeeId"]),
-            DeclarationDate = reader["DeclarationDate"] == DBNull.Value ? null : Convert.ToDateTime(reader["DeclarationDate"]),
-            Status = Convert.ToString(reader["Status"]) ?? string.Empty
+            DesiredOutcome = Value(reader, "DesiredOutcome"),
+            EmployeeSignaturePath = Value(reader, "EmployeeSignaturePath"),
+            DeclarationEmployeeName = Value(reader, "DeclarationEmployeeName"),
+            DeclarationEmployeeId = Value(reader, "DeclarationEmployeeId"),
+            DeclarationDate = NullableDate(reader, "DeclarationDate"),
+            Status = Value(reader, "Status"),
+            HRRemarks = Value(reader, "HRRemarks")
         };
 
         private static EmployeeGrievanceInvolvedPartyVm MapParty(IDataRecord reader) => new()
         {
             PartyID = Convert.ToInt32(reader["PartyID"]),
             GrievanceID = Convert.ToInt32(reader["GrievanceID"]),
-            EmployeeID = Convert.ToString(reader["EmployeeID"]) ?? string.Empty,
-            EmployeeName = Convert.ToString(reader["EmployeeName"]) ?? string.Empty,
-            PositionTitle = Convert.ToString(reader["PositionTitle"]) ?? string.Empty,
-            Department = Convert.ToString(reader["Department"]) ?? string.Empty
+            EmployeeID = Value(reader, "EmployeeID"),
+            EmployeeName = Value(reader, "EmployeeName"),
+            PositionTitle = Value(reader, "PositionTitle"),
+            Department = Value(reader, "Department")
         };
 
         private static EmployeeGrievanceAttachmentVm MapAttachment(IDataRecord reader) => new()
         {
             AttachmentID = Convert.ToInt32(reader["AttachmentID"]),
             GrievanceID = Convert.ToInt32(reader["GrievanceID"]),
-            OriginalFileName = Convert.ToString(reader["OriginalFileName"]) ?? string.Empty,
-            StoredFileName = Convert.ToString(reader["StoredFileName"]) ?? string.Empty,
-            FilePath = Convert.ToString(reader["FilePath"]) ?? string.Empty,
-            ContentType = Convert.ToString(reader["ContentType"]) ?? string.Empty,
+            OriginalFileName = Value(reader, "OriginalFileName"),
+            StoredFileName = Value(reader, "StoredFileName"),
+            FilePath = Value(reader, "FilePath"),
+            ContentType = Value(reader, "ContentType"),
             SizeBytes = reader["SizeBytes"] == DBNull.Value ? 0 : Convert.ToInt64(reader["SizeBytes"]),
-            UploadedOn = reader["UploadedOn"] == DBNull.Value ? null : Convert.ToDateTime(reader["UploadedOn"])
+            UploadedOn = NullableDate(reader, "UploadedOn")
         };
 
         private static EmployeeGrievanceHrActionVm MapHrAction(IDataRecord reader) => new()
         {
             HRActionID = Convert.ToInt32(reader["HRActionID"]),
             GrievanceID = Convert.ToInt32(reader["GrievanceID"]),
-            HREmpId = Convert.ToString(reader["HREmpId"]),
-            HRName = Convert.ToString(reader["HRName"]),
-            ActionDate = reader["ActionDate"] == DBNull.Value ? null : Convert.ToDateTime(reader["ActionDate"]),
-            InvestigationSummary = Convert.ToString(reader["InvestigationSummary"]),
-            EmployeeExplanation = Convert.ToString(reader["EmployeeExplanation"]),
+            HREmpId = Value(reader, "HREmpId"),
+            HRName = Value(reader, "HRName"),
+            ActionDate = NullableDate(reader, "ActionDate"),
+            ActionEmployeeId = Value(reader, "ActionEmployeeId"),
+            ActionEmployeeName = Value(reader, "ActionEmployeeName"),
+            InvestigationSummary = Value(reader, "InvestigationSummary"),
+            EmployeeExplanation = Value(reader, "EmployeeExplanation"),
+            Remarks = Value(reader, "Remarks"),
             OutcomeResolved = ToBool(reader["OutcomeResolved"]),
             OutcomeReferredToER = ToBool(reader["OutcomeReferredToER"]),
             OutcomeReferredToDomesticInquiry = ToBool(reader["OutcomeReferredToDomesticInquiry"]),
             MinorMisconduct = ToBool(reader["MinorMisconduct"]),
             MajorMisconduct = ToBool(reader["MajorMisconduct"]),
-            MajorMisconductText = Convert.ToString(reader["MajorMisconductText"]),
-            HRSignaturePath = Convert.ToString(reader["HRSignaturePath"]),
-            EmployeeSignaturePath = Convert.ToString(reader["EmployeeSignaturePath"]),
-            Department = Convert.ToString(reader["Department"])
+            MajorMisconductText = Value(reader, "MajorMisconductText"),
+            HRSignaturePath = Value(reader, "HRSignaturePath"),
+            Department = Value(reader, "Department")
+        };
+
+        private static EmployeeGrievanceHrActionEmployeeVm MapHrActionEmployee(IDataRecord reader) => new()
+        {
+            HRActionEmployeeID = Convert.ToInt32(reader["HRActionEmployeeID"]),
+            HRActionID = Convert.ToInt32(reader["HRActionID"]),
+            GrievanceID = Convert.ToInt32(reader["GrievanceID"]),
+            EmployeeID = Value(reader, "EmployeeID"),
+            EmployeeName = Value(reader, "EmployeeName"),
+            PositionTitle = Value(reader, "PositionTitle"),
+            Department = Value(reader, "Department")
         };
 
         private static bool ToBool(object value) => value != DBNull.Value && Convert.ToBoolean(value);

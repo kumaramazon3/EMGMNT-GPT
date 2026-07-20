@@ -21,6 +21,7 @@ namespace Maruwa_Emgmt.Models.ER
         public DateTime? DateOfReport { get; set; }
         public string GrievanceSummary { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public string HRRemarks { get; set; } = string.Empty;
         public DateTime? CreatedOn { get; set; }
     }
 
@@ -98,11 +99,24 @@ namespace Maruwa_Emgmt.Models.ER
         public string? DeclarationEmployeeName { get; set; }
         public string? DeclarationEmployeeId { get; set; }
         public DateTime? DeclarationDate { get; set; }
-        public string Status { get; set; } = "Submitted";
+        public string Status { get; set; } = "InProgress";
+        public string? HRRemarks { get; set; }
 
         public List<EmployeeGrievanceInvolvedPartyVm> InvolvedParties { get; set; } = new();
         public List<EmployeeGrievanceAttachmentVm> Attachments { get; set; } = new();
         public EmployeeGrievanceHrActionVm? HrAction { get; set; }
+    }
+
+
+    public class EmployeeGrievanceHrActionEmployeeVm
+    {
+        public int HRActionEmployeeID { get; set; }
+        public int HRActionID { get; set; }
+        public int GrievanceID { get; set; }
+        public string EmployeeID { get; set; } = string.Empty;
+        public string EmployeeName { get; set; } = string.Empty;
+        public string PositionTitle { get; set; } = string.Empty;
+        public string Department { get; set; } = string.Empty;
     }
 
     public class EmployeeGrievanceHrActionVm
@@ -112,8 +126,11 @@ namespace Maruwa_Emgmt.Models.ER
         public string? HREmpId { get; set; }
         public string? HRName { get; set; }
         public DateTime? ActionDate { get; set; }
+        public string? ActionEmployeeId { get; set; }
+        public string? ActionEmployeeName { get; set; }
         public string? InvestigationSummary { get; set; }
         public string? EmployeeExplanation { get; set; }
+        public string? Remarks { get; set; }
         public bool OutcomeResolved { get; set; }
         public bool OutcomeReferredToER { get; set; }
         public bool OutcomeReferredToDomesticInquiry { get; set; }
@@ -121,7 +138,7 @@ namespace Maruwa_Emgmt.Models.ER
         public bool MajorMisconduct { get; set; }
         public string? MajorMisconductText { get; set; }
         public string? HRSignaturePath { get; set; }
-        public string? EmployeeSignaturePath { get; set; }
         public string? Department { get; set; }
+        public List<EmployeeGrievanceHrActionEmployeeVm> ActionEmployees { get; set; } = new();
     }
 }

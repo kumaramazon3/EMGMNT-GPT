@@ -29,6 +29,23 @@ namespace Maruwa_Emgmt.Controllers
             return View();
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetGrievanceLoginInfo()
+        {
+            var employeeCode = GetLoggedInEmployeeCode();
+            var employee = await _grievanceBal.GetEmployeeByCodeAsync(employeeCode);
+            return Json(new
+            {
+                success = true,
+                isHrUser = IsHrUser(),
+                empCode = employee?.EmpCode ?? employeeCode,
+                empName = employee?.EmpName ?? GetLoggedInEmployeeName(),
+                department = employee?.Department ?? string.Empty,
+                designation = GetLoggedInDesignation(),
+                positionTitle = employee?.PositionTitle ?? GetLoggedInDesignation()
+            });
+        }
+
         [HttpPost]
         public async Task<IActionResult> GetMyGrievances([FromBody] EmployeeGrievanceSearchRequest request)
         {
@@ -36,7 +53,7 @@ namespace Maruwa_Emgmt.Controllers
             {
                 var employeeCode = GetLoggedInEmployeeCode();
                 var result = await _grievanceBal.GetMyGrievancesAsync(request, employeeCode, IsHrUser());
-                return Json(new { success = true, data = result.Data, totalCount = result.TotalCount });
+                return Json(new { success = true, data = result.Data, totalCount = result.TotalCount, isHrUser = IsHrUser() });
             }
             catch (Exception ex)
             {
@@ -66,17 +83,18 @@ namespace Maruwa_Emgmt.Controllers
         {
             var empCode = GetLoggedInEmployeeCode();
             var employee = await _grievanceBal.GetEmployeeByCodeAsync(empCode);
-            if (employee != null) return Json(new { success = true, data = employee });
+            if (employee != null) return Json(new { success = true, data = employee, isHrUser = IsHrUser() });
 
             return Json(new
             {
                 success = true,
+                isHrUser = IsHrUser(),
                 data = new EmployeeLookupVm
                 {
                     EmpCode = empCode,
                     EmpName = GetLoggedInEmployeeName(),
                     Department = string.Empty,
-                    PositionTitle = string.Empty
+                    PositionTitle = GetLoggedInDesignation()
                 }
             });
         }
@@ -85,10 +103,17 @@ namespace Maruwa_Emgmt.Controllers
         public async Task<IActionResult> GetGrievanceForm(int id)
         {
             var employeeCode = GetLoggedInEmployeeCode();
-            var data = await _grievanceBal.GetGrievanceByIdAsync(id, employeeCode, IsHrUser());
+            var isHr = IsHrUser();
+
+            if (isHr)
+            {
+                await _grievanceBal.MarkViewedByHrAsync(id, employeeCode);
+            }
+
+            var data = await _grievanceBal.GetGrievanceByIdAsync(id, employeeCode, isHr);
             return data == null
                 ? Json(new { success = false, message = "Employee grievance form not found" })
-                : Json(new { success = true, data });
+                : Json(new { success = true, data, isHrUser = isHr });
         }
 
         [HttpPost]
@@ -97,6 +122,9 @@ namespace Maruwa_Emgmt.Controllers
         {
             try
             {
+                if (IsHrUser())
+                    return Json(new { success = false, message = "HR login can view and update HR action only. Complaint registration is allowed for employee login." });
+
                 var employeeCode = GetLoggedInEmployeeCode();
                 var loggedInEmployee = await _grievanceBal.GetEmployeeByCodeAsync(employeeCode);
 
@@ -129,11 +157,11 @@ namespace Maruwa_Emgmt.Controllers
                 }
 
                 if (string.IsNullOrWhiteSpace(employeeSignatureData) && string.IsNullOrWhiteSpace(model.EmployeeSignaturePath))
-                    return Json(new { success = false, message = "Employee signature is required. Please draw the signature inside the signature box." });
+                    return Json(new { success = false, message = "Employee signature is required. Please draw and save the signature inside the signature box." });
 
                 if (!string.IsNullOrWhiteSpace(employeeSignatureData))
                 {
-                    model.EmployeeSignaturePath = await SaveBase64SignatureAsync(employeeSignatureData);
+                    model.EmployeeSignaturePath = await SaveBase64SignatureAsync(employeeSignatureData, "employee-signature.png");
                 }
 
                 model.Attachments = new List<EmployeeGrievanceAttachmentVm>();
@@ -169,6 +197,80 @@ namespace Maruwa_Emgmt.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateHrRemarks(int grievanceId, string? remarks)
+        {
+            try
+            {
+                if (!IsHrUser()) return Json(new { success = false, message = "Only HR users can update remarks." });
+                if (grievanceId <= 0) return Json(new { success = false, message = "Invalid grievance reference." });
+
+                var result = await _grievanceBal.UpdateHrRemarksAsync(grievanceId, remarks ?? string.Empty, GetLoggedInEmployeeCode());
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating HR remarks");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveHrAction([FromForm] EmployeeGrievanceHrActionVm model, [FromForm] string? hrSignatureData, [FromForm] string? hrActionEmployeesJson)
+        {
+            try
+            {
+                if (!IsHrUser()) return Json(new { success = false, message = "Only HR users can submit HR action." });
+                if (model.GrievanceID <= 0) return Json(new { success = false, message = "Invalid grievance reference." });
+
+                var employeeCode = GetLoggedInEmployeeCode();
+                var hrEmployee = await _grievanceBal.GetEmployeeByCodeAsync(employeeCode);
+                model.HREmpId = employeeCode;
+                model.HRName = hrEmployee?.EmpName ?? GetLoggedInEmployeeName();
+                model.Department = string.IsNullOrWhiteSpace(hrEmployee?.Department) ? "HUMAN RESOURCE" : hrEmployee.Department;
+                model.ActionDate ??= DateTime.Now;
+
+                if (!string.IsNullOrWhiteSpace(hrActionEmployeesJson))
+                {
+                    model.ActionEmployees = JsonSerializer.Deserialize<List<EmployeeGrievanceHrActionEmployeeVm>>(hrActionEmployeesJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                }
+
+                if (model.ActionEmployees.Count == 0 && !string.IsNullOrWhiteSpace(model.ActionEmployeeId))
+                {
+                    model.ActionEmployees.Add(new EmployeeGrievanceHrActionEmployeeVm
+                    {
+                        EmployeeID = model.ActionEmployeeId,
+                        EmployeeName = model.ActionEmployeeName ?? string.Empty
+                    });
+                }
+
+                if (model.ActionEmployees.Count == 0)
+                    return Json(new { success = false, message = "Please add at least one employee in HR action section." });
+
+                var firstEmployee = model.ActionEmployees[0];
+                model.ActionEmployeeId = firstEmployee.EmployeeID;
+                model.ActionEmployeeName = firstEmployee.EmployeeName;
+
+                if (string.IsNullOrWhiteSpace(hrSignatureData) && string.IsNullOrWhiteSpace(model.HRSignaturePath))
+                    return Json(new { success = false, message = "HR signature is required. Please draw and save the signature before submitting." });
+
+                if (!string.IsNullOrWhiteSpace(hrSignatureData))
+                {
+                    model.HRSignaturePath = await SaveBase64SignatureAsync(hrSignatureData, "hr-signature.png");
+                }
+
+                var result = await _grievanceBal.SaveHrActionAsync(model, employeeCode);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving HR action");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         private static bool HasAnyGrievanceNature(EmployeeGrievanceFormVm model)
         {
             return model.UnfairTreatment || model.HarassmentBullying || model.WorkLapses || model.PolicySopBreach ||
@@ -178,12 +280,10 @@ namespace Maruwa_Emgmt.Controllers
         private async Task<string> SaveFileAsync(IFormFile file, string folderName)
         {
             var webRoot = _environment.WebRootPath;
-            if (string.IsNullOrWhiteSpace(webRoot))
-            {
-                webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            }
+            if (string.IsNullOrWhiteSpace(webRoot)) webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
 
-            var folder = Path.Combine(webRoot, "uploads", "employee-grievance", folderName, DateTime.Now.ToString("yyyyMMdd"));
+            var dateFolder = DateTime.Now.ToString("yyyyMMdd");
+            var folder = Path.Combine(webRoot, "uploads", "employee-grievance", folderName, dateFolder);
             Directory.CreateDirectory(folder);
 
             var safeFileName = Path.GetFileName(file.FileName);
@@ -195,20 +295,17 @@ namespace Maruwa_Emgmt.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            return $"/uploads/employee-grievance/{folderName}/{DateTime.Now:yyyyMMdd}/{storedFileName}";
+            return $"/uploads/employee-grievance/{folderName}/{dateFolder}/{storedFileName}";
         }
 
-        private async Task<string> SaveBase64SignatureAsync(string signatureData)
+        private async Task<string> SaveBase64SignatureAsync(string signatureData, string suffixFileName)
         {
             if (string.IsNullOrWhiteSpace(signatureData))
-                throw new InvalidOperationException("Employee signature is required.");
+                throw new InvalidOperationException("Signature is required.");
 
             var base64Data = signatureData.Trim();
             var commaIndex = base64Data.IndexOf(',');
-            if (commaIndex >= 0)
-            {
-                base64Data = base64Data[(commaIndex + 1)..];
-            }
+            if (commaIndex >= 0) base64Data = base64Data[(commaIndex + 1)..];
 
             byte[] signatureBytes;
             try
@@ -217,23 +314,19 @@ namespace Maruwa_Emgmt.Controllers
             }
             catch (FormatException)
             {
-                throw new InvalidOperationException("Invalid employee signature format.");
+                throw new InvalidOperationException("Invalid signature format.");
             }
 
-            if (signatureBytes.Length == 0)
-                throw new InvalidOperationException("Employee signature is required.");
+            if (signatureBytes.Length == 0) throw new InvalidOperationException("Signature is required.");
 
             var webRoot = _environment.WebRootPath;
-            if (string.IsNullOrWhiteSpace(webRoot))
-            {
-                webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            }
+            if (string.IsNullOrWhiteSpace(webRoot)) webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
 
             var dateFolder = DateTime.Now.ToString("yyyyMMdd");
             var folder = Path.Combine(webRoot, "uploads", "employee-grievance", "signatures", dateFolder);
             Directory.CreateDirectory(folder);
 
-            var storedFileName = $"{Guid.NewGuid():N}_employee-signature.png";
+            var storedFileName = $"{Guid.NewGuid():N}_{suffixFileName}";
             var physicalPath = Path.Combine(folder, storedFileName);
             await System.IO.File.WriteAllBytesAsync(physicalPath, signatureBytes);
 
@@ -262,18 +355,10 @@ namespace Maruwa_Emgmt.Controllers
                 message.From = new MailAddress(fromEmail);
                 message.To.Add(hrToEmail);
                 message.Subject = $"Employee Grievance Form Submitted - {referenceNo}";
-                message.Body = $"Employee Grievance Form has been submitted.\n\nReference No: {referenceNo}\nEmployee: {model.ComplainantName} ({model.ComplainantEmpId})\nDepartment: {model.Department}\nStatus: Submitted\nForm ID: {grievanceId}\n\nPlease login to E-Management application and review the pending action.";
+                message.Body = $"Employee Grievance Form has been submitted.\n\nReference No: {referenceNo}\nEmployee: {model.ComplainantName} ({model.ComplainantEmpId})\nDepartment: {model.Department}\nStatus: InProgress\nForm ID: {grievanceId}\n\nPlease login to E-Management application and review the pending action.";
 
-                using var client = new SmtpClient(smtpHost, smtpPort)
-                {
-                    EnableSsl = enableSsl
-                };
-
-                if (!string.IsNullOrWhiteSpace(smtpUser))
-                {
-                    client.Credentials = new NetworkCredential(smtpUser, smtpPassword);
-                }
-
+                using var client = new SmtpClient(smtpHost, smtpPort) { EnableSsl = enableSsl };
+                if (!string.IsNullOrWhiteSpace(smtpUser)) client.Credentials = new NetworkCredential(smtpUser, smtpPassword);
                 await client.SendMailAsync(message);
             }
             catch (Exception ex)
@@ -312,11 +397,32 @@ namespace Maruwa_Emgmt.Controllers
             return HttpContext.Session.GetString("empName") ?? string.Empty;
         }
 
+        private string GetLoggedInDesignation()
+        {
+            var employeeDetails = HttpContext.Session.GetString("EmployeeDetails");
+            if (!string.IsNullOrWhiteSpace(employeeDetails))
+            {
+                try
+                {
+                    var employee = JsonSerializer.Deserialize<tblempmaster>(employeeDetails);
+                    if (!string.IsNullOrWhiteSpace(employee?.designation)) return employee.designation;
+                }
+                catch { }
+            }
+            return HttpContext.Session.GetString("designation") ?? HttpContext.Session.GetString("Designation") ?? HttpContext.Session.GetString("Role") ?? string.Empty;
+        }
+
         private bool IsHrUser()
         {
             var role = HttpContext.Session.GetString("Role") ?? string.Empty;
-            return role.Equals("HR", StringComparison.OrdinalIgnoreCase) ||
-                   role.Equals("HUMAN RESOURCE", StringComparison.OrdinalIgnoreCase) ||
+            var designation = GetLoggedInDesignation();
+            var combined = $"{role} {designation}".Trim().ToUpperInvariant();
+
+            return combined == "HR" ||
+                   combined.Contains(" HR") ||
+                   combined.Contains("HR ") ||
+                   combined.Contains("HUMAN RESOURCE") ||
+                   combined.Contains("EMPLOYEE RELATIONS") ||
                    role.Equals("ADMIN", StringComparison.OrdinalIgnoreCase);
         }
     }

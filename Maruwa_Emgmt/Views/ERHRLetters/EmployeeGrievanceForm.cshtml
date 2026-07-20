@@ -13,19 +13,19 @@
     }
 
     .egf-custom-modal {
-        max-width: 90vw !important;
-        width: 90vw !important;
+        max-width: 96vw !important;
+        width: 96vw !important;
     }
 
-        .egf-custom-modal .modal-content {
-            min-height: 85vh;
-        }
+    .egf-custom-modal .modal-content {
+        min-height: 88vh;
+    }
 
-        .egf-custom-modal .modal-body {
-            max-height: calc(85vh - 130px);
-            overflow-y: auto;
-            padding: 24px 28px;
-        }
+    .egf-custom-modal .modal-body {
+        max-height: calc(88vh - 130px);
+        overflow-y: auto;
+        padding: 24px 28px;
+    }
 
     .egf-title {
         text-align: center;
@@ -42,7 +42,8 @@
         margin-bottom: 10px;
     }
 
-    .egf-form-row label {
+    .egf-form-row label,
+    .hr-action-section label {
         font-size: 15px;
         font-weight: 600;
         color: #34446b;
@@ -87,11 +88,11 @@
         border: 1px solid #d3d3d3;
     }
 
-        .egf-checkbox-grid .col-md-4 {
-            border: 1px solid #d3d3d3;
-            padding: 10px 12px;
-            min-height: 45px;
-        }
+    .egf-checkbox-grid .col-md-4 {
+        border: 1px solid #d3d3d3;
+        padding: 10px 12px;
+        min-height: 45px;
+    }
 
     .egf-modal-footer {
         display: flex;
@@ -102,9 +103,9 @@
         padding: 16px 0 28px;
     }
 
-        .egf-modal-footer .btn {
-            min-width: 120px;
-        }
+    .egf-modal-footer .btn {
+        min-width: 120px;
+    }
 
     .signature-box {
         width: 100%;
@@ -125,7 +126,7 @@
         border-color: #0d6efd !important;
     }
 
-    #employeeSignatureCanvas {
+    .signature-canvas {
         width: 100%;
         height: 130px;
         display: block;
@@ -134,7 +135,7 @@
         background: #fff;
     }
 
-    #employeeSignatureCanvas.signature-disabled {
+    .signature-canvas.signature-disabled {
         cursor: default;
     }
 
@@ -142,7 +143,6 @@
         font-size: 12px;
         color: #6c757d;
     }
-
 
     .signature-action-row {
         display: flex;
@@ -175,7 +175,7 @@
         font-weight: 600;
     }
 
-    .view-only-note {
+    .view-only-note, .hr-only {
         display: none;
     }
 
@@ -183,24 +183,47 @@
         display: block;
     }
 
-    .modal-view-mode .save-only {
+    .modal-view-mode .employee-save-only {
         display: none !important;
+    }
+
+    .hr-list .hr-only {
+        display: table-cell;
+    }
+
+    .hr-action-section {
+        display: none;
+        border-top: 2px solid #24436d;
+        margin-top: 24px;
+        padding-top: 6px;
+    }
+
+    .hr-action-visible {
+        display: block;
+    }
+
+    .hr-remarks-textarea {
+        min-width: 240px;
+        min-height: 38px;
+        font-size: 12px;
     }
 
     @@media (max-width: 768px) {
         .egf-custom-modal {
-            max-width: 96vw !important;
-            width: 96vw !important;
+            max-width: 98vw !important;
+            width: 98vw !important;
         }
     }
 </style>
 
 <div class="container-fluid mt-3">
     @Html.AntiForgeryToken()
+    <input type="hidden" id="isHrUser" value="false" />
+
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <span>EMPLOYEE GRIEVANCE FORM</span>
-            <button type="button" class="btn btn-light btn-sm" onclick="openNewGrievanceForm()"><i class="bi bi-plus-circle"></i> Raise a New Complaint</button>
+            <button type="button" id="btnRaiseComplaint" class="btn btn-light btn-sm" onclick="openNewGrievanceForm()"><i class="bi bi-plus-circle"></i> Raise a New Complaint</button>
         </div>
         <div class="card-body">
             <div class="row mb-2 align-items-center">
@@ -220,7 +243,7 @@
                 <table class="table table-bordered table-hover table-sm" id="tblGrievance" style="font-size:13px;">
                     <thead class="bg-secondary text-white">
                         <tr>
-                            <th>View</th>
+                            <th style="width:60px;">View</th>
                             <th data-sort="ReferenceNo">Reference No</th>
                             <th data-sort="DateOfReport">Date of Report</th>
                             <th>Employee ID</th>
@@ -228,6 +251,7 @@
                             <th>Department</th>
                             <th>Complaint Summary</th>
                             <th data-sort="Status">Status</th>
+                            <th>Remarks</th>
                             <th data-sort="CreatedOn">Created On</th>
                         </tr>
                         <tr class="bg-light text-dark">
@@ -239,6 +263,7 @@
                             <th></th>
                             <th></th>
                             <th><input class="form-control form-control-sm column-search" data-field="status" /></th>
+                            <th></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -267,7 +292,7 @@
             <div class="modal-body">
                 <div class="egf-title">EMPLOYEE GRIEVANCE FORM</div>
                 <div class="egf-subtitle">Report of Workplace Complaint, Misconduct, or Breach of Company Policy</div>
-                <div class="alert alert-info view-only-note">View mode: this submitted form is read-only.</div>
+                <div class="alert alert-info view-only-note">View mode: the employee grievance form is read-only.</div>
                 <div id="formMessage" class="alert d-none"></div>
 
                 <form id="grievanceForm" class="egf-form">
@@ -335,13 +360,13 @@
                             <label>Department <small>(Code - Name)</small></label>
                             <input type="text" id="partyDepartment" class="form-control" readonly />
                         </div>
-                        <div class="col-md-1 save-only">
+                        <div class="col-md-1 employee-save-only">
                             <button type="button" class="btn btn-primary btn-sm mt-4" onclick="addInvolvedParty()">Add</button>
                         </div>
                     </div>
                     <div class="table-responsive mt-2">
                         <table class="table table-bordered table-sm" id="tblInvolvedParties">
-                            <thead class="bg-light"><tr><th>Employee ID</th><th>Employee Name</th><th>Position</th><th>Department (Code - Name)</th><th class="save-only">Remove</th></tr></thead>
+                            <thead class="bg-light"><tr><th>Employee ID</th><th>Employee Name</th><th>Position</th><th>Department (Code - Name)</th><th class="employee-save-only">Remove</th></tr></thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -371,7 +396,7 @@
                             <label>Supporting Documents Attached (photos, messages, medical report, CCTV request):</label><br />
                             <label class="mr-3"><input type="radio" name="supportDocsRadio" value="true" id="supportDocsYes" /> Yes</label>
                             <label><input type="radio" name="supportDocsRadio" value="false" id="supportDocsNo" checked /> No</label>
-                            <input type="file" id="supportingFiles" class="form-control mt-2 save-only" multiple style="display:none;" />
+                            <input type="file" id="supportingFiles" class="form-control mt-2 employee-save-only" multiple style="display:none;" />
                             <div id="supportingFilePreview" class="mt-2 small"></div>
                         </div>
                     </div>
@@ -386,11 +411,11 @@
                             <label>Employee Signature <span class="required-star">*</span></label>
                             <input type="hidden" id="employeeSignaturePath" name="EmployeeSignaturePath" />
                             <input type="hidden" id="employeeSignatureData" name="employeeSignatureData" />
-                            <div id="signatureBox" class="signature-box">
-                                <canvas id="employeeSignatureCanvas"></canvas>
+                            <div id="employeeSignatureBox" class="signature-box">
+                                <canvas id="employeeSignatureCanvas" class="signature-canvas"></canvas>
                             </div>
-                            <div id="signatureValidationMessage" class="text-danger mt-1 d-none">Employee signature is required.</div>
-                            <div class="mt-2 save-only signature-action-row">
+                            <div id="employeeSignatureValidationMessage" class="text-danger mt-1 d-none">Employee signature is required.</div>
+                            <div class="mt-2 employee-save-only signature-action-row">
                                 <button type="button" id="btnSaveEmployeeSignature" class="btn btn-success btn-sm" onclick="saveEmployeeSignaturePreview(true)">
                                     <i class="bi bi-check2-circle"></i> Save Signature
                                 </button>
@@ -399,7 +424,7 @@
                                 </button>
                                 <span class="signature-help-text">Draw signature with mouse or finger, then click Save Signature to preview it.</span>
                             </div>
-                            <div id="signatureSaveMessage" class="text-success mt-1 d-none signature-save-message">Signature saved. Preview shown below.</div>
+                            <div id="employeeSignatureSaveMessage" class="text-success mt-1 d-none signature-save-message">Signature saved. Preview shown below.</div>
                             <div id="employeeSignaturePreviewContainer" class="mt-2 d-none">
                                 <label class="mb-1">Signature Preview</label>
                                 <div class="signature-preview-box">
@@ -416,11 +441,132 @@
                             <input type="text" id="declarationDateDisplay" class="form-control" readonly />
                         </div>
                     </div>
+
+                    <div id="hrActionSection" class="hr-action-section">
+                        <div class="egf-card-header text-center">FOR HUMAN RESOURCE / EMPLOYEE RELATIONS USE ONLY</div>
+                        <input type="hidden" id="hrActionID" />
+                        <input type="hidden" id="hrActionGrievanceID" />
+                        <div class="row egf-form-row">
+                            <div class="col-md-2"><label>HR Id</label></div>
+                            <div class="col-md-4"><input type="text" id="hrEmpId" class="form-control hr-field" readonly /></div>
+                            <div class="col-md-2"><label>HR Name</label></div>
+                            <div class="col-md-4"><input type="text" id="hrName" class="form-control hr-field" readonly /></div>
+                        </div>
+                        <div class="row egf-form-row mt-2">
+                            <div class="col-md-2"><label>Case reference no.</label></div>
+                            <div class="col-md-4"><input type="text" id="hrCaseReferenceNo" class="form-control hr-field" readonly /></div>
+                            <div class="col-md-2"><label>Date</label></div>
+                            <div class="col-md-4"><input type="text" id="hrActionDate" class="form-control hr-field" readonly /></div>
+                        </div>
+                        <div class="row egf-form-row mt-2 align-items-end">
+                            <div class="col-md-3">
+                                <label>Employee ID</label>
+                                <input type="text" id="hrActionEmpSearch" class="form-control hr-edit-field" placeholder="Key in or search Emp Id" list="hrActionEmployeeOptions" />
+                                <input type="hidden" id="hrActionEmployeeId" />
+                                <datalist id="hrActionEmployeeOptions"></datalist>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Employee Name</label>
+                                <input type="text" id="hrActionEmployeeName" class="form-control hr-field" readonly />
+                            </div>
+                            <div class="col-md-3">
+                                <label>Position</label>
+                                <input type="text" id="hrActionPositionTitle" class="form-control hr-field" readonly />
+                            </div>
+                            <div class="col-md-2">
+                                <label>Department <small>(Code - Name)</small></label>
+                                <input type="text" id="hrActionDepartment" class="form-control hr-field" readonly />
+                            </div>
+                            <div class="col-md-1 hr-action-edit-only">
+                                <button type="button" class="btn btn-primary btn-sm mt-4" onclick="addHrActionEmployee()">Add</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive mt-2">
+                            <table class="table table-bordered table-sm" id="tblHrActionEmployee">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Employee ID</th>
+                                        <th>Employee Name</th>
+                                        <th>Position</th>
+                                        <th>Department (Code - Name)</th>
+                                        <th class="hr-action-edit-only">Remove</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                        <div class="row egf-form-row mt-3">
+                            <div class="col-md-12"><label>Investigation Summary:</label><textarea id="hrInvestigationSummary" class="form-control hr-edit-field"></textarea></div>
+                        </div>
+                        <div class="row egf-form-row mt-3">
+                            <div class="col-md-12"><label>Employee Explanation:</label><textarea id="hrEmployeeExplanation" class="form-control hr-edit-field"></textarea></div>
+                        </div>
+                        <div class="row egf-form-row mt-3">
+                            <div class="col-md-12"><label>Remarks / Comments:</label><textarea id="hrRemarks" class="form-control hr-edit-field" placeholder="Enter HR remarks/comments"></textarea></div>
+                        </div>
+
+                        <div class="row egf-form-row mt-3">
+                            <div class="col-md-12">
+                                <label>Outcome / Resolution:</label><br />
+                                <label class="mr-4"><input type="checkbox" id="hrOutcomeResolved" class="hr-edit-field" /> Resolved</label>
+                                <label class="mr-4"><input type="checkbox" id="hrOutcomeReferredToER" class="hr-edit-field" /> Referred to ER</label>
+                                <label class="mr-4"><input type="checkbox" id="hrOutcomeReferredToDomesticInquiry" class="hr-edit-field" /> Referred to Domestic Inquiry</label>
+                            </div>
+                        </div>
+                        <div class="row egf-form-row mt-2">
+                            <div class="col-md-12">
+                                <label>Type of Misconduct</label><br />
+                                <label class="mr-4"><input type="checkbox" id="hrMinorMisconduct" class="hr-edit-field" /> Minor</label>
+                                <label class="mr-2"><input type="checkbox" id="hrMajorMisconduct" class="hr-edit-field" /> Major:</label>
+                                <input type="text" id="hrMajorMisconductText" class="form-control d-inline-block hr-edit-field" style="max-width:420px;" />
+                            </div>
+                        </div>
+
+                        <div class="row egf-form-row mt-3">
+                            <div class="col-md-4">
+                                <label>HR Signature <span class="required-star hr-required-star">*</span></label>
+                                <input type="hidden" id="hrSignaturePath" />
+                                <input type="hidden" id="hrSignatureData" />
+                                <div id="hrSignatureBox" class="signature-box">
+                                    <canvas id="hrSignatureCanvas" class="signature-canvas"></canvas>
+                                </div>
+                                <div id="hrSignatureValidationMessage" class="text-danger mt-1 d-none">HR signature is required.</div>
+                                <div class="mt-2 signature-action-row hr-action-edit-only">
+                                    <button type="button" id="btnSaveHrSignature" class="btn btn-success btn-sm" onclick="saveHrSignaturePreview(true)">
+                                        <i class="bi bi-check2-circle"></i> Save Signature
+                                    </button>
+                                    <button type="button" id="btnClearHrSignature" class="btn btn-outline-secondary btn-sm" onclick="clearHrSignature()">
+                                        <i class="bi bi-eraser"></i> Clear Signature
+                                    </button>
+                                    <span class="signature-help-text">Draw HR signature with mouse or finger, then click Save Signature.</span>
+                                </div>
+                                <div id="hrSignatureSaveMessage" class="text-success mt-1 d-none signature-save-message">Signature saved. Preview shown below.</div>
+                                <div id="hrSignaturePreviewContainer" class="mt-2 d-none">
+                                    <label class="mb-1">HR Signature Preview</label>
+                                    <div class="signature-preview-box">
+                                        <img id="hrSignaturePreviewImg" alt="HR Signature Preview" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label>Emp Id</label>
+                                <input type="text" id="hrFooterEmpId" class="form-control hr-field" readonly />
+                                <label class="mt-2">Emp Name</label>
+                                <input type="text" id="hrFooterEmpName" class="form-control hr-field" readonly />
+                            </div>
+                            <div class="col-md-4">
+                                <label>Department</label>
+                                <input type="text" id="hrFooterDepartment" class="form-control hr-field" value="HUMAN RESOURCE" readonly />
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer egf-modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="bi bi-x-lg"></i> Cancel</button>
-                <button type="button" class="btn btn-primary save-only" onclick="saveEmployeeGrievance()"><i class="bi bi-save"></i> Submit</button>
+                <button type="button" id="btnEmployeeSubmit" class="btn btn-primary employee-save-only" onclick="saveEmployeeGrievance()"><i class="bi bi-save"></i> Submit</button>
+                <button type="button" id="btnHrSubmit" class="btn btn-primary hr-action-edit-only" onclick="saveHrAction()" style="display:none;"><i class="bi bi-save"></i> Submit HR Form</button>
             </div>
         </div>
     </div>

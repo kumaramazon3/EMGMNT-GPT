@@ -1,40 +1,8 @@
 /*
     Employee Grievance Form - DB Script
     Execute this script manually in the E-Management SQL Server database.
-    All application DB operations are performed through these stored procedures/functions.
+    All application DB operations are performed through stored procedures/functions only.
 */
-
-IF OBJECT_ID('dbo.EmployeeGrievanceAttachment', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.EmployeeGrievanceAttachment
-    (
-        AttachmentID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_EmployeeGrievanceAttachment PRIMARY KEY,
-        GrievanceID INT NOT NULL,
-        OriginalFileName NVARCHAR(260) NOT NULL,
-        StoredFileName NVARCHAR(260) NOT NULL,
-        FilePath NVARCHAR(1000) NOT NULL,
-        ContentType NVARCHAR(200) NULL,
-        SizeBytes BIGINT NULL,
-        UploadedBy NVARCHAR(100) NULL,
-        UploadedOn DATETIME2(0) NOT NULL CONSTRAINT DF_EmployeeGrievanceAttachment_UploadedOn DEFAULT SYSUTCDATETIME()
-    );
-END
-GO
-
-IF OBJECT_ID('dbo.EmployeeGrievanceInvolvedParty', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.EmployeeGrievanceInvolvedParty
-    (
-        PartyID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_EmployeeGrievanceInvolvedParty PRIMARY KEY,
-        GrievanceID INT NOT NULL,
-        EmployeeID NVARCHAR(100) NULL,
-        EmployeeName NVARCHAR(200) NULL,
-        PositionTitle NVARCHAR(200) NULL,
-        Department NVARCHAR(200) NULL,
-        CreatedOn DATETIME2(0) NOT NULL CONSTRAINT DF_EmployeeGrievanceInvolvedParty_CreatedOn DEFAULT SYSUTCDATETIME()
-    );
-END
-GO
 
 IF OBJECT_ID('dbo.EmployeeGrievanceComplaint', 'U') IS NULL
 BEGIN
@@ -72,12 +40,49 @@ BEGIN
         DeclarationEmployeeId NVARCHAR(100) NULL,
         DeclarationDate DATETIME2(0) NULL,
 
-        Status NVARCHAR(50) NOT NULL CONSTRAINT DF_EGF_Status DEFAULT 'Submitted',
+        Status NVARCHAR(50) NOT NULL CONSTRAINT DF_EGF_Status DEFAULT 'InProgress',
+        HRRemarks NVARCHAR(MAX) NULL,
         CreatedBy NVARCHAR(100) NULL,
         CreatedOn DATETIME2(0) NOT NULL CONSTRAINT DF_EGF_CreatedOn DEFAULT SYSUTCDATETIME(),
         EditedBy NVARCHAR(100) NULL,
         EditedOn DATETIME2(0) NULL,
         isActive BIT NOT NULL CONSTRAINT DF_EGF_isActive DEFAULT 1
+    );
+END
+GO
+
+IF COL_LENGTH('dbo.EmployeeGrievanceComplaint', 'HRRemarks') IS NULL
+    ALTER TABLE dbo.EmployeeGrievanceComplaint ADD HRRemarks NVARCHAR(MAX) NULL;
+GO
+
+IF OBJECT_ID('dbo.EmployeeGrievanceInvolvedParty', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.EmployeeGrievanceInvolvedParty
+    (
+        PartyID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_EmployeeGrievanceInvolvedParty PRIMARY KEY,
+        GrievanceID INT NOT NULL,
+        EmployeeID NVARCHAR(100) NULL,
+        EmployeeName NVARCHAR(200) NULL,
+        PositionTitle NVARCHAR(200) NULL,
+        Department NVARCHAR(200) NULL,
+        CreatedOn DATETIME2(0) NOT NULL CONSTRAINT DF_EmployeeGrievanceInvolvedParty_CreatedOn DEFAULT SYSUTCDATETIME()
+    );
+END
+GO
+
+IF OBJECT_ID('dbo.EmployeeGrievanceAttachment', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.EmployeeGrievanceAttachment
+    (
+        AttachmentID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_EmployeeGrievanceAttachment PRIMARY KEY,
+        GrievanceID INT NOT NULL,
+        OriginalFileName NVARCHAR(260) NOT NULL,
+        StoredFileName NVARCHAR(260) NOT NULL,
+        FilePath NVARCHAR(1000) NOT NULL,
+        ContentType NVARCHAR(200) NULL,
+        SizeBytes BIGINT NULL,
+        UploadedBy NVARCHAR(100) NULL,
+        UploadedOn DATETIME2(0) NOT NULL CONSTRAINT DF_EmployeeGrievanceAttachment_UploadedOn DEFAULT SYSUTCDATETIME()
     );
 END
 GO
@@ -91,8 +96,11 @@ BEGIN
         HREmpId NVARCHAR(100) NULL,
         HRName NVARCHAR(200) NULL,
         ActionDate DATETIME2(0) NOT NULL CONSTRAINT DF_EmployeeGrievanceHRAction_ActionDate DEFAULT SYSUTCDATETIME(),
+        ActionEmployeeId NVARCHAR(100) NULL,
+        ActionEmployeeName NVARCHAR(200) NULL,
         InvestigationSummary NVARCHAR(MAX) NULL,
         EmployeeExplanation NVARCHAR(MAX) NULL,
+        Remarks NVARCHAR(MAX) NULL,
         OutcomeResolved BIT NOT NULL CONSTRAINT DF_EGF_HR_OutcomeResolved DEFAULT 0,
         OutcomeReferredToER BIT NOT NULL CONSTRAINT DF_EGF_HR_OutcomeReferredToER DEFAULT 0,
         OutcomeReferredToDomesticInquiry BIT NOT NULL CONSTRAINT DF_EGF_HR_OutcomeReferredToDomesticInquiry DEFAULT 0,
@@ -100,13 +108,48 @@ BEGIN
         MajorMisconduct BIT NOT NULL CONSTRAINT DF_EGF_HR_MajorMisconduct DEFAULT 0,
         MajorMisconductText NVARCHAR(500) NULL,
         HRSignaturePath NVARCHAR(1000) NULL,
-        EmployeeSignaturePath NVARCHAR(1000) NULL,
         Department NVARCHAR(200) NULL,
         CreatedBy NVARCHAR(100) NULL,
         CreatedOn DATETIME2(0) NOT NULL CONSTRAINT DF_EGF_HR_CreatedOn DEFAULT SYSUTCDATETIME(),
         EditedBy NVARCHAR(100) NULL,
         EditedOn DATETIME2(0) NULL
     );
+END
+GO
+
+IF COL_LENGTH('dbo.EmployeeGrievanceHRAction', 'ActionEmployeeId') IS NULL
+    ALTER TABLE dbo.EmployeeGrievanceHRAction ADD ActionEmployeeId NVARCHAR(100) NULL;
+GO
+IF COL_LENGTH('dbo.EmployeeGrievanceHRAction', 'ActionEmployeeName') IS NULL
+    ALTER TABLE dbo.EmployeeGrievanceHRAction ADD ActionEmployeeName NVARCHAR(200) NULL;
+GO
+IF COL_LENGTH('dbo.EmployeeGrievanceHRAction', 'Remarks') IS NULL
+    ALTER TABLE dbo.EmployeeGrievanceHRAction ADD Remarks NVARCHAR(MAX) NULL;
+GO
+IF COL_LENGTH('dbo.EmployeeGrievanceHRAction', 'HRSignaturePath') IS NULL
+    ALTER TABLE dbo.EmployeeGrievanceHRAction ADD HRSignaturePath NVARCHAR(1000) NULL;
+GO
+
+IF OBJECT_ID('dbo.EmployeeGrievanceHRActionEmployee', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.EmployeeGrievanceHRActionEmployee
+    (
+        HRActionEmployeeID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_EmployeeGrievanceHRActionEmployee PRIMARY KEY,
+        HRActionID INT NOT NULL,
+        GrievanceID INT NOT NULL,
+        EmployeeID NVARCHAR(100) NULL,
+        EmployeeName NVARCHAR(200) NULL,
+        PositionTitle NVARCHAR(200) NULL,
+        Department NVARCHAR(200) NULL,
+        CreatedOn DATETIME2(0) NOT NULL CONSTRAINT DF_EGF_HRActionEmployee_CreatedOn DEFAULT SYSUTCDATETIME()
+    );
+END
+GO
+
+IF COL_LENGTH('dbo.EmployeeGrievanceHRAction', 'EmployeeSignaturePath') IS NOT NULL
+BEGIN
+    -- Old column kept if already exists; new implementation uses HRSignaturePath only.
+    PRINT 'EmployeeSignaturePath column exists from older script and will remain unused.';
 END
 GO
 
@@ -131,6 +174,21 @@ BEGIN
 END
 GO
 
+
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_EGFHRActionEmployee_EGFHRAction')
+BEGIN
+    ALTER TABLE dbo.EmployeeGrievanceHRActionEmployee
+    ADD CONSTRAINT FK_EGFHRActionEmployee_EGFHRAction FOREIGN KEY (HRActionID) REFERENCES dbo.EmployeeGrievanceHRAction(HRActionID);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_EGFHRActionEmployee_EGFComplaint')
+BEGIN
+    ALTER TABLE dbo.EmployeeGrievanceHRActionEmployee
+    ADD CONSTRAINT FK_EGFHRActionEmployee_EGFComplaint FOREIGN KEY (GrievanceID) REFERENCES dbo.EmployeeGrievanceComplaint(GrievanceID);
+END
+GO
+
 CREATE OR ALTER FUNCTION dbo.fn_EGF_GenerateReferenceNo(@ReportDate DATE)
 RETURNS NVARCHAR(30)
 AS
@@ -146,7 +204,6 @@ BEGIN
 END
 GO
 
-
 CREATE OR ALTER FUNCTION dbo.fn_EGF_FormatDepartment(@Department NVARCHAR(200))
 RETURNS NVARCHAR(500)
 AS
@@ -157,13 +214,14 @@ BEGIN
     IF @DeptCode = '' RETURN '';
     IF CHARINDEX(' - ', @DeptCode) > 0 RETURN @DeptCode;
 
-    -- First check the new DepartmentMaster table used by the Department Master screen.
-    SELECT TOP (1) @DeptName = LTRIM(RTRIM(ISNULL(DepartmentName, '')))
-    FROM dbo.DepartmentMaster
-    WHERE LTRIM(RTRIM(ISNULL(DepartmentCode, ''))) = @DeptCode;
+    IF OBJECT_ID('dbo.DepartmentMaster', 'U') IS NOT NULL
+    BEGIN
+        SELECT TOP (1) @DeptName = LTRIM(RTRIM(ISNULL(DepartmentName, '')))
+        FROM dbo.DepartmentMaster
+        WHERE LTRIM(RTRIM(ISNULL(DepartmentCode, ''))) = @DeptCode;
+    END
 
-    -- Fallback to the existing employee master department lookup table.
-    IF ISNULL(@DeptName, '') = ''
+    IF ISNULL(@DeptName, '') = '' AND OBJECT_ID('dbo.master_Department', 'U') IS NOT NULL
     BEGIN
         SELECT TOP (1) @DeptName = LTRIM(RTRIM(ISNULL(departmentName, '')))
         FROM dbo.master_Department
@@ -235,12 +293,13 @@ BEGIN
         DateOfReport,
         LEFT(ISNULL(IncidentDescription, ''), 200) AS GrievanceSummary,
         Status,
+        ISNULL(HRRemarks, '') AS HRRemarks,
         CreatedOn
     INTO #Filtered
     FROM dbo.EmployeeGrievanceComplaint
     WHERE isActive = 1
       AND (@IsHrUser = 1 OR ComplainantEmpId = @LoggedInEmpCode)
-      AND (@GlobalSearch IS NULL OR @GlobalSearch = '' OR ReferenceNo LIKE '%' + @GlobalSearch + '%' OR ComplainantEmpId LIKE '%' + @GlobalSearch + '%' OR ComplainantName LIKE '%' + @GlobalSearch + '%' OR Department LIKE '%' + @GlobalSearch + '%' OR dbo.fn_EGF_FormatDepartment(Department) LIKE '%' + @GlobalSearch + '%' OR Status LIKE '%' + @GlobalSearch + '%')
+      AND (@GlobalSearch IS NULL OR @GlobalSearch = '' OR ReferenceNo LIKE '%' + @GlobalSearch + '%' OR ComplainantEmpId LIKE '%' + @GlobalSearch + '%' OR ComplainantName LIKE '%' + @GlobalSearch + '%' OR Department LIKE '%' + @GlobalSearch + '%' OR dbo.fn_EGF_FormatDepartment(Department) LIKE '%' + @GlobalSearch + '%' OR Status LIKE '%' + @GlobalSearch + '%' OR ISNULL(HRRemarks, '') LIKE '%' + @GlobalSearch + '%')
       AND (@ReferenceNo IS NULL OR @ReferenceNo = '' OR ReferenceNo LIKE '%' + @ReferenceNo + '%')
       AND (@StatusFilter IS NULL OR @StatusFilter = '' OR Status LIKE '%' + @StatusFilter + '%');
 
@@ -319,7 +378,7 @@ BEGIN
                 @AbuseOfAuthority, @WorkingHoursIssue, @OtherComplaint, @OtherComplaintText,
                 @ConductDate, @ConductTime, @Location, @IncidentDescription, @Witnesses, @SupportingDocumentsAttached,
                 @DesiredOutcome, @EmployeeSignaturePath, @DeclarationEmployeeName, @DeclarationEmployeeId, ISNULL(@DeclarationDate, SYSUTCDATETIME()),
-                'Submitted', @EmployeeCode, SYSUTCDATETIME(), 1
+                'InProgress', @EmployeeCode, SYSUTCDATETIME(), 1
             );
 
             SET @GrievanceIDOut = SCOPE_IDENTITY();
@@ -445,6 +504,7 @@ BEGIN
         DeclarationEmployeeId,
         DeclarationDate,
         Status,
+        ISNULL(HRRemarks, '') AS HRRemarks,
         CreatedBy,
         CreatedOn,
         EditedBy,
@@ -486,9 +546,101 @@ CREATE OR ALTER PROCEDURE dbo.usp_EGF_GetHrAction
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT TOP (1) *
+    SELECT TOP (1)
+        HRActionID,
+        GrievanceID,
+        HREmpId,
+        HRName,
+        ActionDate,
+        ActionEmployeeId,
+        ActionEmployeeName,
+        InvestigationSummary,
+        EmployeeExplanation,
+        Remarks,
+        OutcomeResolved,
+        OutcomeReferredToER,
+        OutcomeReferredToDomesticInquiry,
+        MinorMisconduct,
+        MajorMisconduct,
+        MajorMisconductText,
+        HRSignaturePath,
+        Department
     FROM dbo.EmployeeGrievanceHRAction
     WHERE GrievanceID = @GrievanceID;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.usp_EGF_MarkViewedByHr
+    @GrievanceID INT,
+    @EmployeeCode NVARCHAR(100) = NULL,
+    @Status INT OUTPUT,
+    @Message NVARCHAR(500) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        UPDATE dbo.EmployeeGrievanceComplaint
+        SET Status = 'Viewed by HR',
+            EditedBy = @EmployeeCode,
+            EditedOn = SYSUTCDATETIME()
+        WHERE GrievanceID = @GrievanceID
+          AND isActive = 1
+          AND Status IN ('InProgress', 'Submitted');
+
+        SET @Status = 1;
+        SET @Message = 'Complaint status updated as Viewed by HR.';
+    END TRY
+    BEGIN CATCH
+        SET @Status = 0;
+        SET @Message = ERROR_MESSAGE();
+    END CATCH
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.usp_EGF_UpdateHrRemarks
+    @GrievanceID INT,
+    @HRRemarks NVARCHAR(MAX) = NULL,
+    @EmployeeCode NVARCHAR(100) = NULL,
+    @Status INT OUTPUT,
+    @Message NVARCHAR(500) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        UPDATE dbo.EmployeeGrievanceComplaint
+        SET HRRemarks = @HRRemarks,
+            EditedBy = @EmployeeCode,
+            EditedOn = SYSUTCDATETIME()
+        WHERE GrievanceID = @GrievanceID AND isActive = 1;
+
+        SET @Status = 1;
+        SET @Message = 'HR remarks updated successfully.';
+    END TRY
+    BEGIN CATCH
+        SET @Status = 0;
+        SET @Message = ERROR_MESSAGE();
+    END CATCH
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE dbo.usp_EGF_GetHrActionEmployees
+    @GrievanceID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        HRActionEmployeeID,
+        HRActionID,
+        GrievanceID,
+        EmployeeID,
+        EmployeeName,
+        PositionTitle,
+        Department
+    FROM dbo.EmployeeGrievanceHRActionEmployee
+    WHERE GrievanceID = @GrievanceID
+    ORDER BY HRActionEmployeeID;
 END
 GO
 
@@ -496,8 +648,12 @@ CREATE OR ALTER PROCEDURE dbo.usp_EGF_SaveHrAction
     @GrievanceID INT,
     @HREmpId NVARCHAR(100) = NULL,
     @HRName NVARCHAR(200) = NULL,
+    @ActionEmployeeId NVARCHAR(100) = NULL,
+    @ActionEmployeeName NVARCHAR(200) = NULL,
+    @HrActionEmployeesJson NVARCHAR(MAX) = NULL,
     @InvestigationSummary NVARCHAR(MAX) = NULL,
     @EmployeeExplanation NVARCHAR(MAX) = NULL,
+    @Remarks NVARCHAR(MAX) = NULL,
     @OutcomeResolved BIT = 0,
     @OutcomeReferredToER BIT = 0,
     @OutcomeReferredToDomesticInquiry BIT = 0,
@@ -505,7 +661,6 @@ CREATE OR ALTER PROCEDURE dbo.usp_EGF_SaveHrAction
     @MajorMisconduct BIT = 0,
     @MajorMisconductText NVARCHAR(500) = NULL,
     @HRSignaturePath NVARCHAR(1000) = NULL,
-    @EmployeeSignaturePath NVARCHAR(1000) = NULL,
     @Department NVARCHAR(200) = 'HUMAN RESOURCE',
     @EmployeeCode NVARCHAR(100) = NULL,
     @Status INT OUTPUT,
@@ -514,42 +669,85 @@ AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
+        DECLARE @HRActionID INT;
+
         IF EXISTS (SELECT 1 FROM dbo.EmployeeGrievanceHRAction WHERE GrievanceID = @GrievanceID)
         BEGIN
             UPDATE dbo.EmployeeGrievanceHRAction
             SET HREmpId = @HREmpId,
                 HRName = @HRName,
+                ActionEmployeeId = @ActionEmployeeId,
+                ActionEmployeeName = @ActionEmployeeName,
                 InvestigationSummary = @InvestigationSummary,
                 EmployeeExplanation = @EmployeeExplanation,
+                Remarks = @Remarks,
                 OutcomeResolved = @OutcomeResolved,
                 OutcomeReferredToER = @OutcomeReferredToER,
                 OutcomeReferredToDomesticInquiry = @OutcomeReferredToDomesticInquiry,
                 MinorMisconduct = @MinorMisconduct,
                 MajorMisconduct = @MajorMisconduct,
                 MajorMisconductText = @MajorMisconductText,
-                HRSignaturePath = @HRSignaturePath,
-                EmployeeSignaturePath = @EmployeeSignaturePath,
+                HRSignaturePath = ISNULL(@HRSignaturePath, HRSignaturePath),
                 Department = @Department,
                 EditedBy = @EmployeeCode,
                 EditedOn = SYSUTCDATETIME()
+            WHERE GrievanceID = @GrievanceID;
+
+            SELECT @HRActionID = HRActionID
+            FROM dbo.EmployeeGrievanceHRAction
             WHERE GrievanceID = @GrievanceID;
         END
         ELSE
         BEGIN
             INSERT INTO dbo.EmployeeGrievanceHRAction
-            (GrievanceID, HREmpId, HRName, InvestigationSummary, EmployeeExplanation, OutcomeResolved, OutcomeReferredToER, OutcomeReferredToDomesticInquiry, MinorMisconduct, MajorMisconduct, MajorMisconductText, HRSignaturePath, EmployeeSignaturePath, Department, CreatedBy)
+            (GrievanceID, HREmpId, HRName, ActionEmployeeId, ActionEmployeeName, InvestigationSummary, EmployeeExplanation, Remarks, OutcomeResolved, OutcomeReferredToER, OutcomeReferredToDomesticInquiry, MinorMisconduct, MajorMisconduct, MajorMisconductText, HRSignaturePath, Department, CreatedBy)
             VALUES
-            (@GrievanceID, @HREmpId, @HRName, @InvestigationSummary, @EmployeeExplanation, @OutcomeResolved, @OutcomeReferredToER, @OutcomeReferredToDomesticInquiry, @MinorMisconduct, @MajorMisconduct, @MajorMisconductText, @HRSignaturePath, @EmployeeSignaturePath, @Department, @EmployeeCode);
+            (@GrievanceID, @HREmpId, @HRName, @ActionEmployeeId, @ActionEmployeeName, @InvestigationSummary, @EmployeeExplanation, @Remarks, @OutcomeResolved, @OutcomeReferredToER, @OutcomeReferredToDomesticInquiry, @MinorMisconduct, @MajorMisconduct, @MajorMisconductText, @HRSignaturePath, @Department, @EmployeeCode);
+
+            SET @HRActionID = SCOPE_IDENTITY();
+        END
+
+        DELETE FROM dbo.EmployeeGrievanceHRActionEmployee
+        WHERE GrievanceID = @GrievanceID;
+
+        IF ISJSON(@HrActionEmployeesJson) = 1
+        BEGIN
+            INSERT INTO dbo.EmployeeGrievanceHRActionEmployee
+            (HRActionID, GrievanceID, EmployeeID, EmployeeName, PositionTitle, Department)
+            SELECT
+                @HRActionID,
+                @GrievanceID,
+                EmployeeID,
+                EmployeeName,
+                PositionTitle,
+                Department
+            FROM OPENJSON(@HrActionEmployeesJson)
+            WITH
+            (
+                EmployeeID NVARCHAR(100) '$.employeeID',
+                EmployeeName NVARCHAR(200) '$.employeeName',
+                PositionTitle NVARCHAR(200) '$.positionTitle',
+                Department NVARCHAR(200) '$.department'
+            ) J
+            WHERE NULLIF(LTRIM(RTRIM(EmployeeID)), '') IS NOT NULL;
+        END
+        ELSE IF NULLIF(LTRIM(RTRIM(ISNULL(@ActionEmployeeId, ''))), '') IS NOT NULL
+        BEGIN
+            INSERT INTO dbo.EmployeeGrievanceHRActionEmployee
+            (HRActionID, GrievanceID, EmployeeID, EmployeeName, PositionTitle, Department)
+            VALUES
+            (@HRActionID, @GrievanceID, @ActionEmployeeId, @ActionEmployeeName, NULL, NULL);
         END
 
         UPDATE dbo.EmployeeGrievanceComplaint
-        SET Status = CASE WHEN @OutcomeResolved = 1 THEN 'Resolved' WHEN @OutcomeReferredToDomesticInquiry = 1 THEN 'Referred to Domestic Inquiry' WHEN @OutcomeReferredToER = 1 THEN 'Referred to ER' ELSE Status END,
+        SET Status = 'Completed',
+            HRRemarks = @Remarks,
             EditedBy = @EmployeeCode,
             EditedOn = SYSUTCDATETIME()
-        WHERE GrievanceID = @GrievanceID;
+        WHERE GrievanceID = @GrievanceID AND isActive = 1;
 
         SET @Status = 1;
-        SET @Message = 'HR action saved successfully.';
+        SET @Message = 'HR action submitted successfully.';
     END TRY
     BEGIN CATCH
         SET @Status = 0;

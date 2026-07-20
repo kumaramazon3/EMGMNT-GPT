@@ -146,6 +146,34 @@ BEGIN
 END
 GO
 
+
+CREATE OR ALTER FUNCTION dbo.fn_EGF_FormatDepartment(@Department NVARCHAR(200))
+RETURNS NVARCHAR(500)
+AS
+BEGIN
+    DECLARE @DeptCode NVARCHAR(200) = LTRIM(RTRIM(ISNULL(@Department, '')));
+    DECLARE @DeptName NVARCHAR(200) = NULL;
+
+    IF @DeptCode = '' RETURN '';
+    IF CHARINDEX(' - ', @DeptCode) > 0 RETURN @DeptCode;
+
+    -- First check the new DepartmentMaster table used by the Department Master screen.
+    SELECT TOP (1) @DeptName = LTRIM(RTRIM(ISNULL(DepartmentName, '')))
+    FROM dbo.DepartmentMaster
+    WHERE LTRIM(RTRIM(ISNULL(DepartmentCode, ''))) = @DeptCode;
+
+    -- Fallback to the existing employee master department lookup table.
+    IF ISNULL(@DeptName, '') = ''
+    BEGIN
+        SELECT TOP (1) @DeptName = LTRIM(RTRIM(ISNULL(departmentName, '')))
+        FROM dbo.master_Department
+        WHERE LTRIM(RTRIM(ISNULL(departmentCode, ''))) = @DeptCode;
+    END
+
+    RETURN @DeptCode + CASE WHEN ISNULL(@DeptName, '') <> '' THEN ' - ' + @DeptName ELSE '' END;
+END
+GO
+
 CREATE OR ALTER PROCEDURE dbo.usp_EGF_SearchEmployee
     @SearchText NVARCHAR(100) = NULL
 AS
@@ -153,14 +181,14 @@ BEGIN
     SET NOCOUNT ON;
 
     SELECT TOP (25)
-        empCode AS EmpCode,
-        empName AS EmpName,
-        ISNULL(department, '') AS Department,
-        ISNULL(designation, '') AS PositionTitle,
-        ISNULL(emailID, '') AS EmailID
-    FROM dbo.empMaster
-    WHERE (@SearchText IS NULL OR @SearchText = '' OR empCode LIKE '%' + @SearchText + '%' OR empName LIKE '%' + @SearchText + '%')
-    ORDER BY empCode;
+        e.empCode AS EmpCode,
+        e.empName AS EmpName,
+        dbo.fn_EGF_FormatDepartment(e.department) AS Department,
+        ISNULL(e.designation, '') AS PositionTitle,
+        ISNULL(e.emailID, '') AS EmailID
+    FROM dbo.empMaster e
+    WHERE (@SearchText IS NULL OR @SearchText = '' OR e.empCode LIKE '%' + @SearchText + '%' OR e.empName LIKE '%' + @SearchText + '%')
+    ORDER BY e.empCode;
 END
 GO
 
@@ -171,13 +199,13 @@ BEGIN
     SET NOCOUNT ON;
 
     SELECT TOP (1)
-        empCode AS EmpCode,
-        empName AS EmpName,
-        ISNULL(department, '') AS Department,
-        ISNULL(designation, '') AS PositionTitle,
-        ISNULL(emailID, '') AS EmailID
-    FROM dbo.empMaster
-    WHERE empCode = @EmpCode;
+        e.empCode AS EmpCode,
+        e.empName AS EmpName,
+        dbo.fn_EGF_FormatDepartment(e.department) AS Department,
+        ISNULL(e.designation, '') AS PositionTitle,
+        ISNULL(e.emailID, '') AS EmailID
+    FROM dbo.empMaster e
+    WHERE e.empCode = @EmpCode;
 END
 GO
 
@@ -203,7 +231,7 @@ BEGIN
         ReferenceNo,
         ComplainantEmpId,
         ComplainantName,
-        Department,
+        dbo.fn_EGF_FormatDepartment(Department) AS Department,
         DateOfReport,
         LEFT(ISNULL(IncidentDescription, ''), 200) AS GrievanceSummary,
         Status,
@@ -212,7 +240,7 @@ BEGIN
     FROM dbo.EmployeeGrievanceComplaint
     WHERE isActive = 1
       AND (@IsHrUser = 1 OR ComplainantEmpId = @LoggedInEmpCode)
-      AND (@GlobalSearch IS NULL OR @GlobalSearch = '' OR ReferenceNo LIKE '%' + @GlobalSearch + '%' OR ComplainantEmpId LIKE '%' + @GlobalSearch + '%' OR ComplainantName LIKE '%' + @GlobalSearch + '%' OR Department LIKE '%' + @GlobalSearch + '%' OR Status LIKE '%' + @GlobalSearch + '%')
+      AND (@GlobalSearch IS NULL OR @GlobalSearch = '' OR ReferenceNo LIKE '%' + @GlobalSearch + '%' OR ComplainantEmpId LIKE '%' + @GlobalSearch + '%' OR ComplainantName LIKE '%' + @GlobalSearch + '%' OR Department LIKE '%' + @GlobalSearch + '%' OR dbo.fn_EGF_FormatDepartment(Department) LIKE '%' + @GlobalSearch + '%' OR Status LIKE '%' + @GlobalSearch + '%')
       AND (@ReferenceNo IS NULL OR @ReferenceNo = '' OR ReferenceNo LIKE '%' + @ReferenceNo + '%')
       AND (@StatusFilter IS NULL OR @StatusFilter = '' OR Status LIKE '%' + @StatusFilter + '%');
 
@@ -386,7 +414,42 @@ CREATE OR ALTER PROCEDURE dbo.usp_EGF_GetComplaintById
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT *
+
+    SELECT
+        GrievanceID,
+        ReferenceNo,
+        ComplainantEmpId,
+        ComplainantName,
+        dbo.fn_EGF_FormatDepartment(Department) AS Department,
+        PositionTitle,
+        DateOfReport,
+        UnfairTreatment,
+        HarassmentBullying,
+        WorkLapses,
+        PolicySopBreach,
+        OshaConcern,
+        SupervisorMisconduct,
+        AbuseOfAuthority,
+        WorkingHoursIssue,
+        OtherComplaint,
+        OtherComplaintText,
+        ConductDate,
+        ConductTime,
+        Location,
+        IncidentDescription,
+        Witnesses,
+        SupportingDocumentsAttached,
+        DesiredOutcome,
+        EmployeeSignaturePath,
+        DeclarationEmployeeName,
+        DeclarationEmployeeId,
+        DeclarationDate,
+        Status,
+        CreatedBy,
+        CreatedOn,
+        EditedBy,
+        EditedOn,
+        isActive
     FROM dbo.EmployeeGrievanceComplaint
     WHERE GrievanceID = @GrievanceID
       AND isActive = 1
@@ -399,7 +462,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_EGF_GetInvolvedParties
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT PartyID, GrievanceID, EmployeeID, EmployeeName, PositionTitle, Department
+    SELECT PartyID, GrievanceID, EmployeeID, EmployeeName, PositionTitle, dbo.fn_EGF_FormatDepartment(Department) AS Department
     FROM dbo.EmployeeGrievanceInvolvedParty
     WHERE GrievanceID = @GrievanceID
     ORDER BY PartyID;

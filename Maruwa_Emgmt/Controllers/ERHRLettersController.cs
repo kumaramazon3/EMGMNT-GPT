@@ -93,7 +93,7 @@ namespace Maruwa_Emgmt.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveEmployeeGrievance([FromForm] EmployeeGrievanceFormVm model, [FromForm] string? involvedPartiesJson, [FromForm] IFormFile? employeeSignatureFile, [FromForm] List<IFormFile>? supportingFiles)
+        public async Task<IActionResult> SaveEmployeeGrievance([FromForm] EmployeeGrievanceFormVm model, [FromForm] string? involvedPartiesJson, [FromForm] string? employeeSignatureData, [FromForm] List<IFormFile>? supportingFiles)
         {
             try
             {
@@ -128,9 +128,12 @@ namespace Maruwa_Emgmt.Controllers
                     model.InvolvedParties = JsonSerializer.Deserialize<List<EmployeeGrievanceInvolvedPartyVm>>(involvedPartiesJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
                 }
 
-                if (employeeSignatureFile != null && employeeSignatureFile.Length > 0)
+                if (string.IsNullOrWhiteSpace(employeeSignatureData) && string.IsNullOrWhiteSpace(model.EmployeeSignaturePath))
+                    return Json(new { success = false, message = "Employee signature is required. Please draw the signature inside the signature box." });
+
+                if (!string.IsNullOrWhiteSpace(employeeSignatureData))
                 {
-                    model.EmployeeSignaturePath = await SaveFileAsync(employeeSignatureFile, "signatures");
+                    model.EmployeeSignaturePath = await SaveBase64SignatureAsync(employeeSignatureData);
                 }
 
                 model.Attachments = new List<EmployeeGrievanceAttachmentVm>();
@@ -193,6 +196,48 @@ namespace Maruwa_Emgmt.Controllers
             }
 
             return $"/uploads/employee-grievance/{folderName}/{DateTime.Now:yyyyMMdd}/{storedFileName}";
+        }
+
+        private async Task<string> SaveBase64SignatureAsync(string signatureData)
+        {
+            if (string.IsNullOrWhiteSpace(signatureData))
+                throw new InvalidOperationException("Employee signature is required.");
+
+            var base64Data = signatureData.Trim();
+            var commaIndex = base64Data.IndexOf(',');
+            if (commaIndex >= 0)
+            {
+                base64Data = base64Data[(commaIndex + 1)..];
+            }
+
+            byte[] signatureBytes;
+            try
+            {
+                signatureBytes = Convert.FromBase64String(base64Data);
+            }
+            catch (FormatException)
+            {
+                throw new InvalidOperationException("Invalid employee signature format.");
+            }
+
+            if (signatureBytes.Length == 0)
+                throw new InvalidOperationException("Employee signature is required.");
+
+            var webRoot = _environment.WebRootPath;
+            if (string.IsNullOrWhiteSpace(webRoot))
+            {
+                webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            }
+
+            var dateFolder = DateTime.Now.ToString("yyyyMMdd");
+            var folder = Path.Combine(webRoot, "uploads", "employee-grievance", "signatures", dateFolder);
+            Directory.CreateDirectory(folder);
+
+            var storedFileName = $"{Guid.NewGuid():N}_employee-signature.png";
+            var physicalPath = Path.Combine(folder, storedFileName);
+            await System.IO.File.WriteAllBytesAsync(physicalPath, signatureBytes);
+
+            return $"/uploads/employee-grievance/signatures/{dateFolder}/{storedFileName}";
         }
 
         private async Task TrySendHrNotificationAsync(EmployeeGrievanceFormVm model, string referenceNo, int grievanceId)

@@ -106,12 +106,73 @@
             min-width: 120px;
         }
 
-    .signature-preview {
-        max-width: 260px;
-        max-height: 90px;
-        border: 1px solid #ddd;
-        padding: 4px;
+    .signature-box {
+        width: 100%;
+        max-width: 520px;
+        height: 135px;
+        border: 2px solid #42cef5;
+        border-radius: 6px;
         background: #fff;
+        overflow: hidden;
+    }
+
+    .signature-box.error-border {
+        border-color: #dc3545 !important;
+        background: #fff5f5;
+    }
+
+    .signature-box.valid-border {
+        border-color: #0d6efd !important;
+    }
+
+    #employeeSignatureCanvas {
+        width: 100%;
+        height: 130px;
+        display: block;
+        cursor: crosshair;
+        touch-action: none;
+        background: #fff;
+    }
+
+    #employeeSignatureCanvas.signature-disabled {
+        cursor: default;
+    }
+
+    .signature-help-text {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+
+    .signature-action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .signature-preview-box {
+        width: 100%;
+        max-width: 520px;
+        min-height: 90px;
+        border: 2px dashed #42cef5;
+        border-radius: 6px;
+        background: #fff;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .signature-preview-box img {
+        max-width: 100%;
+        max-height: 110px;
+        object-fit: contain;
+    }
+
+    .signature-save-message {
+        font-size: 12px;
+        font-weight: 600;
     }
 
     .view-only-note {
@@ -225,7 +286,7 @@
                         <div class="col-md-4"><input type="text" id="complainantName" name="ComplainantName" class="form-control" readonly /></div>
                     </div>
                     <div class="row egf-form-row mt-2">
-                        <div class="col-md-2"><label>Department</label></div>
+                        <div class="col-md-2"><label>Department <small>(Code - Name)</small></label></div>
                         <div class="col-md-4"><input type="text" id="department" name="Department" class="form-control" readonly /></div>
                         <div class="col-md-2"><label>Position / Title</label></div>
                         <div class="col-md-4"><input type="text" id="positionTitle" name="PositionTitle" class="form-control" readonly /></div>
@@ -271,7 +332,7 @@
                             <input type="text" id="partyPositionTitle" class="form-control" readonly />
                         </div>
                         <div class="col-md-2">
-                            <label>Department</label>
+                            <label>Department <small>(Code - Name)</small></label>
                             <input type="text" id="partyDepartment" class="form-control" readonly />
                         </div>
                         <div class="col-md-1 save-only">
@@ -280,7 +341,7 @@
                     </div>
                     <div class="table-responsive mt-2">
                         <table class="table table-bordered table-sm" id="tblInvolvedParties">
-                            <thead class="bg-light"><tr><th>Employee ID</th><th>Employee Name</th><th>Position</th><th>Department</th><th class="save-only">Remove</th></tr></thead>
+                            <thead class="bg-light"><tr><th>Employee ID</th><th>Employee Name</th><th>Position</th><th>Department (Code - Name)</th><th class="save-only">Remove</th></tr></thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -322,9 +383,29 @@
                     <p>I declare that the information provided in this form is true and accurate to the best of my knowledge.</p>
                     <div class="row egf-form-row">
                         <div class="col-md-4">
-                            <label>Employee Signature</label>
-                            <input type="file" id="employeeSignatureFile" class="form-control save-only" accept="image/*" />
-                            <div id="signaturePreview" class="mt-2"></div>
+                            <label>Employee Signature <span class="required-star">*</span></label>
+                            <input type="hidden" id="employeeSignaturePath" name="EmployeeSignaturePath" />
+                            <input type="hidden" id="employeeSignatureData" name="employeeSignatureData" />
+                            <div id="signatureBox" class="signature-box">
+                                <canvas id="employeeSignatureCanvas"></canvas>
+                            </div>
+                            <div id="signatureValidationMessage" class="text-danger mt-1 d-none">Employee signature is required.</div>
+                            <div class="mt-2 save-only signature-action-row">
+                                <button type="button" id="btnSaveEmployeeSignature" class="btn btn-success btn-sm" onclick="saveEmployeeSignaturePreview(true)">
+                                    <i class="bi bi-check2-circle"></i> Save Signature
+                                </button>
+                                <button type="button" id="btnClearEmployeeSignature" class="btn btn-outline-secondary btn-sm" onclick="clearEmployeeSignature()">
+                                    <i class="bi bi-eraser"></i> Clear Signature
+                                </button>
+                                <span class="signature-help-text">Draw signature with mouse or finger, then click Save Signature to preview it.</span>
+                            </div>
+                            <div id="signatureSaveMessage" class="text-success mt-1 d-none signature-save-message">Signature saved. Preview shown below.</div>
+                            <div id="employeeSignaturePreviewContainer" class="mt-2 d-none">
+                                <label class="mb-1">Signature Preview</label>
+                                <div class="signature-preview-box">
+                                    <img id="employeeSignaturePreviewImg" alt="Employee Signature Preview" />
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <label>Employee Name & Emp Id</label>

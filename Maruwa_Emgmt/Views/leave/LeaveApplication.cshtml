@@ -3,55 +3,326 @@
 }
 
 <style>
-    .leave-card { border-radius: 4px; }
-    .leave-title-bar { background:#d9d9d9; color:#000; font-weight:700; text-align:center; padding:8px; font-size:18px; }
-    .summary-label { font-weight:700; }
-    .cf-box { background:#ccff99; }
-    .annual-box { background:#ffff99; }
-    .medical-box { background:#ccffff; }
-    .balance-box { background:#d9d9d9; }
-    .leave-section-title { background:#2f7fbd; color:#fff; font-weight:700; padding:5px 8px; }
-    .leave-form-label { background:#b9d1ea; color:#000; font-weight:700; padding:9px 12px; min-height:42px; display:flex; align-items:center; }
-    .required-star { color:red; }
-    .error-border { border:2px solid #dc3545 !important; }
-    .valid-border { border:2px solid #1cc88a !important; }
-    .condition-card { background:#343a40; color:#fff; border:1px solid #dc3545; }
-    .btn-apply { min-width:145px; font-weight:700; }
-    .search-note { font-size:11px; color:#6c757d; margin-top:2px; }
-    .d-none-force { display:none !important; }
+    .leave-page-wrapper {
+        background: #f4f7fb;
+        padding: 14px 8px 24px 8px;
+    }
+
+    .leave-card {
+        border: 1px solid #dbe3ef;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(31, 45, 61, 0.10);
+        background: #ffffff;
+    }
+
+    .leave-title-bar {
+        background: linear-gradient(135deg, #2f5597, #4e73df);
+        color: #ffffff;
+        font-weight: 700;
+        text-align: center;
+        padding: 12px 10px;
+        font-size: 20px;
+        letter-spacing: .5px;
+        text-transform: uppercase;
+        border-bottom: 1px solid #27477f;
+    }
+
+    .leave-summary-panel {
+        padding: 16px;
+        background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+        border-bottom: 1px solid #dbe3ef;
+    }
+
+    .summary-card {
+        height: 100%;
+        background: #ffffff;
+        border: 2px solid #dbe3ef;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 5px 14px rgba(31, 45, 61, 0.08);
+    }
+
+    .summary-card-header {
+        color: #ffffff;
+        font-weight: 700;
+        text-align: center;
+        padding: 10px 12px;
+        font-size: 16px;
+        letter-spacing: .3px;
+    }
+
+    .summary-card-body {
+        padding: 12px 16px;
+    }
+
+    .summary-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 9px 0;
+        border-bottom: 1px dashed #d6deea;
+        color: #263b5e;
+        font-size: 14px;
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+    }
+
+    .summary-label {
+        font-weight: 700;
+    }
+
+    .summary-metric-label {
+        flex: 1;
+        font-weight: 600;
+    }
+
+    .summary-metric-value {
+        min-width: 58px;
+        text-align: center;
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-weight: 700;
+        border: 1px solid rgba(0,0,0,.08);
+        background: #ffffff;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+
+    .carry-card {
+        border-color: #8bd875;
+    }
+
+    .carry-card .summary-card-header {
+        background: linear-gradient(135deg, #4da83d, #8bd875);
+    }
+
+    .carry-card .summary-metric-value {
+        color: #287a20;
+        background: #f1fff0;
+    }
+
+    .annual-card {
+        border-color: #f1dc5d;
+    }
+
+    .annual-card .summary-card-header {
+        background: linear-gradient(135deg, #c5a600, #ffe66b);
+        color: #23375b;
+    }
+
+    .annual-card .summary-metric-value {
+        color: #816700;
+        background: #fffbea;
+    }
+
+    .medical-card {
+        border-color: #75d7df;
+    }
+
+    .medical-card .summary-card-header {
+        background: linear-gradient(135deg, #2291a3, #75d7df);
+    }
+
+    .medical-card .summary-metric-value {
+        color: #167385;
+        background: #effcff;
+    }
+
+    .total-balance-card {
+        margin-top: 14px;
+        border: 1px solid #c8d3e3;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #eef3fb, #ffffff);
+        color: #223a5e;
+        padding: 10px 14px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 700;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+
+    .total-balance-card span {
+        display: inline-block;
+        margin-left: 12px;
+        padding: 3px 18px;
+        border-radius: 18px;
+        background: #2f5597;
+        color: #ffffff;
+        min-width: 70px;
+    }
+
+    .leave-section-title {
+        background: linear-gradient(135deg, #2f5597, #2f7fbd);
+        color: #ffffff;
+        font-weight: 700;
+        padding: 9px 14px;
+        letter-spacing: .2px;
+        border-top: 1px solid #224274;
+        border-bottom: 1px solid #224274;
+    }
+
+    .new-leave-body {
+        border: 1px solid #dbe3ef;
+        border-top: none;
+        background: #ffffff;
+    }
+
+    .leave-form-label {
+        background: #d9e8f7;
+        color: #1f355b;
+        font-weight: 700;
+        padding: 10px 12px;
+        min-height: 46px;
+        display: flex;
+        align-items: center;
+        border-right: 1px solid #c5d6ea;
+        border-bottom: 1px solid #dbe3ef;
+    }
+
+    .form-row.no-gutters > .p-2,
+    .form-row.no-gutters > .bg-light {
+        border-bottom: 1px solid #e6ecf5;
+    }
+
+    .form-control {
+        border: 2px solid #2fc3f2;
+        border-radius: 7px;
+        color: #495057;
+        min-height: 38px;
+    }
+
+    .form-control:focus {
+        border-color: #1a73e8;
+        box-shadow: 0 0 0 0.15rem rgba(26, 115, 232, .15);
+    }
+
+    .required-star { color: red; margin-left: 3px; }
+    .error-border { border: 2px solid #dc3545 !important; }
+    .valid-border { border: 2px solid #1cc88a !important; }
+
+    .condition-card {
+        background: linear-gradient(135deg, #243b55, #141e30);
+        color: #ffffff;
+        border: 1px solid #1b2e4a;
+        border-radius: 12px;
+        box-shadow: 0 5px 14px rgba(31, 45, 61, 0.18);
+    }
+
+    .condition-card h5 {
+        color: #ffffff;
+        border-bottom: 1px solid rgba(255,255,255,.25);
+        padding-bottom: 8px;
+    }
+
+    .employee-info-card {
+        border: 1px solid #dbe3ef;
+        border-radius: 12px;
+        padding: 14px;
+        background: #f8fbff;
+        color: #263b5e;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+    }
+
+    .pic-heading {
+        background: #c7daf0;
+        color: #1f355b;
+        font-weight: 700;
+        padding: 10px 12px;
+        border: 1px solid #b8cce2;
+        border-radius: 6px 6px 0 0;
+    }
+
+    .btn-apply {
+        min-width: 150px;
+        font-weight: 700;
+        border-width: 2px;
+    }
+
+    .search-note { font-size: 11px; color: #6c757d; margin-top: 4px; }
+    .d-none-force { display: none !important; }
+
+    @@media (max-width: 767.98px) {
+        .leave-form-label { border-right: none; }
+        .leave-summary-panel { padding: 10px; }
+        .summary-card { margin-bottom: 12px; }
+    }
 </style>
 
-<div class="container-fluid mt-3">
+<div class="container-fluid mt-3 leave-page-wrapper">
     <div class="card shadow leave-card">
         <div class="card-body p-0">
             <div class="leave-title-bar">LEAVE APPLICATION</div>
 
-            <div class="row no-gutters">
-                <div class="col-md-7">
-                    <div class="p-3 cf-box">
-                        <div class="row mb-2"><div class="col-md-5 summary-label">Carry Forward Leave</div><div class="col-md-5">Total Carry Forward</div><div class="col-md-2 font-weight-bold" id="carryForwardTotal">0</div></div>
-                        <div class="row mb-2"><div class="col-md-5"></div><div class="col-md-5">Utilised</div><div class="col-md-2 font-weight-bold" id="carryForwardUtilised">0</div></div>
-                        <div class="row"><div class="col-md-5"></div><div class="col-md-5">Balance</div><div class="col-md-2 font-weight-bold" id="carryForwardBalance">0</div></div>
+            <div class="leave-summary-panel">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 mb-3 mb-lg-0">
+                        <div class="summary-card carry-card">
+                            <div class="summary-card-header">Carry Forward Leave</div>
+                            <div class="summary-card-body">
+                                <div class="summary-row">
+                                    <span class="summary-metric-label">Total Carry Forward</span>
+                                    <span class="summary-metric-value" id="carryForwardTotal">0</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-metric-label">Utilised</span>
+                                    <span class="summary-metric-value" id="carryForwardUtilised">0</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-metric-label">Balance</span>
+                                    <span class="summary-metric-value" id="carryForwardBalance">0</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-3 annual-box">
-                        <div class="row mb-2"><div class="col-md-5 summary-label">Annual Leave</div><div class="col-md-5">Entitlement</div><div class="col-md-2 font-weight-bold" id="annualEntitlement">0</div></div>
-                        <div class="row mb-2"><div class="col-md-5"></div><div class="col-md-5">Utilised</div><div class="col-md-2 font-weight-bold" id="annualUtilised">0</div></div>
-                        <div class="row"><div class="col-md-5"></div><div class="col-md-5">Balance</div><div class="col-md-2 font-weight-bold" id="annualBalance">0</div></div>
+                    <div class="col-lg-4 col-md-6 mb-3 mb-lg-0">
+                        <div class="summary-card annual-card">
+                            <div class="summary-card-header">Annual Leave</div>
+                            <div class="summary-card-body">
+                                <div class="summary-row">
+                                    <span class="summary-metric-label">Entitlement</span>
+                                    <span class="summary-metric-value" id="annualEntitlement">0</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-metric-label">Utilised</span>
+                                    <span class="summary-metric-value" id="annualUtilised">0</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-metric-label">Balance</span>
+                                    <span class="summary-metric-value" id="annualBalance">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12">
+                        <div class="summary-card medical-card">
+                            <div class="summary-card-header">My Leave Summary</div>
+                            <div class="summary-card-body">
+                                <div class="summary-row">
+                                    <span class="summary-metric-label">Medical Leave Entitlement</span>
+                                    <span class="summary-metric-value" id="medicalEntitlement">0</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-metric-label">Medical Leave Utilised</span>
+                                    <span class="summary-metric-value" id="medicalUtilised">0</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-metric-label">Medical Leave Balance</span>
+                                    <span class="summary-metric-value" id="medicalBalance">0</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-5 medical-box p-3">
-                    <h5 class="text-center font-weight-bold mt-3 mb-4">My Leave Summary</h5>
-                    <div class="row mb-3"><div class="col-md-6 summary-label">Medical Leave</div><div class="col-md-4">Entitlement</div><div class="col-md-2 font-weight-bold" id="medicalEntitlement">0</div></div>
-                    <div class="row mb-3"><div class="col-md-6"></div><div class="col-md-4">Utilised</div><div class="col-md-2 font-weight-bold" id="medicalUtilised">0</div></div>
-                    <div class="row"><div class="col-md-6"></div><div class="col-md-4">Balance</div><div class="col-md-2 font-weight-bold" id="medicalBalance">0</div></div>
+                <div class="total-balance-card">
+                    Total Entitlement Balance <span id="totalEntitlementBalance">0</span>
                 </div>
             </div>
-
-            <div class="balance-box text-center p-2 font-weight-bold">Total Entitlement Balance&nbsp;&nbsp;<span id="totalEntitlementBalance">0</span></div>
-
             <div class="leave-section-title mt-4">New Leave Details</div>
             <input type="hidden" id="editAppNo" value="" />
-            <div class="row no-gutters p-0">
+            <div class="row no-gutters p-0 new-leave-body">
                 <div class="col-md-7">
                     <div class="form-row no-gutters">
                         <div class="col-md-3 leave-form-label">Leave App No</div>
@@ -87,7 +358,7 @@
                         </div>
                     </div>
                     <div id="picBlock">
-                        <div class="leave-form-label mt-2">Person in Charge When You are in Leave ! (One PIC is Must)</div>
+                        <div class="pic-heading mt-2">Person in Charge When You are in Leave ! (One PIC is Must)</div>
                         <div class="form-row no-gutters">
                             <div class="col-md-3 leave-form-label">Person in Charge 1 <span class="required-star">*</span></div>
                             <div class="col-md-9 p-2">
@@ -110,7 +381,7 @@
                     </div>
                 </div>
                 <div class="col-md-5 p-3">
-                    <div class="mb-3">
+                    <div class="mb-3 employee-info-card">
                         <h6 class="font-weight-bold mb-2">Employee Details</h6>
                         <div><b>Name:</b> <span id="empName"></span></div>
                         <div><b>Department / Section:</b> <span id="department"></span></div>

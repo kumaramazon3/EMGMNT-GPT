@@ -1,0 +1,147 @@
+@{
+    ViewData["Title"] = "Leave Application";
+}
+
+<style>
+    .leave-card { border-radius: 4px; }
+    .leave-title-bar { background:#d9d9d9; color:#000; font-weight:700; text-align:center; padding:8px; font-size:18px; }
+    .summary-label { font-weight:700; }
+    .cf-box { background:#ccff99; }
+    .annual-box { background:#ffff99; }
+    .medical-box { background:#ccffff; }
+    .balance-box { background:#d9d9d9; }
+    .leave-section-title { background:#2f7fbd; color:#fff; font-weight:700; padding:5px 8px; }
+    .leave-form-label { background:#b9d1ea; color:#000; font-weight:700; padding:9px 12px; min-height:42px; display:flex; align-items:center; }
+    .required-star { color:red; }
+    .error-border { border:2px solid #dc3545 !important; }
+    .valid-border { border:2px solid #1cc88a !important; }
+    .condition-card { background:#343a40; color:#fff; border:1px solid #dc3545; }
+    .btn-apply { min-width:145px; font-weight:700; }
+    .search-note { font-size:11px; color:#6c757d; margin-top:2px; }
+    .d-none-force { display:none !important; }
+</style>
+
+<div class="container-fluid mt-3">
+    <div class="card shadow leave-card">
+        <div class="card-body p-0">
+            <div class="leave-title-bar">LEAVE APPLICATION</div>
+
+            <div class="row no-gutters">
+                <div class="col-md-7">
+                    <div class="p-3 cf-box">
+                        <div class="row mb-2"><div class="col-md-5 summary-label">Carry Forward Leave</div><div class="col-md-5">Total Carry Forward</div><div class="col-md-2 font-weight-bold" id="carryForwardTotal">0</div></div>
+                        <div class="row mb-2"><div class="col-md-5"></div><div class="col-md-5">Utilised</div><div class="col-md-2 font-weight-bold" id="carryForwardUtilised">0</div></div>
+                        <div class="row"><div class="col-md-5"></div><div class="col-md-5">Balance</div><div class="col-md-2 font-weight-bold" id="carryForwardBalance">0</div></div>
+                    </div>
+                    <div class="p-3 annual-box">
+                        <div class="row mb-2"><div class="col-md-5 summary-label">Annual Leave</div><div class="col-md-5">Entitlement</div><div class="col-md-2 font-weight-bold" id="annualEntitlement">0</div></div>
+                        <div class="row mb-2"><div class="col-md-5"></div><div class="col-md-5">Utilised</div><div class="col-md-2 font-weight-bold" id="annualUtilised">0</div></div>
+                        <div class="row"><div class="col-md-5"></div><div class="col-md-5">Balance</div><div class="col-md-2 font-weight-bold" id="annualBalance">0</div></div>
+                    </div>
+                </div>
+                <div class="col-md-5 medical-box p-3">
+                    <h5 class="text-center font-weight-bold mt-3 mb-4">My Leave Summary</h5>
+                    <div class="row mb-3"><div class="col-md-6 summary-label">Medical Leave</div><div class="col-md-4">Entitlement</div><div class="col-md-2 font-weight-bold" id="medicalEntitlement">0</div></div>
+                    <div class="row mb-3"><div class="col-md-6"></div><div class="col-md-4">Utilised</div><div class="col-md-2 font-weight-bold" id="medicalUtilised">0</div></div>
+                    <div class="row"><div class="col-md-6"></div><div class="col-md-4">Balance</div><div class="col-md-2 font-weight-bold" id="medicalBalance">0</div></div>
+                </div>
+            </div>
+
+            <div class="balance-box text-center p-2 font-weight-bold">Total Entitlement Balance&nbsp;&nbsp;<span id="totalEntitlementBalance">0</span></div>
+
+            <div class="leave-section-title mt-4">New Leave Details</div>
+            <input type="hidden" id="editAppNo" value="" />
+            <div class="row no-gutters p-0">
+                <div class="col-md-7">
+                    <div class="form-row no-gutters">
+                        <div class="col-md-3 leave-form-label">Leave App No</div>
+                        <div class="col-md-9 p-2 bg-light"><input type="text" id="leaveAppNo" class="form-control" value="Auto Generated" readonly /></div>
+                    </div>
+                    <div class="form-row no-gutters">
+                        <div class="col-md-3 leave-form-label">Leave Type <span class="required-star">*</span></div>
+                        <div class="col-md-9 p-2">
+                            <input type="text" id="leaveTypeSearch" class="form-control mb-2" list="leaveTypeOptions" placeholder="Key in or search Leave Type" autocomplete="off" />
+                            <datalist id="leaveTypeOptions"></datalist>
+                            <select id="leaveType" class="form-control"><option value="">- Select Leave type -</option></select>
+                            <div class="search-note">Search by leave type code or leave type name, then select from the existing dropdown.</div>
+                        </div>
+                    </div>
+                    <div class="form-row no-gutters">
+                        <div class="col-md-3 leave-form-label">Leave Period <span class="required-star">*</span></div>
+                        <div class="col-md-9 p-2 d-flex align-items-center"><input type="date" id="fromDate" class="form-control mr-2" /><span>~</span><input type="date" id="toDate" class="form-control ml-2" /></div>
+                    </div>
+                    <div class="form-row no-gutters">
+                        <div class="col-md-3 leave-form-label">Half-Day Leave</div>
+                        <div class="col-md-9 p-2 d-flex align-items-center"><input type="checkbox" id="isHalfDay" class="mr-2" /><select id="halfDayLeave" class="form-control" disabled><option value="">-Select Half Day Leave Time -</option></select></div>
+                    </div>
+                    <div class="form-row no-gutters">
+                        <div class="col-md-3 leave-form-label">Leave Days <span class="required-star">*</span></div>
+                        <div class="col-md-9 p-2"><input type="number" id="leaveDays" step="0.5" min="0.5" class="form-control" readonly /><span id="leaveDaysError" class="text-danger small"></span></div>
+                    </div>
+                    <div class="form-row no-gutters">
+                        <div class="col-md-3 leave-form-label">Reason <span class="required-star">*</span></div>
+                        <div class="col-md-9 p-2">
+                            <select id="reason" class="form-control mb-2"><option value="">-Select-</option></select>
+                            <textarea id="reasonText" class="form-control" rows="2" placeholder="Enter reason"></textarea>
+                            <div class="search-note" id="reasonLogicNote">For Medical Leave use dropdown. For other leave types enter reason in text box.</div>
+                        </div>
+                    </div>
+                    <div id="picBlock">
+                        <div class="leave-form-label mt-2">Person in Charge When You are in Leave ! (One PIC is Must)</div>
+                        <div class="form-row no-gutters">
+                            <div class="col-md-3 leave-form-label">Person in Charge 1 <span class="required-star">*</span></div>
+                            <div class="col-md-9 p-2">
+                                <input type="text" id="personInCharge1Search" class="form-control" list="personInChargeOptions" placeholder="Key in or search Emp Id / Name" />
+                                <input type="hidden" id="personInCharge1" />
+                            </div>
+                        </div>
+                        <div class="form-row no-gutters">
+                            <div class="col-md-3 leave-form-label">Person in Charge 2</div>
+                            <div class="col-md-9 p-2">
+                                <input type="text" id="personInCharge2Search" class="form-control" list="personInChargeOptions" placeholder="Key in or search Emp Id / Name" />
+                                <input type="hidden" id="personInCharge2" />
+                            </div>
+                        </div>
+                        <datalist id="personInChargeOptions"></datalist>
+                    </div>
+                    <div class="text-center my-3">
+                        <button type="button" id="btnApplyLeave" class="btn btn-outline-dark btn-apply">APPLY LEAVE</button>
+                        <a href="~/leave/LeaveSelfStatus" class="btn btn-outline-secondary ml-2">Self Status</a>
+                    </div>
+                </div>
+                <div class="col-md-5 p-3">
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold mb-2">Employee Details</h6>
+                        <div><b>Name:</b> <span id="empName"></span></div>
+                        <div><b>Department / Section:</b> <span id="department"></span></div>
+                        <div><b>Designation:</b> <span id="designation"></span></div>
+                    </div>
+                    <div class="condition-card p-3">
+                        <h5 class="font-weight-bold text-decoration-underline mb-3">Conditions For Applying Annual Leave</h5>
+                        <ol class="pl-3 mb-0">
+                            <li>For Half a day - Should apply one day before</li>
+                            <li>For one day - Should apply three days before</li>
+                            <li>More than one day - Should apply seven days before</li>
+                            <li>Emergency leave can be applied prior, same day, or within 3 days after resuming work.</li>
+                            <li>Company Holiday should be applied one month before leave date.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="leaveResultModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white"><h5 class="modal-title" id="leaveResultModalLabel">Leave Submission</h5><button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button></div>
+            <div class="modal-body" id="leaveResultMessage"></div>
+            <div class="modal-footer"><button type="button" class="btn btn-primary" data-dismiss="modal">OK</button></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/leaves/jsLeaveApplication.js" asp-append-version="true"></script>
+}

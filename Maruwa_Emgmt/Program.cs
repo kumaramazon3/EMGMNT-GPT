@@ -105,8 +105,10 @@ builder.Services.AddScoped<bll_skmdata>();// BLL
 #endregion
 
 #region Leaves
-builder.Services.AddScoped<i_leave, da_leave>();// DAL
-builder.Services.AddScoped<bll_leave>();// BLL
+builder.Services.AddScoped<i_leave, da_leave>();// Existing DAL
+builder.Services.AddScoped<bll_leave>();// Existing BLL
+builder.Services.AddScoped<i_LeaveApplication, da_LeaveApplication>();// ADO.NET DAL
+builder.Services.AddScoped<bll_LeaveApplication>();// BLL
 #endregion
 
 

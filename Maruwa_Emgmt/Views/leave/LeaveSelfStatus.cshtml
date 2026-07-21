@@ -1,0 +1,76 @@
+@{
+    ViewData["Title"] = "Leave Self Status";
+}
+
+<style>
+    .leave-status-card { border-radius:4px; }
+    .leave-status-title { background:#4e73df; color:#fff; padding:14px 18px; font-size:20px; font-weight:600; }
+    #tblLeaveSelfStatus th { background:#858796; color:#fff; white-space:nowrap; }
+    #tblLeaveSelfStatus td { vertical-align:middle; }
+    .status-scheduled { color:#d39e00; font-weight:700; }
+    .status-approved { color:#1cc88a; font-weight:700; }
+    .status-rejected, .status-cancelled { color:#e74a3b; font-weight:700; }
+</style>
+
+<div class="container-fluid mt-3">
+    <div class="card shadow leave-status-card">
+        <div class="leave-status-title d-flex justify-content-between align-items-center">
+            <span>My Leave History / Status</span>
+            <a class="btn btn-light btn-sm" href="~/leave/LeaveApplication"><i class="fa fa-plus-circle"></i> Apply Leave</a>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-2">
+                    <select id="pageSizeSelect" class="form-control">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" id="globalSearch" class="form-control" placeholder="Global search by app no, type, reason, status" />
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm" id="tblLeaveSelfStatus" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>App No</th>
+                            <th>Applied On</th>
+                            <th>No. of Days</th>
+                            <th>Applied Dates</th>
+                            <th>Type</th>
+                            <th>Reason</th>
+                            <th>Remarks</th>
+                            <th>Approved By</th>
+                            <th>Approved Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                        <tr>
+                            <th><input class="form-control form-control-sm column-search" data-field="appNo" /></th>
+                            <th></th><th></th><th></th>
+                            <th><input class="form-control form-control-sm column-search" data-field="leaveType" /></th>
+                            <th></th><th></th><th></th><th></th>
+                            <th><input class="form-control form-control-sm column-search" data-field="status" /></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div id="recordInfo" class="font-weight-bold">Total Records: 0</div>
+                <div>
+                    <button id="btnPrev" class="btn btn-outline-secondary btn-sm">Prev</button>
+                    <span id="pageInfo" class="mx-2">Page 1 of 1</span>
+                    <button id="btnNext" class="btn btn-outline-secondary btn-sm">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/leaves/jsLeaveSelfStatus.js" asp-append-version="true"></script>
+}

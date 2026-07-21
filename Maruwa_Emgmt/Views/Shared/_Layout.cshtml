@@ -182,25 +182,22 @@
                 </div>
             </li>
             
-            @if (role == "DIRECTOR" || role == "MANAGER" || role == "GM")
-            {
-                <hr class="sidebar-divider" style="display:none;">
-                <li class="nav-item" style="display:none;">
-                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#leaveData"
-                           aria-expanded="true" aria-controls="leaveData">
-                        <i class="fas fa-user-clock"></i>
-                        <span>leave</span>
-                    </a>
-                    <div id="leaveData" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                        <div class="bg-white py-2 collapse-inner rounded">
-                            <a class="collapse-item" href="~/leave/leaveFrm">Leave Application</a>
-                            <a class="collapse-item" href="~/leave/leavelst">Leave HOD Approval</a>
-                        </div>
+            <!-- Leave -->
+            <li class="nav-item active">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#leaveData"
+                   aria-expanded="true" aria-controls="leaveData">
+                    <i class="fas fa-user-clock"></i>
+                    <span>Leave</span>
+                </a>
+                <div id="leaveData" class="collapse" aria-labelledby="headingLeave" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="~/leave/LeaveApplication">Leave Application</a>
+                        <a class="collapse-item" href="~/leave/LeaveSelfStatus">Leave Self Status</a>
                     </div>
-                </li>
-            }
+                </div>
+            </li>
 
-            <hr class="sidebar-divider d-none d-md-block">
+                        <hr class="sidebar-divider d-none d-md-block">
 
             <div class="text-center d-none d-md-inline">
                 <button class="rounded-circle border-0" id="sidebarToggle"></button>

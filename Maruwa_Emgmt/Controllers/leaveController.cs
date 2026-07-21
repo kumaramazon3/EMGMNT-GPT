@@ -1,248 +1,150 @@
-﻿using Maruwa_Emgmt.BAL;
 using Maruwa_Emgmt.BAL.Leave;
 using Maruwa_Emgmt.Models;
 using Maruwa_Emgmt.Models.Leave;
-using Maruwa_Emgmt.Models.master;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace Maruwa_Emgmt.Controllers
 {
     public class leaveController : Controller
     {
-        private readonly bll_leave _leaveBLL;
-        private readonly bal_tbldropdownData _dropdownBal;
-        public leaveController(bll_leave leaveBLL, bal_tbldropdownData dropdownBal)
+        private readonly bll_LeaveApplication _leaveBLL;
+
+        public leaveController(bll_LeaveApplication leaveBLL)
         {
             _leaveBLL = leaveBLL;
-            _dropdownBal = dropdownBal;
+        }
+
+        public IActionResult LeaveApplication()
+        {
+            return View();
+        }
+
+        public IActionResult LeaveSelfStatus()
+        {
+            return View();
+        }
+
+        public IActionResult leaveFrm()
+        {
+            return RedirectToAction(nameof(LeaveApplication));
+        }
+
+        public IActionResult Selfstatus()
+        {
+            return RedirectToAction(nameof(LeaveSelfStatus));
         }
 
         public IActionResult leavelst()
         {
-            return View();
-        }
-     
-        #region Page Load Data
-
-        [HttpGet]
-        public async Task<IActionResult> Getmaster_Department()
-        {
-            IEnumerable<master_LeaveType> empList = await _dropdownBal.GetLeaveTypeAsync();
-            return Json(empList);
-        }
-        
-        [HttpGet]
-        public async Task<IActionResult> Getmaster_LeaveTypes()
-        {
-            var loginUser = HttpContext.Session.GetString("EmployeeDetails");
-            if (string.IsNullOrEmpty(loginUser))
-            {
-                return Unauthorized("SessionExpired");
-            }
-            IEnumerable<master_LeaveType> empList = await _dropdownBal.GetLeaveTypeAsync();
-            return Json(empList);
+            return RedirectToAction(nameof(LeaveSelfStatus));
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetLeaveTimings()
+        public async Task<IActionResult> GetLeaveApplicationPageData()
         {
-            try
-            {
-                var timings = await _dropdownBal.GetLeaveTimingsAsync();
-                return Ok(timings);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Internal server error");
-            }
+            var empCode = GetLoggedInEmpCode();
+            if (string.IsNullOrWhiteSpace(empCode)) return Json(new { success = false, message = "Session expired. Please login again." });
+            var data = await _leaveBLL.GetLeaveApplicationPageDataAsync(empCode);
+            return Json(new { success = true, data });
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetallEmployes()
+        public async Task<IActionResult> GetLeaveTypes()
         {
-            try
-            {
-                var timings = await _dropdownBal.GetallEmployesAsync();
-                return Ok(timings);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Internal server error");
-            }
-        }
-
-
-        [HttpGet]
-        public async Task<IActionResult> GetScheduledLeave()
-        {
-            string designation = "";
-            string empCode = HttpContext.Session.GetString("EmpCode");
-            string empmasterJson = HttpContext.Session.GetString("EmployeeDetails");
-            if (string.IsNullOrEmpty(empCode))
-            {
-                return Json(new { success = false, message = "Session is expired. Please login again." });// Session expired
-            }
-            if (!string.IsNullOrEmpty(empmasterJson))
-            {
-                var emp = System.Text.Json.JsonSerializer.Deserialize<empMaster>(empmasterJson);
-                 designation = emp?.designation;
-            }
-
-
-            var data = await _leaveBLL.GetScheduledLeaveAsync(empCode, designation);
-            return Json(data);
-        }
-
-        #endregion
-
-        #region Leave Form Approval
-
-        [HttpGet]
-        public async Task<IActionResult> GetLeaveHistory(string empCode)
-        {
-            try
-            {
-                var result = await _leaveBLL.GetLeaveFormByEmpAsync(empCode);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            return Json(new { success = true, data = await _leaveBLL.GetLeaveTypesAsync() });
         }
 
         [HttpGet]
-        public IActionResult GetEmployeeLeaveFullSummary(string empCode)
+        public async Task<IActionResult> GetHalfDayLeaves()
         {
-            var result = _leaveBLL.GetEmployeeLeaveFullSummary(empCode);
-            return Ok(result);
+            return Json(new { success = true, data = await _leaveBLL.GetHalfDayLeavesAsync() });
         }
 
         [HttpGet]
-        public IActionResult GetEmployeeLeaveSummary(string empCode)
+        public async Task<IActionResult> GetReasons()
         {
-             empCode = HttpContext.Session.GetString("EmpCode");
-            if (string.IsNullOrEmpty(empCode))
-            {
-                return Json(new { success = false, message = "Session is expired. Please login again." });// Session expired
-            }
-            var result = _leaveBLL.GetEmployeeLeaveSummary(empCode);
-            return Ok(result);
+            return Json(new { success = true, data = await _leaveBLL.GetReasonsAsync() });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchPersonsInCharge(string? searchText)
+        {
+            return Json(new { success = true, data = await _leaveBLL.GetPersonsInChargeAsync(searchText ?? string.Empty) });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetEmployeeLeaveSummary()
+        {
+            var empCode = GetLoggedInEmpCode();
+            if (string.IsNullOrWhiteSpace(empCode)) return Json(new { success = false, message = "Session expired. Please login again." });
+            return Json(new { success = true, data = await _leaveBLL.GetEmployeeLeaveSummaryAsync(empCode) });
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> CalculateLeaveDays([FromBody] LeaveDaysCalculationRequest request)
+        {
+            var empCode = GetLoggedInEmpCode();
+            if (string.IsNullOrWhiteSpace(empCode)) return Json(new { success = false, message = "Session expired. Please login again.", leaveDays = 0 });
+            var result = await _leaveBLL.CalculateLeaveDaysAsync(request ?? new LeaveDaysCalculationRequest(), empCode);
+            return Json(result);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetLeaveApplicationForEdit(int appNo)
+        {
+            var empCode = GetLoggedInEmpCode();
+            if (string.IsNullOrWhiteSpace(empCode)) return Json(new { success = false, message = "Session expired. Please login again." });
+            var data = await _leaveBLL.GetLeaveApplicationForEditAsync(appNo, empCode);
+            if (data == null) return Json(new { success = false, message = "Only Scheduled leave applications can be edited." });
+            return Json(new { success = true, data });
         }
 
         [HttpPost]
-        public async Task<IActionResult> SubmitApproval([FromBody] List<LeaveApprovalModel> models)
+        public async Task<IActionResult> ApplyLeave([FromBody] LeaveApplicationSaveRequest request)
         {
-            try
+            var empCode = GetLoggedInEmpCode();
+            if (string.IsNullOrWhiteSpace(empCode)) return Json(new { success = false, message = "Session expired. Please login again." });
+            var result = await _leaveBLL.ApplyLeaveAsync(request, empCode);
+            return Json(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetSelfStatus([FromBody] LeaveSelfStatusSearchRequest request)
+        {
+            var empCode = GetLoggedInEmpCode();
+            if (string.IsNullOrWhiteSpace(empCode)) return Json(new { success = false, message = "Session expired. Please login again.", data = Array.Empty<object>(), totalCount = 0 });
+            var result = await _leaveBLL.GetSelfStatusAsync(request ?? new LeaveSelfStatusSearchRequest(), empCode);
+            return Json(new { success = true, data = result.Data, totalCount = result.TotalCount });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CancelLeave(int appNo)
+        {
+            var empCode = GetLoggedInEmpCode();
+            if (string.IsNullOrWhiteSpace(empCode)) return Json(new { success = false, message = "Session expired. Please login again." });
+            var result = await _leaveBLL.CancelLeaveAsync(appNo, empCode);
+            return Json(result);
+        }
+
+        private string GetLoggedInEmpCode()
+        {
+            var empCode = HttpContext.Session.GetString("EmpCode");
+            if (!string.IsNullOrWhiteSpace(empCode)) return empCode;
+
+            var json = HttpContext.Session.GetString("EmployeeDetails");
+            if (!string.IsNullOrWhiteSpace(json))
             {
-                if (models == null || !models.Any())
-                    return Json(new { success = false, message = "No leave approvals received." });
-
-                string empCode = HttpContext.Session.GetString("EmpCode");
-                if (string.IsNullOrEmpty(empCode))
-                    return Json(new { success = false, message = "Session is expired. Please login again." });
-
-                foreach (var model in models)
+                try
                 {
-                    model.Modifiedby = empCode;
-                    await _leaveBLL.Approved_SubmitLeavesEmployee(model);
+                    var emp = JsonSerializer.Deserialize<empMaster>(json);
+                    if (!string.IsNullOrWhiteSpace(emp?.empcode)) return emp.empcode;
                 }
-
-                return Json(new { success = true, message = "All records updated successfully." });
+                catch { }
             }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
+            return string.Empty;
         }
-
-        [HttpPut]
-        public async Task<IActionResult> UpdateLeaveStatus([FromBody] List<LeaveApprovalUpdate> updates)
-        {
-            if (updates == null || !updates.Any())
-                return BadRequest("No records provided.");
-
-            string empCode = HttpContext.Session.GetString("EmpCode");
-            if (string.IsNullOrEmpty(empCode))
-                return Json(new { success = false, message = "Session expired. Please login again." });
-
-            // Set modified info
-            foreach (var item in updates)
-            {
-                item.modifiedby = empCode;
-                item.modifiedtime = DateTime.Now;
-            }
-
-            try
-            {
-                await _leaveBLL.UpdateLeaveApprovalsAsync(updates);
-                return Ok(new { message = "Leave approvals updated successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
-        #endregion
-
-        #region Create a New Leave Request
-        public IActionResult leaveFrm()
-        {
-            return View();
-        }
-        #endregion
-
-        #region Submit Button
-
-        //[HttpPost]
-        //public IActionResult SubmitLeave([FromBody] LeaveApplicationSubmitModel model)
-        //{
-        //    string empCode = HttpContext.Session.GetString("EmpCode");
-        //    if (model == null)
-        //    {
-        //        if (string.IsNullOrEmpty(empCode))
-        //            return Json(new { success = false, message = "Session expired. Please login again." });
-
-        //        return BadRequest(new { message = "Invalid data" });
-        //    }
-        //    else
-        //    {
-        //        model.EmpCode = empCode;
-        //        model.createdby = empCode;
-        //    }
-
-        //    var result = _leaveBLL.SubmitLeave(model);
-
-        //    return Ok(new { message = result });
-        //}
-
-        [HttpPost]
-        public async Task<IActionResult> SubmitLeave([FromBody] LeaveApplicationSubmitModel model)
-        {
-            string empCode = HttpContext.Session.GetString("EmpCode");
-
-            if (model == null)
-            {
-                if (string.IsNullOrEmpty(empCode))
-                    return Json(new { success = false, message = "Session expired. Please login again." });
-                    return BadRequest(new { success = false, message = "Invalid data" });
-            }
-            model.EmpCode = empCode;
-            model.createdby = empCode;
-            try
-            {
-                // Await the async BLL call
-                var result = await _leaveBLL.SubmitLeave(model);
-                // Return AppNo in success response
-                return Ok(new { success = true, message = result });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
-        }
-
-        #endregion
     }
 }

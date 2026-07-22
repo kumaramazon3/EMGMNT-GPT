@@ -270,7 +270,7 @@ namespace Maruwa_Emgmt.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetLeaveType(string id)
+        public async Task<IActionResult> GetLeaveType(int id)
         {
             var leaveType = await _leaveTypeBal.GetLeaveTypeByIdAsync(id);
             return leaveType == null
@@ -295,7 +295,7 @@ namespace Maruwa_Emgmt.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteLeaveType(string id)
+        public async Task<IActionResult> DeleteLeaveType(int id)
         {
             var employeeCode = GetLoggedInEmployeeCode();
             var result = await _leaveTypeBal.DeleteLeaveTypeAsync(id, employeeCode);

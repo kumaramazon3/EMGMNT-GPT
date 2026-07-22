@@ -32,11 +32,11 @@ namespace Maruwa_Emgmt.DAL.master
             return result;
         }
 
-        public async Task<LeaveTypeMasterVm?> GetLeaveTypeByIdAsync(string leaveId)
+        public async Task<LeaveTypeMasterVm?> GetLeaveTypeByIdAsync(int seqLeaveID)
         {
             await using var con = new SqlConnection(_connectionString);
             await using var cmd = new SqlCommand("usp_LeaveTypeMaster_GetById", con) { CommandType = CommandType.StoredProcedure };
-            cmd.Parameters.AddWithValue("@LeaveID", leaveId);
+            cmd.Parameters.AddWithValue("@SeqLeaveID", seqLeaveID);
             await con.OpenAsync();
             await using var reader = await cmd.ExecuteReaderAsync();
             return await reader.ReadAsync() ? MapLeaveType(reader) : null;
@@ -48,6 +48,7 @@ namespace Maruwa_Emgmt.DAL.master
             {
                 await using var con = new SqlConnection(_connectionString);
                 await using var cmd = new SqlCommand("usp_LeaveTypeMaster_Save", con) { CommandType = CommandType.StoredProcedure };
+                cmd.Parameters.AddWithValue("@SeqLeaveID", model.SeqLeaveID);
                 cmd.Parameters.AddWithValue("@LeaveID", model.LeaveID.Trim());
                 cmd.Parameters.AddWithValue("@LeaveType", model.LeaveType.Trim());
                 cmd.Parameters.AddWithValue("@EmployeeCode", employeeCode);
@@ -66,13 +67,13 @@ namespace Maruwa_Emgmt.DAL.master
             }
         }
 
-        public async Task<(bool Success, string Message)> DeleteLeaveTypeAsync(string leaveId, string employeeCode)
+        public async Task<(bool Success, string Message)> DeleteLeaveTypeAsync(int seqLeaveID, string employeeCode)
         {
             try
             {
                 await using var con = new SqlConnection(_connectionString);
                 await using var cmd = new SqlCommand("usp_LeaveTypeMaster_Delete", con) { CommandType = CommandType.StoredProcedure };
-                cmd.Parameters.AddWithValue("@LeaveID", leaveId);
+                cmd.Parameters.AddWithValue("@SeqLeaveID", seqLeaveID);
                 cmd.Parameters.AddWithValue("@EmployeeCode", employeeCode);
                 var status = new SqlParameter("@Status", SqlDbType.Int) { Direction = ParameterDirection.Output };
                 var message = new SqlParameter("@Message", SqlDbType.NVarChar, 250) { Direction = ParameterDirection.Output };
@@ -122,6 +123,7 @@ namespace Maruwa_Emgmt.DAL.master
         {
             return new LeaveTypeMasterVm
             {
+                SeqLeaveID = reader["SeqLeaveID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["SeqLeaveID"]),
                 LeaveID = Convert.ToString(reader["LeaveID"]) ?? string.Empty,
                 LeaveType = Convert.ToString(reader["LeaveType"]) ?? string.Empty,
                 CreatedBy = Convert.ToString(reader["CreatedBy"]),

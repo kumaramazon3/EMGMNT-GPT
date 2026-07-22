@@ -13,9 +13,9 @@ namespace Maruwa_Emgmt.BAL.master
         }
 
         public Task<LeaveTypeListResult> GetLeaveTypesAsync(LeaveTypeSearchRequest request) => _leaveTypeDal.GetLeaveTypesAsync(request);
-        public Task<LeaveTypeMasterVm?> GetLeaveTypeByIdAsync(string leaveId) => _leaveTypeDal.GetLeaveTypeByIdAsync(leaveId);
+        public Task<LeaveTypeMasterVm?> GetLeaveTypeByIdAsync(int seqLeaveID) => _leaveTypeDal.GetLeaveTypeByIdAsync(seqLeaveID);
         public Task<(bool Success, string Message)> SaveLeaveTypeAsync(LeaveTypeMasterVm model, string employeeCode) => _leaveTypeDal.SaveLeaveTypeAsync(model, employeeCode);
-        public Task<(bool Success, string Message)> DeleteLeaveTypeAsync(string leaveId, string employeeCode) => _leaveTypeDal.DeleteLeaveTypeAsync(leaveId, employeeCode);
+        public Task<(bool Success, string Message)> DeleteLeaveTypeAsync(int seqLeaveID, string employeeCode) => _leaveTypeDal.DeleteLeaveTypeAsync(seqLeaveID, employeeCode);
         public Task<List<LeaveTypeMasterVm>> GetLeaveTypesForExportAsync(LeaveTypeSearchRequest request) => _leaveTypeDal.GetLeaveTypesForExportAsync(request);
     }
 }

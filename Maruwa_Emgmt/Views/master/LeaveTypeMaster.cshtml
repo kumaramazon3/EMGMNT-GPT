@@ -214,6 +214,8 @@
             <div class="modal-body">
                 <div class="master-form-wrapper">
                     <form id="leaveTypeForm">
+                        <input type="hidden" id="seqLeaveID" name="SeqLeaveID" value="0" />
+
                         <div class="row gx-0 justify-content-center align-items-center master-form-row">
                             <label class="col-md-4 col-form-label text-end pe-1">Leave ID<span class="required-star">*</span></label>
                             <div class="col-md-6 ps-1">
@@ -271,5 +273,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/master/jsLeaveTypeMaster.js"></script>
+    <script src="~/js/master/jsLeaveTypeMaster.js" asp-append-version="true"></script>
 }

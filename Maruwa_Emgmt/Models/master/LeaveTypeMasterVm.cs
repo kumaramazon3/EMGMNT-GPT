@@ -4,6 +4,8 @@ namespace Maruwa_Emgmt.Models.master
 {
     public class LeaveTypeMasterVm
     {
+        public int SeqLeaveID { get; set; }
+
         [Required(ErrorMessage = "LeaveID is required")]
         [StringLength(50)]
         public string LeaveID { get; set; } = string.Empty;
@@ -11,7 +13,6 @@ namespace Maruwa_Emgmt.Models.master
         [Required(ErrorMessage = "LeaveType is required")]
         [StringLength(100)]
         public string LeaveType { get; set; } = string.Empty;
-
 
         public string? CreatedBy { get; set; }
         public DateTime? CreatedOn { get; set; }

@@ -34,6 +34,22 @@
         border-bottom: 1px solid #dbe3ef;
     }
 
+
+    .leave-summary-heading {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 800;
+        color: #223a5e;
+        letter-spacing: .4px;
+        text-transform: uppercase;
+        margin: 0 0 14px 0;
+        padding: 10px 12px;
+        border: 1px solid #c8d3e3;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #eef3fb, #ffffff);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.85);
+    }
+
     .summary-card {
         height: 100%;
         background: #ffffff;
@@ -67,9 +83,9 @@
         font-size: 14px;
     }
 
-    .summary-row:last-child {
-        border-bottom: none;
-    }
+        .summary-row:last-child {
+            border-bottom: none;
+        }
 
     .summary-label {
         font-weight: 700;
@@ -95,41 +111,41 @@
         border-color: #8bd875;
     }
 
-    .carry-card .summary-card-header {
-        background: linear-gradient(135deg, #4da83d, #8bd875);
-    }
+        .carry-card .summary-card-header {
+            background: linear-gradient(135deg, #4da83d, #8bd875);
+        }
 
-    .carry-card .summary-metric-value {
-        color: #287a20;
-        background: #f1fff0;
-    }
+        .carry-card .summary-metric-value {
+            color: #287a20;
+            background: #f1fff0;
+        }
 
     .annual-card {
         border-color: #f1dc5d;
     }
 
-    .annual-card .summary-card-header {
-        background: linear-gradient(135deg, #c5a600, #ffe66b);
-        color: #23375b;
-    }
+        .annual-card .summary-card-header {
+            background: linear-gradient(135deg, #c5a600, #ffe66b);
+            color: #23375b;
+        }
 
-    .annual-card .summary-metric-value {
-        color: #816700;
-        background: #fffbea;
-    }
+        .annual-card .summary-metric-value {
+            color: #816700;
+            background: #fffbea;
+        }
 
     .medical-card {
         border-color: #75d7df;
     }
 
-    .medical-card .summary-card-header {
-        background: linear-gradient(135deg, #2291a3, #75d7df);
-    }
+        .medical-card .summary-card-header {
+            background: linear-gradient(135deg, #2291a3, #75d7df);
+        }
 
-    .medical-card .summary-metric-value {
-        color: #167385;
-        background: #effcff;
-    }
+        .medical-card .summary-metric-value {
+            color: #167385;
+            background: #effcff;
+        }
 
     .total-balance-card {
         margin-top: 14px;
@@ -144,15 +160,15 @@
         box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
     }
 
-    .total-balance-card span {
-        display: inline-block;
-        margin-left: 12px;
-        padding: 3px 18px;
-        border-radius: 18px;
-        background: #2f5597;
-        color: #ffffff;
-        min-width: 70px;
-    }
+        .total-balance-card span {
+            display: inline-block;
+            margin-left: 12px;
+            padding: 3px 18px;
+            border-radius: 18px;
+            background: #2f5597;
+            color: #ffffff;
+            min-width: 70px;
+        }
 
     .leave-section-title {
         background: linear-gradient(135deg, #2f5597, #2f7fbd);
@@ -194,14 +210,23 @@
         min-height: 38px;
     }
 
-    .form-control:focus {
-        border-color: #1a73e8;
-        box-shadow: 0 0 0 0.15rem rgba(26, 115, 232, .15);
+        .form-control:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 0.15rem rgba(26, 115, 232, .15);
+        }
+
+    .required-star {
+        color: red;
+        margin-left: 3px;
     }
 
-    .required-star { color: red; margin-left: 3px; }
-    .error-border { border: 2px solid #dc3545 !important; }
-    .valid-border { border: 2px solid #1cc88a !important; }
+    .error-border {
+        border: 2px solid #dc3545 !important;
+    }
+
+    .valid-border {
+        border: 2px solid #1cc88a !important;
+    }
 
     .condition-card {
         background: linear-gradient(135deg, #243b55, #141e30);
@@ -211,11 +236,11 @@
         box-shadow: 0 5px 14px rgba(31, 45, 61, 0.18);
     }
 
-    .condition-card h5 {
-        color: #ffffff;
-        border-bottom: 1px solid rgba(255,255,255,.25);
-        padding-bottom: 8px;
-    }
+        .condition-card h5 {
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255,255,255,.25);
+            padding-bottom: 8px;
+        }
 
     .employee-info-card {
         border: 1px solid #dbe3ef;
@@ -241,13 +266,28 @@
         border-width: 2px;
     }
 
-    .search-note { font-size: 11px; color: #6c757d; margin-top: 4px; }
-    .d-none-force { display: none !important; }
+    .search-note {
+        font-size: 11px;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+
+    .d-none-force {
+        display: none !important;
+    }
 
     @@media (max-width: 767.98px) {
-        .leave-form-label { border-right: none; }
-        .leave-summary-panel { padding: 10px; }
-        .summary-card { margin-bottom: 12px; }
+        .leave-form-label {
+            border-right: none;
+        }
+
+        .leave-summary-panel {
+            padding: 10px;
+        }
+
+        .summary-card {
+            margin-bottom: 12px;
+        }
     }
 </style>
 
@@ -257,6 +297,7 @@
             <div class="leave-title-bar">LEAVE APPLICATION</div>
 
             <div class="leave-summary-panel">
+                <div class="leave-summary-heading">Leave Summary</div>
                 <div class="row">
                     <div class="col-lg-4 col-md-6 mb-3 mb-lg-0">
                         <div class="summary-card carry-card">
@@ -298,7 +339,7 @@
                     </div>
                     <div class="col-lg-4 col-md-12">
                         <div class="summary-card medical-card">
-                            <div class="summary-card-header">My Leave Summary</div>
+                            <div class="summary-card-header">Medical Leave</div>
                             <div class="summary-card-body">
                                 <div class="summary-row">
                                     <span class="summary-metric-label">Medical Leave Entitlement</span>

@@ -331,10 +331,10 @@
                     <div class="form-row no-gutters">
                         <div class="col-md-3 leave-form-label">Leave Type <span class="required-star">*</span></div>
                         <div class="col-md-9 p-2">
-                            <input type="text" id="leaveTypeSearch" class="form-control mb-2" list="leaveTypeOptions" placeholder="Key in or search Leave Type" autocomplete="off" />
+                            <input type="text" id="leaveTypeSearch" class="form-control" list="leaveTypeOptions" placeholder="Key in or search Leave Type" autocomplete="off" />
                             <datalist id="leaveTypeOptions"></datalist>
-                            <select id="leaveType" class="form-control"><option value="">- Select Leave type -</option></select>
-                            <div class="search-note">Search by leave type code or leave type name, then select from the existing dropdown.</div>
+                            <select id="leaveType" class="d-none" aria-hidden="true" tabindex="-1"><option value="">- Select Leave type -</option></select>
+                            <div class="search-note">Key in leave type code/name and select the matching leave type from the same search field.</div>
                         </div>
                     </div>
                     <div class="form-row no-gutters">

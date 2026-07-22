@@ -31,10 +31,11 @@ $(document).ready(function () {
     $('#leaveTypeSearch').on('input', function () {
         filterLeaveTypes();
         syncLeaveTypeFromSearch(false);
+        validateLeaveTypeSearch();
     });
     $('#leaveTypeSearch').on('change blur', function () {
         syncLeaveTypeFromSearch(true);
-        validateControl($('#leaveType'));
+        validateLeaveTypeSearch();
     });
     $('#reason,#reasonText,#halfDayLeave,#leaveDays').on('change keyup', function () { validateControl($(this)); });
 
@@ -134,34 +135,50 @@ function renderLeaveTypeOptions(rows) {
     const list = $('#leaveTypeOptions');
     if (!list.length) return;
     list.empty();
+
+    const used = {};
     (rows || []).forEach(function (item) {
-        const code = String(item.id || '').trim();
-        const text = String(item.text || '').trim();
-        const display = code ? `${code} - ${text}` : text;
+        const display = getLeaveTypeDisplayText(item);
+        const key = String(item?.id || display || '').trim().toLowerCase();
+
+        if (!display || used[key]) return;
+        used[key] = true;
+
         list.append(`<option value="${escapeAttr(display)}"></option>`);
-        if (text) list.append(`<option value="${escapeAttr(text)}"></option>`);
     });
+}
+
+function getLeaveTypeDisplayText(item) {
+    const code = String(item?.id || '').trim();
+    const text = String(item?.text || '').trim();
+
+    if (code && text) {
+        const lowerText = text.toLowerCase();
+        const lowerCode = code.toLowerCase();
+
+        if (lowerText === lowerCode) return code;
+        if (lowerText.startsWith(lowerCode + ' - ')) return text;
+
+        return `${code} - ${text}`;
+    }
+
+    return text || code;
 }
 
 function filterLeaveTypes() {
     const text = normalizeLookupText($('#leaveTypeSearch').val());
-    const selected = $('#leaveType').val();
     const filtered = !text ? allLeaveTypes : allLeaveTypes.filter(function (x) {
         return normalizeLookupText(x.text).includes(text) ||
             normalizeLookupText(x.id).includes(text) ||
-            normalizeLookupText(`${x.id || ''} - ${x.text || ''}`).includes(text);
+            normalizeLookupText(getLeaveTypeDisplayText(x)).includes(text);
     });
-    fillSelect('#leaveType', filtered, '- Select Leave type -');
     renderLeaveTypeOptions(filtered.length ? filtered : allLeaveTypes);
-    if (selected && filtered.some(x => String(x.id) === String(selected))) {
-        $('#leaveType').val(selected);
-    }
 }
 
 function setLeaveTypeSearchFromDropdown() {
     const id = $('#leaveType').val();
-    const text = getSelectedText('#leaveType');
-    $('#leaveTypeSearch').val(id ? text : '');
+    const item = (allLeaveTypes || []).find(function (x) { return String(x.id || '') === String(id || ''); });
+    $('#leaveTypeSearch').val(id && item ? getLeaveTypeDisplayText(item) : '');
 }
 
 function syncLeaveTypeFromSearch(allowSingleMatch) {
@@ -172,26 +189,40 @@ function syncLeaveTypeFromSearch(allowSingleMatch) {
         return;
     }
 
-    const matches = (allLeaveTypes || []).filter(function (x) {
+    const exactMatches = (allLeaveTypes || []).filter(function (x) {
         return normalizeLookupText(x.text) === text ||
             normalizeLookupText(x.id) === text ||
-            normalizeLookupText(`${x.id || ''} - ${x.text || ''}`) === text ||
-            (allowSingleMatch && (normalizeLookupText(x.text).includes(text) || normalizeLookupText(x.id).includes(text)));
+            normalizeLookupText(getLeaveTypeDisplayText(x)) === text;
     });
 
+    const matches = exactMatches.length ? exactMatches : (allowSingleMatch ? (allLeaveTypes || []).filter(function (x) {
+        return normalizeLookupText(x.text).includes(text) ||
+            normalizeLookupText(x.id).includes(text) ||
+            normalizeLookupText(getLeaveTypeDisplayText(x)).includes(text);
+    }) : []);
+
     if (matches.length === 1) {
-        const hasOption = $('#leaveType option').filter(function () { return String($(this).val()) === String(matches[0].id); }).length > 0;
-        if (!hasOption) {
-            fillSelect('#leaveType', matches, '- Select Leave type -');
-        }
         $('#leaveType').val(matches[0].id);
-        $('#leaveTypeSearch').val(matches[0].text || '');
+        $('#leaveTypeSearch').val(getLeaveTypeDisplayText(matches[0]));
         applyReasonLogic();
         calculateLeaveDays();
-    } else if (!matches.length) {
+    } else {
         $('#leaveType').val('');
         applyReasonLogic();
     }
+}
+
+function validateLeaveTypeSearch() {
+    if ($('#leaveType').val()) {
+        $('#leaveTypeSearch').removeClass('error-border').addClass('valid-border');
+        return true;
+    }
+    if ($.trim($('#leaveTypeSearch').val() || '') !== '') {
+        $('#leaveTypeSearch').removeClass('valid-border').addClass('error-border');
+    } else {
+        $('#leaveTypeSearch').removeClass('valid-border error-border');
+    }
+    return false;
 }
 
 
@@ -317,7 +348,7 @@ function validateBeforeSubmit(req) {
     const isMedical = String(req.leaveTypeName || '').toLowerCase().includes('medical');
     const isOperator = isLoggedInEmployeeOperator();
 
-    if (!req.leaveTypeId) { markInvalid('#leaveType'); valid = false; }
+    if (!req.leaveTypeId) { markInvalid('#leaveTypeSearch'); valid = false; }
     if (!req.fromDate) { markInvalid('#fromDate'); valid = false; }
     if (!req.toDate) { markInvalid('#toDate'); valid = false; }
     if (!req.leaveDays || req.leaveDays < 0.5) { markInvalid('#leaveDays'); valid = false; }

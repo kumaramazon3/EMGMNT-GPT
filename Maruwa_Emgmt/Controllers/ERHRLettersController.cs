@@ -6,19 +6,25 @@ using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Net.Mail;
 using System.Text.Json;
+using System.Text;
+using System.IO.Compression;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 
 namespace Maruwa_Emgmt.Controllers
 {
     public class ERHRLettersController : Controller
     {
         private readonly bll_EmployeeGrievance _grievanceBal;
+        private readonly bll_NatureOfGrievanceMaster _natureBal;
         private readonly IWebHostEnvironment _environment;
         private readonly IConfiguration _configuration;
         private readonly ILogger<ERHRLettersController> _logger;
 
-        public ERHRLettersController(bll_EmployeeGrievance grievanceBal, IWebHostEnvironment environment, IConfiguration configuration, ILogger<ERHRLettersController> logger)
+        public ERHRLettersController(bll_EmployeeGrievance grievanceBal, bll_NatureOfGrievanceMaster natureBal, IWebHostEnvironment environment, IConfiguration configuration, ILogger<ERHRLettersController> logger)
         {
             _grievanceBal = grievanceBal;
+            _natureBal = natureBal;
             _environment = environment;
             _configuration = configuration;
             _logger = logger;
@@ -27,6 +33,176 @@ namespace Maruwa_Emgmt.Controllers
         public IActionResult EmployeeGrievanceForm()
         {
             return View();
+        }
+
+        public IActionResult NatureOfGrievanceMaster()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetNatureOfGrievanceList([FromBody] NatureOfGrievanceSearchRequest request)
+        {
+            try
+            {
+                var data = await _natureBal.GetNatureOfGrievancesAsync(request);
+                return Json(new { success = true, data = data.Data, totalCount = data.TotalCount });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading Nature of Grievance list");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetNatureOfGrievance(int id)
+        {
+            var nature = await _natureBal.GetNatureOfGrievanceByIdAsync(id);
+            return nature == null
+                ? Json(new { success = false, message = "Nature of Grievance not found" })
+                : Json(new { success = true, data = nature });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveNatureOfGrievance(NatureOfGrievanceMasterVm model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = string.Join("\n", errors) });
+            }
+
+            if (string.IsNullOrWhiteSpace(model.NatureName))
+                return Json(new { success = false, message = "Nature of Grievance is required." });
+
+            var result = await _natureBal.SaveNatureOfGrievanceAsync(model, GetLoggedInEmployeeCode());
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteNatureOfGrievance(int id)
+        {
+            var result = await _natureBal.DeleteNatureOfGrievanceAsync(id, GetLoggedInEmployeeCode());
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetNatureOfGrievanceLookup(string? searchText)
+        {
+            var data = await _natureBal.SearchActiveNatureOfGrievanceLookupAsync(searchText);
+            return Json(new { success = true, data });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ExportNatureOfGrievances([FromBody] NatureOfGrievanceSearchRequest request, string format)
+        {
+            var natures = await _natureBal.GetNatureOfGrievancesForExportAsync(request);
+            format = (format ?? "csv").ToLowerInvariant();
+            return format switch
+            {
+                "xlsx" => File(CreateNatureXlsx(natures), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "NatureOfGrievanceMaster.xlsx"),
+                "pdf" => File(CreateNaturePdf(natures), "application/pdf", "NatureOfGrievanceMaster.pdf"),
+                _ => File(CreateNatureCsv(natures), "text/csv", "NatureOfGrievanceMaster.csv")
+            };
+        }
+
+        private static byte[] CreateNatureCsv(IEnumerable<NatureOfGrievanceMasterVm> natures)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Nature of Grievance,Is Other,Created By,Created On,Edited By,Edited On,Status");
+            foreach (var d in natures)
+            {
+                string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
+                sb.AppendLine(string.Join(',', Csv(d.NatureName), Csv(d.IsOther ? "Yes" : "No"), Csv(d.CreatedBy), Csv(d.CreatedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.EditedBy), Csv(d.EditedOn?.ToString("yyyy-MM-dd HH:mm")), Csv(d.isActive ? "Active" : "Inactive")));
+            }
+            return Encoding.UTF8.GetBytes(sb.ToString());
+        }
+
+        private static byte[] CreateNaturePdf(IEnumerable<NatureOfGrievanceMasterVm> natures)
+        {
+            using var ms = new MemoryStream();
+            using var doc = new Document(PageSize.A4.Rotate(), 20, 20, 20, 20);
+            PdfWriter.GetInstance(doc, ms);
+            doc.Open();
+            doc.Add(new Paragraph("Nature of Grievance / Complaint Master"));
+            doc.Add(new Paragraph(" "));
+            var table = new PdfPTable(7) { WidthPercentage = 100 };
+            string[] headers = ["Nature of Grievance", "Is Other", "Created By", "Created On", "Edited By", "Edited On", "Status"];
+            foreach (var h in headers) table.AddCell(new Phrase(h));
+            foreach (var d in natures)
+            {
+                table.AddCell(d.NatureName);
+                table.AddCell(d.IsOther ? "Yes" : "No");
+                table.AddCell(d.CreatedBy ?? "");
+                table.AddCell(d.CreatedOn?.ToString("yyyy-MM-dd") ?? "");
+                table.AddCell(d.EditedBy ?? "");
+                table.AddCell(d.EditedOn?.ToString("yyyy-MM-dd") ?? "");
+                table.AddCell(d.isActive ? "Active" : "Inactive");
+            }
+            doc.Add(table);
+            doc.Close();
+            return ms.ToArray();
+        }
+
+        private static byte[] CreateNatureXlsx(IEnumerable<NatureOfGrievanceMasterVm> natures)
+        {
+            using var ms = new MemoryStream();
+            using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, true))
+            {
+                AddZipEntry(archive, "[Content_Types].xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/></Types>");
+                AddZipEntry(archive, "_rels/.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>");
+                AddZipEntry(archive, "xl/_rels/workbook.xml.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/></Relationships>");
+                AddZipEntry(archive, "xl/workbook.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets><sheet name=\"NatureMaster\" sheetId=\"1\" r:id=\"rId1\"/></sheets></workbook>");
+                AddZipEntry(archive, "xl/worksheets/sheet1.xml", BuildNatureSheetXml(natures));
+            }
+            return ms.ToArray();
+        }
+
+        private static string BuildNatureSheetXml(IEnumerable<NatureOfGrievanceMasterVm> natures)
+        {
+            var rows = new StringBuilder();
+            string[] headers = ["Nature of Grievance", "Is Other", "Created By", "Created On", "Edited By", "Edited On", "Status"];
+            int rowIndex = 1;
+            rows.Append(BuildXlsxRow(rowIndex++, headers));
+            foreach (var d in natures)
+            {
+                rows.Append(BuildXlsxRow(rowIndex++, [d.NatureName, d.IsOther ? "Yes" : "No", d.CreatedBy ?? "", d.CreatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.EditedBy ?? "", d.EditedOn?.ToString("yyyy-MM-dd HH:mm") ?? "", d.isActive ? "Active" : "Inactive"]));
+            }
+            return $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>{rows}</sheetData></worksheet>";
+        }
+
+        private static string BuildXlsxRow(int rowIndex, IEnumerable<string> values)
+        {
+            var cells = new StringBuilder();
+            int col = 1;
+            foreach (var value in values)
+            {
+                cells.Append($"<c r=\"{GetExcelColumnName(col++)}{rowIndex}\" t=\"inlineStr\"><is><t>{WebUtility.HtmlEncode(value ?? string.Empty)}</t></is></c>");
+            }
+            return $"<row r=\"{rowIndex}\">{cells}</row>";
+        }
+
+        private static string GetExcelColumnName(int columnNumber)
+        {
+            var dividend = columnNumber;
+            var columnName = string.Empty;
+            while (dividend > 0)
+            {
+                var modulo = (dividend - 1) % 26;
+                columnName = Convert.ToChar(65 + modulo) + columnName;
+                dividend = (dividend - modulo) / 26;
+            }
+            return columnName;
+        }
+
+        private static void AddZipEntry(ZipArchive archive, string entryName, string content)
+        {
+            var entry = archive.CreateEntry(entryName);
+            using var writer = new StreamWriter(entry.Open(), Encoding.UTF8);
+            writer.Write(content);
         }
 
         [HttpGet]
@@ -118,7 +294,7 @@ namespace Maruwa_Emgmt.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveEmployeeGrievance([FromForm] EmployeeGrievanceFormVm model, [FromForm] string? involvedPartiesJson, [FromForm] string? employeeSignatureData, [FromForm] List<IFormFile>? supportingFiles)
+        public async Task<IActionResult> SaveEmployeeGrievance([FromForm] EmployeeGrievanceFormVm model, [FromForm] string? involvedPartiesJson, [FromForm] string? natureOfGrievanceJson, [FromForm] string? employeeSignatureData, [FromForm] List<IFormFile>? supportingFiles)
         {
             try
             {
@@ -145,8 +321,18 @@ namespace Maruwa_Emgmt.Controllers
                 if (string.IsNullOrWhiteSpace(model.ComplainantEmpId))
                     return Json(new { success = false, message = "Employee ID is required." });
 
+                if (!string.IsNullOrWhiteSpace(natureOfGrievanceJson))
+                {
+                    model.SelectedNatures = JsonSerializer.Deserialize<List<EmployeeGrievanceNatureSelectionVm>>(natureOfGrievanceJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                }
+
+                ApplyLegacyNatureFlags(model);
+
                 if (!HasAnyGrievanceNature(model))
                     return Json(new { success = false, message = "Please select at least one Nature of Grievance / Complaint." });
+
+                if (model.SelectedNatures.Any(n => n.IsOther || IsOtherNatureName(n.NatureName)) && string.IsNullOrWhiteSpace(model.OtherComplaintText))
+                    return Json(new { success = false, message = "Please enter complaint details for Other nature of grievance." });
 
                 if (string.IsNullOrWhiteSpace(model.IncidentDescription))
                     return Json(new { success = false, message = "Please describe the grievance incident details." });
@@ -289,8 +475,33 @@ namespace Maruwa_Emgmt.Controllers
 
         private static bool HasAnyGrievanceNature(EmployeeGrievanceFormVm model)
         {
-            return model.UnfairTreatment || model.HarassmentBullying || model.WorkLapses || model.PolicySopBreach ||
+            return (model.SelectedNatures != null && model.SelectedNatures.Count > 0) ||
+                   model.UnfairTreatment || model.HarassmentBullying || model.WorkLapses || model.PolicySopBreach ||
                    model.OshaConcern || model.SupervisorMisconduct || model.AbuseOfAuthority || model.WorkingHoursIssue || model.OtherComplaint;
+        }
+
+        private static void ApplyLegacyNatureFlags(EmployeeGrievanceFormVm model)
+        {
+            if (model.SelectedNatures == null || model.SelectedNatures.Count == 0) return;
+
+            foreach (var nature in model.SelectedNatures)
+            {
+                var text = (nature.NatureName ?? string.Empty).Trim().ToUpperInvariant();
+                if (text.Contains("UNFAIR") || text.Contains("DISCRIMINATION")) model.UnfairTreatment = true;
+                if (text.Contains("HARASSMENT") || text.Contains("BULLYING")) model.HarassmentBullying = true;
+                if (text.Contains("WORK LAPSES")) model.WorkLapses = true;
+                if (text.Contains("BREACH") || text.Contains("SOP")) model.PolicySopBreach = true;
+                if (text.Contains("SAFETY") || text.Contains("OSH") || text.Contains("HEALTH") || text.Contains("ENVIRONMENT")) model.OshaConcern = true;
+                if (text.Contains("MISCONDUCT BY SUPERVISOR") || text.Contains("MISCONDUCT BY") || text.Contains("COLLEAGUE")) model.SupervisorMisconduct = true;
+                if (text.Contains("ABUSE OF AUTHORITY") || text.Contains("ABUSE OF") || text.Contains("POWER")) model.AbuseOfAuthority = true;
+                if (text.Contains("WORKING HOURS") || text.Contains("SHIFT SCHEDULING")) model.WorkingHoursIssue = true;
+                if (nature.IsOther || IsOtherNatureName(nature.NatureName)) model.OtherComplaint = true;
+            }
+        }
+
+        private static bool IsOtherNatureName(string? natureName)
+        {
+            return !string.IsNullOrWhiteSpace(natureName) && natureName.Trim().StartsWith("Other", StringComparison.OrdinalIgnoreCase);
         }
 
         private async Task<string> SaveFileAsync(IFormFile file, string folderName)

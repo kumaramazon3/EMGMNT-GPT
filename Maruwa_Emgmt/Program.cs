@@ -129,6 +129,8 @@ builder.Services.AddScoped<bll_ReasonMaster>();// BLL
 #region ER and HR Letters
 builder.Services.AddScoped<i_EmployeeGrievance, da_EmployeeGrievance>();// ADO.NET DAL
 builder.Services.AddScoped<bll_EmployeeGrievance>();// BLL
+builder.Services.AddScoped<i_NatureOfGrievanceMaster, da_NatureOfGrievanceMaster>();// ADO.NET DAL
+builder.Services.AddScoped<bll_NatureOfGrievanceMaster>();// BLL
 #endregion
 
 #endregion

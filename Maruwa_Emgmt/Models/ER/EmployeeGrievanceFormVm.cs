@@ -102,6 +102,7 @@ namespace Maruwa_Emgmt.Models.ER
         public string Status { get; set; } = "InProgress";
         public string? HRRemarks { get; set; }
 
+        public List<EmployeeGrievanceNatureSelectionVm> SelectedNatures { get; set; } = new();
         public List<EmployeeGrievanceInvolvedPartyVm> InvolvedParties { get; set; } = new();
         public List<EmployeeGrievanceAttachmentVm> Attachments { get; set; } = new();
         public EmployeeGrievanceHrActionVm? HrAction { get; set; }

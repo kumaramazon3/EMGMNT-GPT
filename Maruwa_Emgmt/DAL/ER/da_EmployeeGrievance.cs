@@ -72,6 +72,13 @@ namespace Maruwa_Emgmt.DAL.ER
 
             if (model == null) return null;
 
+            await using (var cmd = new SqlCommand("usp_EGF_GetGrievanceNatures", con) { CommandType = CommandType.StoredProcedure })
+            {
+                cmd.Parameters.AddWithValue("@GrievanceID", grievanceId);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync()) model.SelectedNatures.Add(MapGrievanceNature(reader));
+            }
+
             await using (var cmd = new SqlCommand("usp_EGF_GetInvolvedParties", con) { CommandType = CommandType.StoredProcedure })
             {
                 cmd.Parameters.AddWithValue("@GrievanceID", grievanceId);
@@ -132,6 +139,24 @@ namespace Maruwa_Emgmt.DAL.ER
                 {
                     await tran.RollbackAsync();
                     return (false, message, grievanceId, referenceNo);
+                }
+
+                await using (var deleteNatureCmd = new SqlCommand("usp_EGF_DeleteGrievanceNatures", con, (SqlTransaction)tran) { CommandType = CommandType.StoredProcedure })
+                {
+                    deleteNatureCmd.Parameters.AddWithValue("@GrievanceID", grievanceId);
+                    await deleteNatureCmd.ExecuteNonQueryAsync();
+                }
+
+                foreach (var nature in model.SelectedNatures)
+                {
+                    await using var natureCmd = new SqlCommand("usp_EGF_SaveGrievanceNature", con, (SqlTransaction)tran) { CommandType = CommandType.StoredProcedure };
+                    natureCmd.Parameters.AddWithValue("@GrievanceID", grievanceId);
+                    natureCmd.Parameters.AddWithValue("@NatureID", nature.NatureID);
+                    natureCmd.Parameters.AddWithValue("@NatureName", DbValue(nature.NatureName));
+                    natureCmd.Parameters.AddWithValue("@IsOther", nature.IsOther);
+                    natureCmd.Parameters.AddWithValue("@OtherComplaintText", DbValue(model.OtherComplaintText ?? nature.OtherComplaintText));
+                    natureCmd.Parameters.AddWithValue("@CreatedBy", DbValue(employeeCode));
+                    await natureCmd.ExecuteNonQueryAsync();
                 }
 
                 foreach (var party in model.InvolvedParties)
@@ -346,6 +371,16 @@ namespace Maruwa_Emgmt.DAL.ER
             DeclarationDate = NullableDate(reader, "DeclarationDate"),
             Status = Value(reader, "Status"),
             HRRemarks = Value(reader, "HRRemarks")
+        };
+
+        private static EmployeeGrievanceNatureSelectionVm MapGrievanceNature(IDataRecord reader) => new()
+        {
+            GrievanceNatureID = Convert.ToInt32(reader["GrievanceNatureID"]),
+            GrievanceID = Convert.ToInt32(reader["GrievanceID"]),
+            NatureID = reader["NatureID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["NatureID"]),
+            NatureName = Value(reader, "NatureName"),
+            IsOther = ToBool(reader["IsOther"]),
+            OtherComplaintText = Value(reader, "OtherComplaintText")
         };
 
         private static EmployeeGrievanceInvolvedPartyVm MapParty(IDataRecord reader) => new()

@@ -275,6 +275,79 @@
     }
 
 
+    .nature-selector-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 900px;
+    }
+
+    .nature-dropdown-panel {
+        position: absolute;
+        z-index: 1070;
+        left: 0;
+        right: 0;
+        top: calc(100% + 4px);
+        max-height: 260px;
+        overflow-y: auto;
+        background: #fff;
+        border: 1px solid #cfd7e6;
+        border-radius: 8px;
+        box-shadow: 0 8px 20px rgba(0,0,0,.18);
+        padding: 8px 0;
+    }
+
+    .nature-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+        color: #253858;
+        font-weight: 500;
+    }
+
+    .nature-dropdown-item:hover {
+        background: #f2f6ff;
+    }
+
+    .selected-nature-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+        padding: 10px;
+        min-height: 46px;
+        border: 1px solid #dce3f1;
+        border-radius: 6px;
+        background: #f8fbff;
+    }
+
+    .selected-nature-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #e8f0ff;
+        color: #24436d;
+        border: 1px solid #b9ccff;
+        border-radius: 20px;
+        padding: 6px 10px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .selected-nature-chip .remove-nature {
+        cursor: pointer;
+        color: #dc3545;
+        font-weight: 800;
+    }
+
+    .selected-nature-empty {
+        color: #7d8798;
+        font-style: italic;
+        align-self: center;
+    }
+
+
     @@media (max-width: 768px) {
         .egf-custom-modal {
             max-width: 98vw !important;
@@ -391,21 +464,32 @@
                     </div>
 
                     <div class="egf-card-header">2. NATURE OF GRIEVANCE / COMPLAINT</div>
-                    <div class="mb-1"><em>Please tick all boxes that apply.</em></div>
-                    <div class="row egf-checkbox-grid mx-0">
-                        <div class="col-md-4"><label><input type="checkbox" id="unfairTreatment" /> Unfair treatment / discrimination</label></div>
-                        <div class="col-md-4"><label><input type="checkbox" id="harassmentBullying" /> Harassment / bullying</label></div>
-                        <div class="col-md-4"><label><input type="checkbox" id="workLapses" /> Work lapses</label></div>
-                        <div class="col-md-4"><label><input type="checkbox" id="policySopBreach" /> Breach of company policy / SOP</label></div>
-                        <div class="col-md-4"><label><input type="checkbox" id="oshaConcern" /> Safety, health & environment (OSH) concern</label></div>
-                        <div class="col-md-4"><label><input type="checkbox" id="supervisorMisconduct" /> Misconduct by supervisor / colleague</label></div>
-                        <div class="col-md-4"><label><input type="checkbox" id="abuseOfAuthority" /> Abuse of authority / power</label></div>
-                        <div class="col-md-4"><label><input type="checkbox" id="workingHoursIssue" /> Working hours / shift scheduling issue</label></div>
-                        <div class="col-md-4"><label><input type="checkbox" id="otherComplaint" /> Other</label></div>
+                    <div class="mb-1"><em>Please select all applicable complaint natures from the searchable dropdown.</em></div>
+                    <div class="row egf-form-row">
+                        <div class="col-md-2"><label>Nature of Grievance <span class="required-star">*</span></label></div>
+                        <div class="col-md-10">
+                            <div class="nature-selector-wrapper">
+                                <input type="text" id="natureSearchInput" class="form-control" placeholder="Key in or search Nature of Grievance / Complaint" autocomplete="off" />
+                                <div id="natureDropdownPanel" class="nature-dropdown-panel d-none"></div>
+                            </div>
+                            <div id="selectedNatureContainer" class="selected-nature-list">
+                                <span class="selected-nature-empty">No Nature of Grievance selected</span>
+                            </div>
+                            <input type="hidden" id="natureOfGrievanceJson" name="natureOfGrievanceJson" />
+                            <input type="hidden" id="unfairTreatment" />
+                            <input type="hidden" id="harassmentBullying" />
+                            <input type="hidden" id="workLapses" />
+                            <input type="hidden" id="policySopBreach" />
+                            <input type="hidden" id="oshaConcern" />
+                            <input type="hidden" id="supervisorMisconduct" />
+                            <input type="hidden" id="abuseOfAuthority" />
+                            <input type="hidden" id="workingHoursIssue" />
+                            <input type="hidden" id="otherComplaint" />
+                        </div>
                     </div>
-                    <div class="row mt-2">
-                        <div class="col-md-2"><label>If Other, specify</label></div>
-                        <div class="col-md-10"><input type="text" id="otherComplaintText" name="OtherComplaintText" class="form-control" /></div>
+                    <div class="row mt-2 d-none" id="otherComplaintTextRow">
+                        <div class="col-md-2"><label>Other Details <span class="required-star">*</span></label></div>
+                        <div class="col-md-10"><input type="text" id="otherComplaintText" name="OtherComplaintText" class="form-control" placeholder="Please specify other complaint details" maxlength="500" /></div>
                     </div>
 
                     <div class="egf-card-header">3. PARTICULARS OF PERSON(S) / PARTY INVOLVED (IF ANY)</div>

@@ -136,16 +136,16 @@ begin
         set @tms='HL'  
 end
 
-if @ltype='Marriage-self'
+if @ltype='marriage-self'
 begin
         set @tms='MS'   
 end 
 
-if @ltype='Emergency-Annual'
+if @ltype='Emergency'
 begin
         set @tms='AL'
 end
-    if @ltype='Emergency-Unpaid'
+    if @ltype='EmergencyUnpaid'
 begin
         set @tms='EUP'
 end
@@ -251,18 +251,14 @@ begin
         set @tms='HL'  
 end
 
-if @ltype='Marriage-self'
+if @ltype='marriage-self'
 begin
         set @tms='MS'   
 end 
 
-if @ltype='Emergency-Annual'
+if @ltype='Emergency'
 begin
         set @tms='AL'
-end
-if @ltype='Emergency-Unpaid'
-begin
-        set @tms='EUP'
 end
     if @ltype='EmergencyUP'
 begin

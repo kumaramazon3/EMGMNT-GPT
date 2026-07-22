@@ -15,6 +15,9 @@ let isHrUserLogin = false;
 let isHrActionEditable = false;
 let loginInfo = {};
 let departmentLookupMap = {};
+let natureLookupList = [];
+let selectedNatureRows = [];
+let natureLookupLoaded = false;
 
 const signaturePads = {
     employee: {
@@ -110,6 +113,23 @@ $(document).ready(function () {
         if (empCode) fillHrActionEmployeeByCode(empCode);
     });
 
+    $('#natureSearchInput').on('focus click', function () {
+        if (isViewMode) return;
+        loadNatureOptions($(this).val(), true);
+        $('#natureDropdownPanel').removeClass('d-none');
+    });
+
+    $('#natureSearchInput').on('input', function () {
+        if (isViewMode) return;
+        debounceLookup(() => loadNatureOptions($('#natureSearchInput').val(), true));
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.nature-selector-wrapper').length) {
+            $('#natureDropdownPanel').addClass('d-none');
+        }
+    });
+
     $('#supportDocsYes').on('change', function () {
         $('#supportingFiles').show();
     });
@@ -121,6 +141,11 @@ $(document).ready(function () {
 
     $('#supportingFiles').on('change', function () {
         previewSupportingFiles(this.files);
+    });
+
+    $('#otherComplaintText').on('input', function () {
+        refreshNatureHiddenJson();
+        validateControl($(this));
     });
 
     $('#grievanceForm').on('keyup change', 'input[required],textarea[required],select[required]', function () {
@@ -155,6 +180,7 @@ async function initialiseScreen() {
     loadDepartmentLookupMap().always(function () {
         loadGrievances();
     });
+    loadNatureOptions('', false);
 }
 
 async function loadGrievanceLoginInfo() {
@@ -777,6 +803,220 @@ function drawImageOnCanvas(canvas, src, callback) {
     image.src = src;
 }
 
+async function loadNatureOptions(searchText, showDropdown) {
+    try {
+        const response = await $.get('/ERHRLetters/GetNatureOfGrievanceLookup', { searchText: searchText || '' });
+        const data = response.success ? (response.data || []) : [];
+        natureLookupList = uniqueNatureList(data);
+        natureLookupLoaded = true;
+        renderNatureDropdown();
+        if (showDropdown && !isViewMode) $('#natureDropdownPanel').removeClass('d-none');
+    } catch (e) {
+        natureLookupList = [];
+        renderNatureDropdown();
+    }
+}
+
+function uniqueNatureList(data) {
+    const map = {};
+    const list = [];
+    (data || []).forEach(function (item) {
+        const natureId = parseInt(getFirstDefined(item.natureID, item.NatureID), 10) || 0;
+        const natureName = getFirstDefined(item.natureName, item.NatureName);
+        const key = natureId > 0 ? String(natureId) : natureName.toLowerCase();
+        if (!natureName || map[key]) return;
+        map[key] = true;
+        list.push({
+            natureID: natureId,
+            natureName: natureName,
+            isOther: toBool(getFirstDefined(item.isOther, item.IsOther)) || isOtherNatureName(natureName)
+        });
+    });
+    return list;
+}
+
+function renderNatureDropdown() {
+    const panel = $('#natureDropdownPanel');
+    const searchText = String($('#natureSearchInput').val() || '').trim().toLowerCase();
+    const filtered = natureLookupList.filter(function (n) {
+        return !searchText || n.natureName.toLowerCase().indexOf(searchText) >= 0 || String(n.natureID).indexOf(searchText) >= 0;
+    });
+
+    if (isViewMode) {
+        panel.addClass('d-none').empty();
+        return;
+    }
+
+    if (filtered.length === 0) {
+        panel.html('<div class="px-3 py-2 text-muted">No Nature of Grievance found</div>');
+        return;
+    }
+
+    const html = filtered.map(function (n) {
+        const checked = selectedNatureRows.some(x => Number(getFirstDefined(x.natureID, x.NatureID)) === Number(n.natureID)) ? 'checked' : '';
+        return `<label class="nature-dropdown-item">
+            <input type="checkbox" ${checked} onchange="toggleNatureSelection(${n.natureID}, this.checked)" />
+            <span>${escapeHtml(n.natureName)}</span>
+        </label>`;
+    }).join('');
+    panel.html(html);
+}
+
+function toggleNatureSelection(natureId, checked) {
+    if (isViewMode) return;
+    const nature = natureLookupList.find(x => Number(x.natureID) === Number(natureId));
+    if (!nature) return;
+
+    if (checked) {
+        if (!selectedNatureRows.some(x => Number(getFirstDefined(x.natureID, x.NatureID)) === Number(natureId))) {
+            selectedNatureRows.push({
+                natureID: nature.natureID,
+                natureName: nature.natureName,
+                isOther: nature.isOther,
+                otherComplaintText: ''
+            });
+        }
+    } else {
+        selectedNatureRows = selectedNatureRows.filter(x => Number(getFirstDefined(x.natureID, x.NatureID)) !== Number(natureId));
+    }
+
+    $('#natureSearchInput').val('');
+    renderSelectedNatures();
+    renderNatureDropdown();
+}
+
+function removeSelectedNature(index) {
+    if (isViewMode) return;
+    selectedNatureRows.splice(index, 1);
+    renderSelectedNatures();
+    renderNatureDropdown();
+}
+
+function renderSelectedNatures() {
+    const container = $('#selectedNatureContainer');
+    if (selectedNatureRows.length === 0) {
+        container.html('<span class="selected-nature-empty">No Nature of Grievance selected</span>');
+        $('#natureOfGrievanceJson').val('');
+        $('#otherComplaintTextRow').addClass('d-none');
+        $('#otherComplaintText').val('');
+        return;
+    }
+
+    const html = selectedNatureRows.map(function (n, index) {
+        const name = getFirstDefined(n.natureName, n.NatureName);
+        const removeIcon = isViewMode ? '' : `<span class="remove-nature" title="Remove" onclick="removeSelectedNature(${index})">&times;</span>`;
+        return `<span class="selected-nature-chip">${escapeHtml(name)}${removeIcon}</span>`;
+    }).join('');
+    container.html(html);
+
+    const otherSelected = isOtherNatureSelected();
+    $('#otherComplaintTextRow').toggleClass('d-none', !otherSelected);
+    if (!otherSelected) $('#otherComplaintText').val('');
+    refreshNatureHiddenJson();
+}
+
+function refreshNatureHiddenJson() {
+    const otherText = $('#otherComplaintText').val();
+    const data = selectedNatureRows.map(function (n) {
+        return {
+            natureID: parseInt(getFirstDefined(n.natureID, n.NatureID), 10) || 0,
+            natureName: getFirstDefined(n.natureName, n.NatureName),
+            isOther: toBool(getFirstDefined(n.isOther, n.IsOther)) || isOtherNatureName(getFirstDefined(n.natureName, n.NatureName)),
+            otherComplaintText: otherText
+        };
+    });
+    $('#natureOfGrievanceJson').val(JSON.stringify(data));
+}
+
+function isOtherNatureSelected() {
+    return selectedNatureRows.some(function (n) {
+        return toBool(getFirstDefined(n.isOther, n.IsOther)) || isOtherNatureName(getFirstDefined(n.natureName, n.NatureName));
+    });
+}
+
+function isOtherNatureName(natureName) {
+    return String(natureName || '').trim().toLowerCase().startsWith('other');
+}
+
+function setSelectedNaturesFromData(data) {
+    const fromDb = getFirstDefined(data.selectedNatures, data.SelectedNatures);
+    selectedNatureRows = [];
+
+    if (Array.isArray(fromDb) && fromDb.length > 0) {
+        selectedNatureRows = fromDb.map(function (n) {
+            return {
+                grievanceNatureID: parseInt(getFirstDefined(n.grievanceNatureID, n.GrievanceNatureID), 10) || 0,
+                natureID: parseInt(getFirstDefined(n.natureID, n.NatureID), 10) || 0,
+                natureName: getFirstDefined(n.natureName, n.NatureName),
+                isOther: toBool(getFirstDefined(n.isOther, n.IsOther)),
+                otherComplaintText: getFirstDefined(n.otherComplaintText, n.OtherComplaintText)
+            };
+        });
+    } else {
+        selectedNatureRows = buildNatureRowsFromLegacyFlags(data);
+    }
+
+    const otherText = getFirstDefined(data.otherComplaintText, data.OtherComplaintText);
+    $('#otherComplaintText').val(otherText);
+    renderSelectedNatures();
+}
+
+function buildNatureRowsFromLegacyFlags(data) {
+    const rows = [];
+    const map = [
+        ['unfairTreatment', 'UnfairTreatment', 'Unfair treatment / discrimination'],
+        ['harassmentBullying', 'HarassmentBullying', 'Harassment / bullying'],
+        ['workLapses', 'WorkLapses', 'Work lapses'],
+        ['policySopBreach', 'PolicySopBreach', 'Breach of company policy / SOP'],
+        ['oshaConcern', 'OshaConcern', 'Safety, health & environment (OSH) concern'],
+        ['supervisorMisconduct', 'SupervisorMisconduct', 'Misconduct by supervisor / colleague'],
+        ['abuseOfAuthority', 'AbuseOfAuthority', 'Abuse of authority / power'],
+        ['workingHoursIssue', 'WorkingHoursIssue', 'Working hours / shift scheduling issue'],
+        ['otherComplaint', 'OtherComplaint', 'Other (please specify in the below text box)']
+    ];
+
+    map.forEach(function (m) {
+        if (toBool(getFirstDefined(data[m[0]], data[m[1]]))) {
+            const master = natureLookupList.find(x => x.natureName.toLowerCase() === m[2].toLowerCase());
+            rows.push({
+                natureID: master ? master.natureID : 0,
+                natureName: master ? master.natureName : m[2],
+                isOther: m[2].toLowerCase().startsWith('other')
+            });
+        }
+    });
+    return rows;
+}
+
+function getLegacyNatureFlagsFromSelected() {
+    const flags = {
+        unfairTreatment: false,
+        harassmentBullying: false,
+        workLapses: false,
+        policySopBreach: false,
+        oshaConcern: false,
+        supervisorMisconduct: false,
+        abuseOfAuthority: false,
+        workingHoursIssue: false,
+        otherComplaint: false
+    };
+
+    selectedNatureRows.forEach(function (n) {
+        const text = getFirstDefined(n.natureName, n.NatureName).toUpperCase();
+        if (text.indexOf('UNFAIR') >= 0 || text.indexOf('DISCRIMINATION') >= 0) flags.unfairTreatment = true;
+        if (text.indexOf('HARASSMENT') >= 0 || text.indexOf('BULLYING') >= 0) flags.harassmentBullying = true;
+        if (text.indexOf('WORK LAPSES') >= 0) flags.workLapses = true;
+        if (text.indexOf('BREACH') >= 0 || text.indexOf('SOP') >= 0) flags.policySopBreach = true;
+        if (text.indexOf('SAFETY') >= 0 || text.indexOf('OSH') >= 0 || text.indexOf('HEALTH') >= 0 || text.indexOf('ENVIRONMENT') >= 0) flags.oshaConcern = true;
+        if (text.indexOf('MISCONDUCT BY SUPERVISOR') >= 0 || text.indexOf('MISCONDUCT BY') >= 0 || text.indexOf('COLLEAGUE') >= 0) flags.supervisorMisconduct = true;
+        if (text.indexOf('ABUSE OF AUTHORITY') >= 0 || text.indexOf('ABUSE OF') >= 0 || text.indexOf('POWER') >= 0) flags.abuseOfAuthority = true;
+        if (text.indexOf('WORKING HOURS') >= 0 || text.indexOf('SHIFT SCHEDULING') >= 0) flags.workingHoursIssue = true;
+        if (toBool(getFirstDefined(n.isOther, n.IsOther)) || isOtherNatureName(text)) flags.otherComplaint = true;
+    });
+
+    return flags;
+}
+
 function addInvolvedParty() {
     const employeeID = extractEmployeeCode($('#partyEmpSearch').val());
     if (!employeeID) {
@@ -825,15 +1065,18 @@ function collectFormData() {
     formData.append('Department', $('#department').val());
     formData.append('PositionTitle', $('#positionTitle').val());
     formData.append('ReferenceNo', $('#referenceNo').val() === 'Auto-generated after submit' ? '' : $('#referenceNo').val());
-    formData.append('UnfairTreatment', $('#unfairTreatment').is(':checked'));
-    formData.append('HarassmentBullying', $('#harassmentBullying').is(':checked'));
-    formData.append('WorkLapses', $('#workLapses').is(':checked'));
-    formData.append('PolicySopBreach', $('#policySopBreach').is(':checked'));
-    formData.append('OshaConcern', $('#oshaConcern').is(':checked'));
-    formData.append('SupervisorMisconduct', $('#supervisorMisconduct').is(':checked'));
-    formData.append('AbuseOfAuthority', $('#abuseOfAuthority').is(':checked'));
-    formData.append('WorkingHoursIssue', $('#workingHoursIssue').is(':checked'));
-    formData.append('OtherComplaint', $('#otherComplaint').is(':checked'));
+    refreshNatureHiddenJson();
+    const natureFlags = getLegacyNatureFlagsFromSelected();
+    formData.append('natureOfGrievanceJson', $('#natureOfGrievanceJson').val());
+    formData.append('UnfairTreatment', natureFlags.unfairTreatment);
+    formData.append('HarassmentBullying', natureFlags.harassmentBullying);
+    formData.append('WorkLapses', natureFlags.workLapses);
+    formData.append('PolicySopBreach', natureFlags.policySopBreach);
+    formData.append('OshaConcern', natureFlags.oshaConcern);
+    formData.append('SupervisorMisconduct', natureFlags.supervisorMisconduct);
+    formData.append('AbuseOfAuthority', natureFlags.abuseOfAuthority);
+    formData.append('WorkingHoursIssue', natureFlags.workingHoursIssue);
+    formData.append('OtherComplaint', natureFlags.otherComplaint);
     formData.append('OtherComplaintText', $('#otherComplaintText').val());
     formData.append('ConductDate', $('#conductDate').val());
     formData.append('ConductTime', $('#conductTime').val());
@@ -884,9 +1127,15 @@ function validateGrievanceForm() {
         $('#complainantEmpSearch').removeClass('error-border').addClass('valid-border');
     }
 
-    const hasNature = $('#unfairTreatment,#harassmentBullying,#workLapses,#policySopBreach,#oshaConcern,#supervisorMisconduct,#abuseOfAuthority,#workingHoursIssue,#otherComplaint').filter(':checked').length > 0;
-    if (!hasNature) {
+    if (selectedNatureRows.length === 0) {
+        $('#natureSearchInput').removeClass('valid-border').addClass('error-border');
         alert('Please select at least one Nature of Grievance / Complaint.');
+        return false;
+    }
+
+    if (isOtherNatureSelected() && String($('#otherComplaintText').val() || '').trim() === '') {
+        $('#otherComplaintText').removeClass('valid-border').addClass('error-border');
+        alert('Please enter complaint details for Other nature of grievance.');
         return false;
     }
 
@@ -919,16 +1168,7 @@ function fillForm(data) {
     $('#positionTitle').val(getFirstDefined(data.positionTitle, data.PositionTitle));
     $('#dateOfReportDisplay').val(formatDateOnly(getFirstDefined(data.dateOfReport, data.DateOfReport)));
 
-    setChecked('unfairTreatment', getFirstDefined(data.unfairTreatment, data.UnfairTreatment));
-    setChecked('harassmentBullying', getFirstDefined(data.harassmentBullying, data.HarassmentBullying));
-    setChecked('workLapses', getFirstDefined(data.workLapses, data.WorkLapses));
-    setChecked('policySopBreach', getFirstDefined(data.policySopBreach, data.PolicySopBreach));
-    setChecked('oshaConcern', getFirstDefined(data.oshaConcern, data.OshaConcern));
-    setChecked('supervisorMisconduct', getFirstDefined(data.supervisorMisconduct, data.SupervisorMisconduct));
-    setChecked('abuseOfAuthority', getFirstDefined(data.abuseOfAuthority, data.AbuseOfAuthority));
-    setChecked('workingHoursIssue', getFirstDefined(data.workingHoursIssue, data.WorkingHoursIssue));
-    setChecked('otherComplaint', getFirstDefined(data.otherComplaint, data.OtherComplaint));
-    $('#otherComplaintText').val(getFirstDefined(data.otherComplaintText, data.OtherComplaintText));
+    setSelectedNaturesFromData(data);
 
     $('#conductDate').val(formatInputDate(getFirstDefined(data.conductDate, data.ConductDate)));
     $('#conductTime').val(formatInputTime(getFirstDefined(data.conductTime, data.ConductTime)));
@@ -1439,6 +1679,10 @@ function resetGrievanceForm() {
     $('#complainantName,#department,#positionTitle,#dateOfReportDisplay,#referenceNo,#declarationEmployee,#declarationDateDisplay').prop('readonly', true);
     involvedParties = [];
     renderInvolvedParties();
+    selectedNatureRows = [];
+    $('#natureSearchInput').val('');
+    $('#natureDropdownPanel').addClass('d-none').empty();
+    renderSelectedNatures();
     $('#supportingFilePreview').empty();
     $('#supportingFiles').hide().val('');
     resetSignature('employee');

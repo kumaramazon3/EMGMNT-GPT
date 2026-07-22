@@ -113,6 +113,7 @@ function bindSummary(summary) {
     $('#medicalUtilised').text(formatNumber(summary.medicalUtilised));
     $('#medicalBalance').text(formatNumber(summary.medicalBalance));
     $('#totalEntitlementBalance').text(formatNumber(summary.totalEntitlementBalance));
+    $('#totalMedicalBalance').text(formatNumber(summary.medicalBalance));
 }
 
 function isLoggedInEmployeeOperator() {

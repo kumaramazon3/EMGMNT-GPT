@@ -28,14 +28,23 @@ $(document).ready(function () {
         validateControl($(this));
         calculateLeaveDays();
     });
+    $('#leaveTypeSearch').on('focus', function () {
+        showLeaveTypeSuggestionList();
+    });
+
     $('#leaveTypeSearch').on('input', function () {
+        showLeaveTypeSuggestionList();
         filterLeaveTypes();
         syncLeaveTypeFromSearch(false);
         validateLeaveTypeSearch();
     });
+
     $('#leaveTypeSearch').on('change blur', function () {
         syncLeaveTypeFromSearch(true);
         validateLeaveTypeSearch();
+        if ($('#leaveType').val()) {
+            hideLeaveTypeSuggestionList();
+        }
     });
     $('#reason,#reasonText,#halfDayLeave,#leaveDays').on('change keyup', function () { validateControl($(this)); });
 
@@ -148,6 +157,31 @@ function renderLeaveTypeOptions(rows) {
     });
 }
 
+
+function showLeaveTypeSuggestionList() {
+    const input = $('#leaveTypeSearch');
+    if (!input.attr('list')) {
+        input.attr('list', 'leaveTypeOptions');
+    }
+
+    if ($('#leaveTypeOptions option').length === 0) {
+        renderLeaveTypeOptions(allLeaveTypes);
+    }
+}
+
+function hideLeaveTypeSuggestionList() {
+    const input = $('#leaveTypeSearch');
+    $('#leaveTypeOptions').empty();
+    input.removeAttr('list');
+
+    // Re-enable datalist after the browser closes the suggestion popup.
+    // This prevents the selected value from appearing again immediately below the input.
+    setTimeout(function () {
+        input.attr('list', 'leaveTypeOptions');
+    }, 250);
+}
+
+
 function getLeaveTypeDisplayText(item) {
     const code = String(item?.id || '').trim();
     const text = String(item?.text || '').trim();
@@ -179,6 +213,9 @@ function setLeaveTypeSearchFromDropdown() {
     const id = $('#leaveType').val();
     const item = (allLeaveTypes || []).find(function (x) { return String(x.id || '') === String(id || ''); });
     $('#leaveTypeSearch').val(id && item ? getLeaveTypeDisplayText(item) : '');
+    if (id && item) {
+        hideLeaveTypeSuggestionList();
+    }
 }
 
 function syncLeaveTypeFromSearch(allowSingleMatch) {
@@ -206,6 +243,7 @@ function syncLeaveTypeFromSearch(allowSingleMatch) {
         $('#leaveTypeSearch').val(getLeaveTypeDisplayText(matches[0]));
         applyReasonLogic();
         calculateLeaveDays();
+        hideLeaveTypeSuggestionList();
     } else {
         $('#leaveType').val('');
         applyReasonLogic();
